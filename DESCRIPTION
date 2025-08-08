@@ -11,7 +11,8 @@ biocViews: Software, ImmunoOncology, SingleCell, Classification, Annotation, Seq
 Depends: 
 	R (>= 4.3.0)
 Imports: 
-        reticulate
+        reticulate,
+        basilisk
 Suggests: 
 	BiocStyle, 
 	ggplot2,
