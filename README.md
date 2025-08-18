@@ -1,7 +1,7 @@
 # immLynx
 Linking python packages and hugging face models for immune repertoire analysis in R
 
-<img align="right" src="https://github.com/ncborcherding/immLynx/blob/main/www/immlynx_hex.png" width="305" height="352">
+<img align="right" src="https://github.com/BorchLab/immLynx/blob/main/www/immlynx_hex.png" width="305" height="352">
 
 ## Introduction
 
