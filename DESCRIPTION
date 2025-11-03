@@ -1,28 +1,31 @@
 Package: immLynx
-Title: Linking Immune Repertoire and Sequencing Analysis Pipelines
+Title: Linking advanced TCR python pipelines and Hugging Face models in R
 Version: 0.99.0
 Authors@R: c(
     person(given = "Nick", family = "Borcherding", role = c("aut", "cre"), email = "ncborch@gmail.com"))
 Description: A set of tools that imports and runs popular python immune repertoire analysis tools and hugging face models. These function will primarily be set up to get the objective outputs of the pipelines, such as embeddings or motif quantifications. The package is fully compatible with the scRepertoire ecosystem.
 License: MIT + file LICENSE 
 Encoding: UTF-8
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 biocViews: Software, ImmunoOncology, SingleCell, Classification, Annotation, Sequencing, MotifAnnotation
 Depends: 
 	R (>= 4.3.0)
 Imports: 
-        reticulate,
-        basilisk
+    	basilisk (>= 1.8.0),
+    	reticulate (>= 1.24),
+    	immApex,
+    	methods,
+    	utils
 Suggests: 
 	BiocStyle, 
 	ggplot2,
+	knitr,
 	markdown,
 	rmarkdown, 
 	scRepertoire,
+	Seurat (>= 5.0.0),
 	spelling,
         testthat
-LinkingTo:
-	Rcpp
 VignetteBuilder: knitr
 Language: en-US
 URL: https://github.com/BorchLab/immLynx/

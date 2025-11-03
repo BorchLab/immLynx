@@ -6,11 +6,6 @@
 # specifies the name of the environment, the package name, and the list of
 # required Python packages.
 #
-# The packages are specified as a character vector, with each element
-# being a package name and optionally a version number. Packages can be
-# installed from conda or pip. For conda packages, the channel can be
-# specified using the 'channel::package' syntax.
-#
 # The defined environment is then used in the wrapper functions to execute
 # Python code using basiliskRun.
 
