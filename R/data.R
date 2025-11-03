@@ -1,0 +1,40 @@
+#' Example Single-Cell RNA-seq Data with TCR Information
+#'
+#' @description
+#' A Seurat object containing single-cell RNA-seq data from multiple patients
+#' with integrated T-cell receptor (TCR) repertoire data from scRepertoire.
+#' This dataset is useful for demonstrating the functionality of immLynx
+#' analysis functions.
+#'
+#' @format A Seurat object with the following components:
+#' \describe{
+#'   \item{Assays}{RNA expression data}
+#'   \item{Metadata}{Cell-level metadata including:}
+#'   \itemize{
+#'     \item \code{orig.ident}: Original sample identifier (e.g., "P17B", "P17L")
+#'     \item \code{nCount_RNA}: Total RNA counts per cell
+#'     \item \code{nFeature_RNA}: Number of detected genes per cell
+#'     \item \code{seurat_clusters}: Cell cluster assignments
+#'     \item \code{CTgene}: TCR gene information (V/J genes)
+#'     \item \code{CTnt}: TCR CDR3 nucleotide sequences
+#'     \item \code{CTaa}: TCR CDR3 amino acid sequences
+#'     \item \code{CTstrict}: Strict TCR identifier combining gene and sequence
+#'     \item \code{clonalFrequency}: Number of cells sharing the same TCR
+#'     \item \code{clonalProportion}: Proportion of cells with the same TCR
+#'     \item \code{cloneSize}: Categorical clone size (Small, Medium, Large, Hyperexpanded)
+#'     \item \code{Patient}: Patient identifier (P17, P18, P19, P20)
+#'     \item \code{Type}: Sample type (B = Blood, L = Lymph node)
+#'   }
+#' }
+#'
+#' @details
+#' This dataset was created by combining 10X Genomics single-cell gene expression
+#' and VDJ sequencing data from 8 samples across 4 patients. Each patient contributed
+#' two samples: blood (B) and lymph node (L) tissue. More information on the 
+#' data can be found in the following [manuscript](https://pubmed.ncbi.nlm.nih.gov/33622974/).
+#'
+#' @keywords datasets
+#' @name immLynx_example
+#' @docType data
+"immLynx_example"
+
