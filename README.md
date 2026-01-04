@@ -5,37 +5,91 @@ Linking advanced TCR python pipelines and Hugging Face models in R
 
 ## Introduction
 
-provides a unified R interface for running multiple state-of-the-art TCR analysis 
-pipelines on single-cell TCR sequencing data. The package seamlessly integrates 
+immLynx provides a unified R interface for running multiple state-of-the-art TCR analysis
+pipelines on single-cell TCR sequencing data. The package seamlessly integrates
 with Seurat and scRepertoire workflows, wrapping popular Python-based tools to enable:
 
-*   **tcrdist3**: Calculate pairwise distances between T-cell receptors using `runTCRdist`.
-*   **DeepTCR**: Perform unsupervised feature extraction from TCR sequences with `runDeepTCR`.
-*   **OLGA**: Compute the generation probability of CDR3 sequences or generate new sequences with `runOLGA`.
-*   **soNNia**: Infer selection pressures on TCRs using `runSoNNia`.
-*   **clusTCR**: Cluster large sets of CDR3 sequences with `runClusTCR`.
+*   **tcrdist3**: Calculate pairwise distances between T-cell receptors using `runTCRdist`
+*   **DeepTCR**: Perform unsupervised feature extraction from TCR sequences with `runDeepTCR`
+*   **OLGA**: Compute the generation probability of CDR3 sequences or generate new sequences with `runOLGA`
+*   **soNNia**: Infer selection pressures on TCRs using `runSoNNia`
+*   **clusTCR**: Cluster large sets of CDR3 sequences with `runClustTCR`
+*   **metaclonotypist**: Identify TCR metaclones with `runMetaclonotypist`
+*   **GLIPH2**: Find TCR specificity groups with `runGLIPH` (via turboGliph)
+*   **ESM-2**: Generate protein language model embeddings with `runEmbeddings`
 
 For more details on each function, please refer to the R documentation (e.g., `?runTCRdist`).
 
-## System requirements 
+## System Requirements
 
-immLynx has been tested on R versions >= 4.0. Please consult the DESCRIPTION file 
-for more details on required R packages - it is specifically designed to work with 
-single-cell objects that have had BCR/TCRs added using 
-[scRepertoire](https://github.com/BorchLab/scRepertoire). immLynx has been tested 
+immLynx has been tested on R versions >= 4.3. Please consult the DESCRIPTION file
+for more details on required R packages - it is specifically designed to work with
+single-cell objects that have had BCR/TCRs added using
+[scRepertoire](https://github.com/BorchLab/scRepertoire). immLynx has been tested
 on OS X and Linux platforms.
 
 ## Installation
 
 **Install immLynx:**
 ```r
-remotes::install_github("yourusername/immLynx")
+# Install from GitHub
+remotes::install_github("BorchLab/immLynx")
 ```
 
-The first time you use immLynx, it will automatically install the required Python 
-packages in an isolated environment. This may take several minutes.
+The first time you use immLynx, it will automatically install the required Python
+packages in an isolated environment via basilisk. This may take several minutes.
+
+**Optional: Install turboGliph for GLIPH2 analysis:**
+```r
+remotes::install_github("HetzDra/turboGliph")
+```
+
+## Quick Start
+
+```r
+library(immLynx)
+library(Seurat)
+
+# Load example data
+data("immLynx_example")
+
+# Summarize TCR repertoire
+summary <- summarizeTCRrepertoire(immLynx_example)
+print(summary)
+
+# Cluster TCRs
+seurat_obj <- runClustTCR(immLynx_example, chains = "TRB", method = "mcl")
+
+# Calculate generation probability
+seurat_obj <- runOLGA(seurat_obj, chains = "TRB")
+
+# Generate protein embeddings
+seurat_obj <- runEmbeddings(seurat_obj, chains = "TRB")
+
+# Visualize embeddings
+seurat_obj <- RunUMAP(seurat_obj, reduction = "tcr_esm", dims = 1:30)
+DimPlot(seurat_obj, reduction = "umap")
+```
 
 ## Main Functions
+
+### Utility Functions
+
+Extract and validate TCR data:
+
+```r
+# Extract TCR data
+tcr_data <- extractTCRdata(seurat_obj, chains = "TRB")
+
+# Validate data format
+validation <- validateTCRdata(tcr_data)
+
+# Convert to tcrdist3 format
+tcrdist_format <- convertToTcrdist(tcr_data)
+
+# Generate repertoire summary
+summary <- summarizeTCRrepertoire(seurat_obj)
+```
 
 ### TCR Clustering
 
@@ -43,22 +97,48 @@ Cluster TCRs based on sequence similarity using clusTCR:
 
 ```r
 # MCL clustering (default)
-seurat_obj <- runClusTCR(seurat_obj, 
-                         chains = "TRB", 
-                         method = "mcl",
-                         inflation = 2.0)
+seurat_obj <- runClustTCR(seurat_obj,
+                          chains = "TRB",
+                          method = "mcl",
+                          inflation = 2.0)
 
 # DBSCAN clustering
-seurat_obj <- runClusTCR(seurat_obj,
-                         chains = "TRB",
-                         method = "dbscan",
-                         eps = 0.5,
-                         min_samples = 5)
+seurat_obj <- runClustTCR(seurat_obj,
+                          chains = "TRB",
+                          method = "dbscan",
+                          eps = 0.5)
+```
 
-# Cluster paired chains
-seurat_obj <- runClusTCR(seurat_obj,
-                         chains = "both",
-                         combine_chains = TRUE)
+### Metaclone Discovery
+
+Identify metaclones using metaclonotypist:
+
+```r
+# Run metaclonotypist with TCRdist
+seurat_obj <- runMetaclonotypist(seurat_obj,
+                                  chains = "beta",
+                                  method = "tcrdist",
+                                  max_edits = 2,
+                                  max_dist = 20)
+
+# Use SCEPTR distance metric
+seurat_obj <- runMetaclonotypist(seurat_obj,
+                                  method = "sceptr",
+                                  max_dist = 1.0)
+```
+
+### GLIPH2 Specificity Groups
+
+Find TCR specificity groups (requires turboGliph):
+
+```r
+# Run GLIPH2 analysis
+seurat_obj <- runGLIPH(seurat_obj, chains = "TRB")
+
+# Get detailed results
+gliph_results <- runGLIPH(seurat_obj, return_seurat = FALSE)
+motifs <- extractGLIPHmotifs(gliph_results)
+scores <- scoreGLIPH(gliph_results)
 ```
 
 ### Generation Probability
@@ -67,14 +147,9 @@ Calculate how likely each TCR sequence is to be generated naturally:
 
 ```r
 # Calculate Pgen for TRB sequences
-seurat_obj <- runOLGA(seurat_obj, 
-                      chains = "TRB",
-                      model = "humanTRB")
-
-# Include V/J gene information
 seurat_obj <- runOLGA(seurat_obj,
                       chains = "TRB",
-                      use_vj_genes = TRUE)
+                      model = "humanTRB")
 
 # Generate random TCR sequences
 random_tcrs <- generateOLGA(n = 1000, model = "humanTRB")
@@ -82,22 +157,21 @@ random_tcrs <- generateOLGA(n = 1000, model = "humanTRB")
 
 ### Protein Embeddings
 
-Generate dense vector representations using protein language models:
+Generate dense vector representations using ESM-2:
 
 ```r
 # Default: ESM-2 35M model
-seurat_obj <- runEmbeddings(seurat_obj, 
+seurat_obj <- runEmbeddings(seurat_obj,
                             chains = "TRB",
-                            chunk_size = 32)
+                            pool = "mean")
 
 # Use larger model for better embeddings
 seurat_obj <- runEmbeddings(seurat_obj,
-                            chains = "TRB",
                             model_name = "facebook/esm2_t33_650M_UR50D")
 
 # Visualize in UMAP space
 seurat_obj <- RunUMAP(seurat_obj, reduction = "tcr_esm", dims = 1:30)
-DimPlot(seurat_obj, reduction = "umap", group.by = "seurat_clusters")
+DimPlot(seurat_obj, reduction = "umap")
 ```
 
 ### TCR Distance Calculation
@@ -112,39 +186,31 @@ dist_results <- runTCRdist(seurat_obj,
 
 # Access distance matrices
 beta_dist <- dist_results$distances$pw_beta
-cdr3_dist <- dist_results$distances$pw_cdr3_b_aa
-
-# Perform hierarchical clustering on distances
-hc <- hclust(as.dist(cdr3_dist))
-plot(hc)
 ```
 
-### Advanced: Deep Learning and Selection
+### Deep Learning and Selection
 
-**DeepTCR** (requires pre-formatted data files):
+**DeepTCR VAE:**
 ```r
-# Run DeepTCR VAE
-features <- runDeepTCR(seurat_obj,
-                       output_dir = "deeptcr_output",
-                       latent_dim = 100,
-                       epochs = 100)
+seurat_obj <- runDeepTCR(seurat_obj,
+                         output_dir = "deeptcr_output",
+                         latent_dim = 100)
 ```
 
-**soNNia Selection** (requires background sequences from OLGA):
+**soNNia Selection:**
 ```r
 # 1. Generate background
 background <- generateOLGA(n = 10000, model = "humanTRB")
-write.csv(background, "background_tcrs.csv")
+write.csv(background, "background.csv", row.names = FALSE)
 
 # 2. Run soNNia
-results <- runSonia(seurat_obj,
-                    background_file = "background_tcrs.csv",
-                    organism = "human")
+seurat_obj <- runSoNNia(seurat_obj,
+                        background_file = "background.csv")
 ```
 
 ## Data Format
 
-immLynx expects Seurat objects with scRepertoire TCR data in the metadata. 
+immLynx expects Seurat objects with scRepertoire TCR data in the metadata.
 The data should include columns like:
 
 - `CTgene`: Gene information (V/J genes)
@@ -160,21 +226,22 @@ The package uses `immApex::getIR()` internally to extract:
 
 ## Citation
 
-If you use immLynx in your research, please cite the tools you are using in the package:
+If you use immLynx in your research, please cite the underlying tools:
 
-And the underlying tools:
 - **clusTCR**: [Valkiers et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/34132766/)
 - **tcrdist3**: [Mayer-Blackwell et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/36087210/)
 - **OLGA**: [Sethna et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/30657870/)
-- **soNNia**: [Isacchini etd al. (2021)](https://pubmed.ncbi.nlm.nih.gov/33795515/)
+- **soNNia**: [Isacchini et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/33795515/)
 - **DeepTCR**: [Sidhom et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/33707415/)
-
+- **metaclonotypist**: [qimmuno](https://github.com/qimmuno/metaclonotypist)
+- **turboGliph/GLIPH2**: [Glanville et al. (2017)](https://pubmed.ncbi.nlm.nih.gov/28636589/)
+- **ESM-2**: [Lin et al. (2023)](https://pubmed.ncbi.nlm.nih.gov/36927031/)
 
 ## Bug Reports/New Features
 
 #### If you run into any issues or bugs please submit a [GitHub issue](https://github.com/BorchLab/immLynx/issues) with details of the issue.
 
-- If possible please include a [reproducible example](https://reprex.tidyverse.org/). 
+- If possible please include a [reproducible example](https://reprex.tidyverse.org/).
 
 #### Any requests for new features or enhancements can also be submitted as [GitHub issues](https://github.com/BorchLab/immLynx/issues).
 
