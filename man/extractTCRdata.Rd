@@ -2,44 +2,52 @@
 % Please edit documentation in R/utils.R
 \name{extractTCRdata}
 \alias{extractTCRdata}
-\title{Extract TCR Sequences as Data Frame}
+\title{Extract TCR Data from Seurat Object}
 \usage{
 extractTCRdata(
-  seurat_obj,
-  chains = c("both", "TRA", "TRB"),
-  filter_na = TRUE,
-  include_metadata = FALSE,
-  metadata_columns = NULL
+  input,
+  chains = c("TRB", "TRA", "TRG", "TRD", "IGH", "IGL", "IGK", "both"),
+  format = c("long", "wide"),
+  remove_na = TRUE
 )
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing scRepertoire TCR data}
+\item{input}{A Seurat object containing scRepertoire TCR data in metadata,
+or a SingleCellExperiment object.}
 
-\item{chains}{Which chains to extract: "TRA", "TRB", or "both". Default is "both".}
+\item{chains}{Which chains to extract: "TRA", "TRB", "TRG", "TRD",
+"IGH", "IGL", "IGK", or "both" (for TRA and TRB). Default is "TRB".}
 
-\item{filter_na}{Logical. Remove cells with NA sequences. Default TRUE.}
+\item{format}{Output format: "long" (one row per chain) or "wide" (one row
+per cell with columns for each chain). Default is "long".}
 
-\item{include_metadata}{Logical. Include additional cell metadata. Default FALSE.}
-
-\item{metadata_columns}{Character vector of metadata columns to include if
-include_metadata=TRUE. Default is NULL (includes all).}
+\item{remove_na}{Logical. If TRUE, removes rows with NA CDR3 sequences.
+Default is TRUE.}
 }
 \value{
-A data.frame with TCR information
+A data.frame containing:
+  \describe{
+    \item{barcode}{Cell barcode}
+    \item{cdr3_aa}{CDR3 amino acid sequence}
+    \item{cdr3_nt}{CDR3 nucleotide sequence (if available)}
+    \item{v}{V gene}
+    \item{d}{D gene (if applicable)}
+    \item{j}{J gene}
+    \item{c}{C gene (if available)}
+    \item{chain}{Chain type (TRA, TRB, etc.)}
+  }
 }
 \description{
-Convenience function to extract TCR data from a Seurat object
-  as a clean data frame, optionally filtering for specific criteria.
+Extracts T-cell receptor data from a Seurat object that has been
+  processed with scRepertoire. This is a convenience wrapper around
+  \code{immApex::getIR()} that provides additional formatting options.
 }
 \examples{
 \dontrun{
-  # Get all TRB sequences
-  trb_data <- extractTCRdata(seurat_obj, chains = "TRB")
+  # Extract beta chain data
+  tcr_data <- extractTCRdata(seurat_obj, chains = "TRB")
 
-  # Get both chains with cell type info
-  tcr_data <- extractTCRdata(seurat_obj, 
-                             chains = "both",
-                             include_metadata = TRUE,
-                             metadata_columns = c("seurat_clusters", "cell_type"))
+  # Extract both chains in wide format
+  tcr_wide <- extractTCRdata(seurat_obj, chains = "both", format = "wide")
 }
 }

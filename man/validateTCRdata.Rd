@@ -2,23 +2,49 @@
 % Please edit documentation in R/utils.R
 \name{validateTCRdata}
 \alias{validateTCRdata}
-\title{Validate scRepertoire Format in Seurat Object}
+\title{Validate TCR Data Format}
 \usage{
-validateTCRdata(seurat_obj, verbose = TRUE)
+validateTCRdata(
+  tcr_data,
+  check_genes = FALSE,
+  check_sequences = TRUE,
+  strict = FALSE
+)
 }
 \arguments{
-\item{seurat_obj}{A Seurat object}
+\item{tcr_data}{A data.frame containing TCR data}
 
-\item{verbose}{Logical. Print details about what was found. Default TRUE.}
+\item{check_genes}{Logical. If TRUE, validates gene names against IMGT
+nomenclature. Default is FALSE.}
+
+\item{check_sequences}{Logical. If TRUE, validates that CDR3 sequences
+contain only valid amino acids. Default is TRUE.}
+
+\item{strict}{Logical. If TRUE, stops with error on validation failure.
+If FALSE, returns validation report. Default is FALSE.}
 }
 \value{
-Logical. TRUE if valid TCR data exists, FALSE otherwise.
+If strict=FALSE, returns a list with:
+  \describe{
+    \item{valid}{Logical indicating overall validity}
+    \item{errors}{Character vector of error messages}
+    \item{warnings}{Character vector of warning messages}
+    \item{summary}{Summary statistics of the data}
+  }
+  If strict=TRUE, returns TRUE invisibly on success or stops with error.
 }
 \description{
-Checks if a Seurat object contains properly formatted TCR data.
+Validates that TCR data is in the correct format for immLynx
+  analysis functions. Checks for required columns, valid sequence formats,
+  and gene nomenclature.
 }
 \examples{
 \dontrun{
-  validateTCRdata(seurat_obj)
+  # Get validation report
+  report <- validateTCRdata(tcr_data, strict = FALSE)
+  print(report$errors)
+
+  # Strict validation (stops on error)
+  validateTCRdata(tcr_data, strict = TRUE)
 }
 }

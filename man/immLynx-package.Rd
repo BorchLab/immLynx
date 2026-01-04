@@ -13,22 +13,42 @@ several popular Python-based tools and makes them accessible within R workflows.
 \section{Main Functions}{
 
 
-**Clustering:**
-- \code{\link{runClustTCR}}: Cluster TCRs using clusTCR (MCL or DBSCAN)
+**Clustering & Grouping:**
+\itemize{
+  \item \code{\link{runClustTCR}}: Cluster TCRs using clusTCR (MCL or DBSCAN)
+  \item \code{\link{runMetaclonotypist}}: Identify metaclones with metaclonotypist
+  \item \code{\link{runGLIPH}}: Find specificity groups with GLIPH2
+}
 
 **Distance Metrics:**
-- \code{\link{runTCRdist}}: Calculate TCR distances with tcrdist3
+\itemize{
+  \item \code{\link{runTCRdist}}: Calculate TCR distances with tcrdist3
+}
 
 **Generation Probability:**
-- \code{\link{runOLGA}}: Calculate Pgen using OLGA
-- \code{\link{generateOLGA}}: Generate random TCR sequences
+\itemize{
+  \item \code{\link{runOLGA}}: Calculate Pgen using OLGA
+  \item \code{\link{generateOLGA}}: Generate random TCR sequences
+}
 
 **Embeddings:**
-- \code{\link{runEmbeddings}}: Generate protein embeddings using ESM-2 or other models
+\itemize{
+  \item \code{\link{runEmbeddings}}: Generate protein embeddings using ESM-2
+}
 
 **Deep Learning:**
-- \code{\link{runDeepTCR}}: Run DeepTCR VAE feature extraction (requires data preparation)
-- \code{\link{runSonia}}: Infer selection with soNNia (requires background generation)
+\itemize{
+  \item \code{\link{runDeepTCR}}: Run DeepTCR VAE feature extraction
+  \item \code{\link{runSoNNia}}: Infer selection with soNNia
+}
+
+**Utility Functions:**
+\itemize{
+  \item \code{\link{extractTCRdata}}: Extract TCR data from Seurat objects
+  \item \code{\link{validateTCRdata}}: Validate TCR data format
+  \item \code{\link{convertToTcrdist}}: Convert to tcrdist3 format
+  \item \code{\link{summarizeTCRrepertoire}}: Generate repertoire statistics
+}
 }
 
 \section{Data Format}{
@@ -46,36 +66,30 @@ The functions use \code{immApex::getIR()} to extract TCR sequences in the format
 }
 }
 
-\section{Installation}{
+\section{Python Dependencies}{
 
-The package requires both R and Python dependencies:
-
-**R packages:**
-- Seurat
-- scRepertoire
-- immApex
-- basilisk
-- reticulate
-
-**Python packages (managed by basilisk):**
-- clustcr
-- tcrdist3
-- DeepTCR
-- olga
-- sonnia
-- transformers
-- torch
+Python packages are managed automatically by basilisk. The following are included:
+\itemize{
+  \item clustcr - TCR clustering
+  \item tcrdist3 - TCR distance calculations
+  \item DeepTCR - Deep learning features
+  \item olga - Generation probability
+  \item sonnia - Selection inference
+  \item metaclonotypist - Metaclone discovery
+  \item transformers - Hugging Face models
+  \item torch - PyTorch for GPU support
+}
 }
 
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/BorchLab/immLynx/}
-  \item Report bugs at \url{https://github.com/BorchLab/immLynx/issues}
+  \item scRepertoire: \url{https://github.com/BorchLab/scRepertoire}
+  \item immApex: \url{https://github.com/BorchLab/immApex}
 }
-
 }
 \author{
 \strong{Maintainer}: Nick Borcherding \email{ncborch@gmail.com}
 
 }
+\keyword{internal}

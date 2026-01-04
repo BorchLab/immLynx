@@ -4,20 +4,44 @@
 \alias{summarizeTCRrepertoire}
 \title{Summarize TCR Repertoire Statistics}
 \usage{
-summarizeTCRrepertoire(seurat_obj)
+summarizeTCRrepertoire(
+  input,
+  chains = c("TRB", "TRA", "both"),
+  group.by = NULL,
+  calculate_diversity = TRUE
+)
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing scRepertoire TCR data}
+\item{input}{A Seurat object with scRepertoire data, or a data.frame from
+extractTCRdata().}
+
+\item{chains}{Which chains to summarize: "TRB", "TRA", or "both".
+Default is "TRB".}
+
+\item{group.by}{Optional metadata column for grouping (Seurat objects only).}
+
+\item{calculate_diversity}{Logical. If TRUE, calculates diversity indices.
+Default is TRUE.}
 }
 \value{
-A list with repertoire statistics
+An object of class "TCR_summary" containing:
+  \describe{
+    \item{total_cells}{Total number of cells with TCR data}
+    \item{unique_clonotypes}{Number of unique clonotypes}
+    \item{clonality}{1 - normalized Shannon entropy}
+    \item{diversity}{List of diversity indices (Shannon, Simpson, etc.)}
+    \item{top_clones}{Top 10 most frequent clonotypes}
+    \item{cdr3_length}{Summary of CDR3 sequence lengths}
+    \item{gene_usage}{V and J gene usage frequencies}
+  }
 }
 \description{
-Generate summary statistics about the TCR repertoire in a Seurat object.
+Generates summary statistics for TCR repertoire data including
+  diversity metrics, clonality measures, and sequence characteristics.
 }
 \examples{
 \dontrun{
-  stats <- summarizeTCRrepertoire(seurat_obj)
-  print(stats)
+  summary <- summarizeTCRrepertoire(seurat_obj, chains = "TRB")
+  print(summary)
 }
 }

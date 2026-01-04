@@ -2,15 +2,18 @@
 % Please edit documentation in R/utils.R
 \name{print.TCR_summary}
 \alias{print.TCR_summary}
-\title{Print method for TCR summary}
+\title{Print Method for TCR_summary Objects}
 \usage{
 \method{print}{TCR_summary}(x, ...)
 }
 \arguments{
-\item{x}{TCR_summary object}
+\item{x}{An object of class "TCR_summary"}
 
 \item{...}{Additional arguments (ignored)}
 }
+\value{
+Invisibly returns the input object
+}
 \description{
-Print method for TCR summary
+Custom print method for TCR repertoire summary objects.
 }

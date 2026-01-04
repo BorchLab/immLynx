@@ -1,32 +1,46 @@
 Package: immLynx
-Title: Linking advanced TCR python pipelines and Hugging Face models in R
+Title: Linking Advanced TCR Python Pipelines and Hugging Face Models in R
 Version: 0.99.0
 Authors@R: c(
-    person(given = "Nick", family = "Borcherding", role = c("aut", "cre"), email = "ncborch@gmail.com"))
-Description: A set of tools that imports and runs popular python immune repertoire analysis tools and hugging face models. These function will primarily be set up to get the objective outputs of the pipelines, such as embeddings or motif quantifications. The package is fully compatible with the scRepertoire ecosystem.
-License: MIT + file LICENSE 
+    person(given = "Nick", family = "Borcherding", role = c("aut", "cre"),
+           email = "ncborch@gmail.com"))
+Description: A comprehensive toolkit that bridges popular Python-based immune
+    repertoire analysis tools and Hugging Face protein language models into the
+    R environment. Provides unified interfaces for TCR distance calculations
+    (tcrdist3), sequence generation probability (OLGA), selection inference
+    (soNNia), clustering (clusTCR), deep learning features (DeepTCR), protein
+    embeddings (ESM-2), metaclone discovery (metaclonotypist), and specificity
+    group identification (GLIPH2). Fully compatible with the scRepertoire and
+    immApex ecosystem for single-cell immune repertoire analysis.
+License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.3.3
-biocViews: Software, ImmunoOncology, SingleCell, Classification, Annotation, Sequencing, MotifAnnotation
-Depends: 
-	R (>= 4.3.0)
-Imports: 
-    	basilisk (>= 1.8.0),
-    	reticulate (>= 1.24),
-    	immApex,
-    	methods,
-    	utils
-Suggests: 
-	BiocStyle, 
-	ggplot2,
-	knitr,
-	markdown,
-	rmarkdown, 
-	scRepertoire,
-	Seurat (>= 5.0.0),
-	spelling,
-        testthat
+biocViews: Software, ImmunoOncology, SingleCell, Classification, Annotation,
+    Sequencing, MotifAnnotation, Clustering, DimensionReduction
+Depends:
+    R (>= 4.3.0)
+Imports:
+    basilisk (>= 1.8.0),
+    reticulate (>= 1.24),
+    immApex,
+    methods,
+    stats,
+    utils
+Suggests:
+    BiocStyle,
+    ggplot2,
+    knitr,
+    markdown,
+    rmarkdown,
+    scRepertoire,
+    Seurat (>= 5.0.0),
+    SingleCellExperiment,
+    spelling,
+    testthat (>= 3.0.0),
+    turboGliph,
+    withr
 VignetteBuilder: knitr
 Language: en-US
 URL: https://github.com/BorchLab/immLynx/
 BugReports: https://github.com/BorchLab/immLynx/issues
+Config/testthat/edition: 3

@@ -4,23 +4,41 @@
 \alias{convertToTcrdist}
 \title{Convert TCR Data to tcrdist3 Format}
 \usage{
-convertToTcrdist(tcr_data, chain = c("TRA", "TRB"))
+convertToTcrdist(
+  tcr_data,
+  chains = c("beta", "alpha", "both"),
+  include_count = TRUE
+)
 }
 \arguments{
-\item{tcr_data}{Data frame from immApex::getIR() or extractTCRdata()}
+\item{tcr_data}{A data.frame from extractTCRdata() or similar source}
 
-\item{chain}{Which chain: "TRA" or "TRB"}
+\item{chains}{Which chains to include: "alpha", "beta", or "both".
+Default is "beta".}
+
+\item{include_count}{Logical. If TRUE, adds a 'count' column (default 1).
+Default is TRUE.}
 }
 \value{
-Data frame formatted for tcrdist3
+A data.frame in tcrdist3 format with columns:
+  \describe{
+    \item{count}{Clone count (default 1)}
+    \item{v_a_gene}{Alpha V gene (if alpha chain included)}
+    \item{j_a_gene}{Alpha J gene (if alpha chain included)}
+    \item{cdr3_a_aa}{Alpha CDR3 amino acid sequence (if alpha chain included)}
+    \item{v_b_gene}{Beta V gene (if beta chain included)}
+    \item{j_b_gene}{Beta J gene (if beta chain included)}
+    \item{cdr3_b_aa}{Beta CDR3 amino acid sequence (if beta chain included)}
+  }
 }
 \description{
-Helper function to convert extracted TCR data into the format
-  required by tcrdist3.
+Converts TCR data from immLynx/scRepertoire format to the format
+  required by tcrdist3 for distance calculations.
 }
 \examples{
 \dontrun{
-  trb_data <- immApex::getIR(seurat_obj, chains = "TRB")
-  tcrdist_format <- convertToTcrdist(trb_data, chain = "TRB")
+  # Extract and convert data
+  tcr_data <- extractTCRdata(seurat_obj, chains = "both", format = "wide")
+  tcrdist_format <- convertToTcrdist(tcr_data, chains = "both")
 }
 }
