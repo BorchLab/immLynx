@@ -1,0 +1,316 @@
+---
+title: "Getting Started with immLynx"
+author: "Nick Borcherding"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{Getting Started with immLynx}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+library(BiocStyle)
+```
+
+# Introduction
+
+**immLynx** is a comprehensive R package that bridges popular Python-based
+immune repertoire analysis tools and Hugging Face protein language models
+into the R environment. It provides unified interfaces for:
+- TCR distance calculations (tcrdist3)
+- Sequence generation probability (OLGA)
+- Selection inference (soNNia)
+- TCR clustering (clusTCR)
+- Deep learning features (DeepTCR)
+- Protein language model embeddings (ESM-2)
+- Metaclone discovery (metaclonotypist)
+- Specificity group identification (GLIPH2)
+
+immLynx is fully compatible with the scRepertoire and immApex ecosystem for
+single-cell immune repertoire analysis.
+
+# Installation
+
+```{r installation, eval = FALSE}
+# Install from Bioconductor (when available)
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("immLynx")
+
+# Or install development version from GitHub
+if (!requireNamespace("devtools", quietly = TRUE))
+    install.packages("devtools")
+devtools::install_github("BorchLab/immLynx")
+```
+
+## Python Dependencies
+
+immLynx uses basilisk to manage Python dependencies automatically. The first
+time you use functions that call Python, basilisk will create an isolated
+conda environment with all required packages. This may take a few minutes
+on first run.
+
+# Quick Start
+
+## Loading the Package and Example Data
+
+```{r load}
+library(immLynx)
+library(Seurat)
+
+# Load the example Seurat object with scRepertoire data
+data("immLynx_example")
+
+# View the data structure
+immLynx_example
+```
+
+The `immLynx_example` dataset contains single-cell RNA-seq data from multiple
+patients with integrated T-cell receptor (TCR) repertoire data from scRepertoire.
+
+## Extracting TCR Data
+
+Before running analyses, you can extract and validate TCR data:
+
+```{r extract}
+# Extract beta chain data
+tcr_data <- extractTCRdata(immLynx_example, chains = "TRB")
+head(tcr_data)
+
+# Extract both chains in wide format
+tcr_wide <- extractTCRdata(immLynx_example, chains = "both", format = "wide")
+
+# Validate the data
+validation <- validateTCRdata(tcr_data)
+print(validation)
+```
+
+## Summarizing TCR Repertoire
+
+Get a comprehensive overview of the TCR repertoire:
+
+```{r summary}
+# Generate summary statistics
+summary <- summarizeTCRrepertoire(immLynx_example, chains = "TRB")
+print(summary)
+```
+
+# Analysis Functions
+
+## TCR Clustering with clusTCR
+
+Cluster TCRs based on sequence similarity using the clusTCR algorithm:
+
+```{r clustcr}
+# Cluster TRB sequences using MCL algorithm
+seurat_obj <- runClustTCR(
+  immLynx_example,
+  chains = "TRB",
+  method = "mcl",
+  inflation = 2.0
+)
+
+# View cluster assignments
+table(seurat_obj$clustcr_TRB)
+```
+
+## TCR Distance Calculations with tcrdist3
+
+Calculate pairwise TCR distances:
+
+```{r tcrdist}
+# Calculate beta chain distances
+dist_results <- runTCRdist(
+  immLynx_example,
+  chains = "beta",
+  organism = "human"
+)
+
+# Access the distance matrix
+dim(dist_results$distances$pw_beta)
+```
+
+## Generation Probability with OLGA
+
+Calculate the generation probability (Pgen) for TCR sequences:
+```{r olga}
+# Calculate Pgen for TRB sequences
+seurat_obj <- runOLGA(
+  immLynx_example,
+  chains = "TRB",
+  model = "humanTRB"
+)
+
+# View Pgen distribution
+hist(log10(seurat_obj$olga_pgen_TRB), breaks = 50)
+```
+
+Generate random TCR sequences:
+
+```{r generate}
+# Generate 100 random human TRB sequences
+random_seqs <- generateOLGA(n = 100, model = "humanTRB")
+head(random_seqs)
+```
+
+## Protein Language Model Embeddings
+
+Generate TCR embeddings using ESM-2:
+```{r embeddings}
+# Generate embeddings for TRB sequences
+seurat_obj <- runEmbeddings(
+  immLynx_example,
+  chains = "TRB",
+  model_name = "facebook/esm2_t12_35M_UR50D",
+  pool = "mean"
+)
+
+# Use embeddings for UMAP visualization
+seurat_obj <- Seurat::RunUMAP(seurat_obj, reduction = "tcr_esm", dims = 1:30)
+Seurat::DimPlot(seurat_obj, reduction = "umap")
+```
+
+## Metaclone Discovery with Metaclonotypist
+
+Identify TCR metaclones - groups of related T cell receptors:
+
+```{r metaclonotypist}
+# Run metaclonotypist
+seurat_obj <- runMetaclonotypist(
+  immLynx_example,
+  chains = "beta",
+  method = "tcrdist",
+  max_edits = 2,
+  max_dist = 20
+)
+
+# View metaclone assignments
+table(seurat_obj$metaclone)
+```
+
+## Specificity Groups with GLIPH2
+
+Identify TCR specificity groups using GLIPH2:
+
+```{r gliph}
+# Run GLIPH2 analysis (requires turboGliph package)
+seurat_obj <- runGLIPH(
+  immLynx_example,
+  chains = "TRB",
+  local_similarities = TRUE,
+  global_similarities = TRUE
+)
+
+# Get detailed GLIPH results
+gliph_results <- runGLIPH(immLynx_example, return_seurat = FALSE)
+head(gliph_results$clusters)
+```
+
+## Selection Inference with soNNia
+
+Infer selection pressures on TCRs:
+
+```{r sonnia}
+# First generate background sequences
+background <- generateOLGA(n = 10000, model = "humanTRB")
+write.csv(background, "background.csv", row.names = FALSE)
+
+# Run soNNia
+seurat_obj <- runSoNNia(
+  immLynx_example,
+  chains = "TRB",
+  background_file = "background.csv"
+)
+```
+
+## Deep Learning Features with DeepTCR
+
+Extract unsupervised features using DeepTCR:
+```{r deeptcr}
+# Run DeepTCR VAE
+seurat_obj <- runDeepTCR(
+  immLynx_example,
+  chains = "TRB",
+  output_dir = "deeptcr_output",
+  latent_dim = 100,
+  epochs = 100
+)
+
+# Access the learned features as a dimensional reduction
+seurat_obj[["deeptcr"]]
+```
+
+# Workflow Example
+
+Here's a complete workflow combining multiple analyses:
+
+```{r workflow}
+library(immLynx)
+library(Seurat)
+library(ggplot2)
+
+# Load data
+data("immLynx_example")
+
+# Step 1: Summarize the repertoire
+summary <- summarizeTCRrepertoire(immLynx_example)
+print(summary)
+
+# Step 2: Cluster TCRs
+immLynx_example <- runClustTCR(
+  immLynx_example,
+  chains = "TRB",
+  method = "mcl"
+)
+
+# Step 3: Calculate generation probability
+immLynx_example <- runOLGA(
+  immLynx_example,
+  chains = "TRB"
+)
+
+# Step 4: Generate embeddings
+immLynx_example <- runEmbeddings(
+  immLynx_example,
+  chains = "TRB"
+)
+
+# Step 5: Visualize embeddings
+immLynx_example <- RunUMAP(
+  immLynx_example,
+  reduction = "tcr_esm",
+  dims = 1:30,
+  reduction.name = "tcr_umap"
+)
+
+# Plot by cluster
+DimPlot(
+  immLynx_example,
+  reduction = "tcr_umap",
+  group.by = "clustcr_TRB"
+)
+
+# Plot by Pgen
+FeaturePlot(
+  immLynx_example,
+  reduction = "tcr_umap",
+  features = "olga_pgen_log10_TRB"
+)
+```
+
+# Session Info
+
+```{r session, eval=TRUE}
+sessionInfo()
+```

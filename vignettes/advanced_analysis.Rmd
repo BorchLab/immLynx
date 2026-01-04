@@ -1,0 +1,311 @@
+---
+title: "Advanced TCR Analysis with immLynx"
+author: "Nick Borcherding"
+date: "`r Sys.Date()`"
+output:
+  BiocStyle::html_document:
+    toc: true
+    toc_depth: 3
+vignette: >
+  %\VignetteIndexEntry{Advanced TCR Analysis with immLynx}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  eval = FALSE,
+  message = FALSE,
+  warning = FALSE
+)
+library(BiocStyle)
+```
+
+# Introduction
+This vignette covers advanced topics and workflows for TCR analysis using
+immLynx, including:
+
+- Combining multiple analysis methods
+- Comparing clustering approaches
+- Integration with scRepertoire clonotype data
+- Custom embedding workflows
+- Metaclone and GLIPH2 analysis
+
+# Setup
+
+```{r load}
+library(immLynx)
+library(Seurat)
+library(ggplot2)
+
+data("immLynx_example")
+```
+
+# Comparing Clustering Methods
+
+immLynx provides multiple approaches for grouping TCRs. Let's compare them:
+
+## clusTCR Clustering
+
+```{r clustcr-compare}
+# MCL clustering with different inflation parameters
+seurat_mcl_2 <- runClustTCR(immLynx_example, method = "mcl", inflation = 2.0,
+                            column_prefix = "mcl_2")
+seurat_mcl_3 <- runClustTCR(seurat_mcl_2, method = "mcl", inflation = 3.0,
+                            column_prefix = "mcl_3")
+
+# DBSCAN clustering
+seurat_all <- runClustTCR(seurat_mcl_3, method = "dbscan", eps = 0.5,
+                          column_prefix = "dbscan")
+
+# Compare number of clusters
+cat("MCL (inflation=2):", length(unique(na.omit(seurat_all$mcl_2_TRB))), "clusters\n")
+cat("MCL (inflation=3):", length(unique(na.omit(seurat_all$mcl_3_TRB))), "clusters\n")
+cat("DBSCAN:", length(unique(na.omit(seurat_all$dbscan_TRB))), "clusters\n")
+```
+
+## Metaclonotypist vs GLIPH2
+
+Both metaclonotypist and GLIPH2 identify groups of related TCRs, but use
+different algorithms:
+
+```{r meta-vs-gliph}
+# Metaclonotypist (Python-based, uses tcrdist)
+seurat_meta <- runMetaclonotypist(
+  immLynx_example,
+  chains = "beta",
+  method = "tcrdist",
+  max_dist = 20,
+  column_name = "metaclone"
+)
+
+# GLIPH2 (R-based turboGliph, uses motif analysis)
+seurat_both <- runGLIPH(
+  seurat_meta,
+  chains = "TRB",
+  column_prefix = "gliph"
+)
+
+# Compare assignments
+table(metaclone = seurat_both$metaclone,
+      gliph = seurat_both$gliph_cluster,
+      useNA = "ifany")
+```
+
+# Custom Embedding Workflows
+
+## Using Different ESM-2 Model Sizes
+
+ESM-2 comes in different sizes. Larger models may provide better embeddings
+but require more computational resources:
+
+```{r esm-models}
+# Small model (35M parameters) - fast, lower quality
+seurat_small <- runEmbeddings(
+  immLynx_example,
+  model_name = "facebook/esm2_t12_35M_UR50D",
+  reduction_name = "esm_small"
+)
+
+# Medium model (650M parameters) - balanced
+seurat_med <- runEmbeddings(
+  seurat_small,
+  model_name = "facebook/esm2_t33_650M_UR50D",
+  reduction_name = "esm_medium"
+)
+
+# Compare embeddings
+seurat_med <- RunUMAP(seurat_med, reduction = "esm_small", dims = 1:30,
+                      reduction.name = "umap_small")
+seurat_med <- RunUMAP(seurat_med, reduction = "esm_medium", dims = 1:30,
+                      reduction.name = "umap_medium")
+
+p1 <- DimPlot(seurat_med, reduction = "umap_small") + ggtitle("ESM-2 35M")
+p2 <- DimPlot(seurat_med, reduction = "umap_medium") + ggtitle("ESM-2 650M")
+p1 + p2
+```
+
+## Embedding Both Chains
+
+For paired alpha-beta TCRs:
+
+```{r both-chains}
+# Embed both chains concatenated
+seurat_paired <- runEmbeddings(
+  immLynx_example,
+  chains = "both",
+  reduction_name = "tcr_paired"
+)
+
+# Visualize
+seurat_paired <- RunUMAP(seurat_paired, reduction = "tcr_paired", dims = 1:30)
+DimPlot(seurat_paired)
+```
+
+# Integration with scRepertoire Clonotypes
+
+immLynx is designed to work seamlessly with scRepertoire data:
+
+```{r screpertoire-integration}
+# The example data already has scRepertoire clonotype info
+# Let's compare TCR clusters to clonotypes
+
+# Get cluster assignments
+seurat_clust <- runClustTCR(immLynx_example, chains = "TRB")
+
+# Compare with scRepertoire's CTstrict clonotypes
+comparison <- table(
+  clustcr = seurat_clust$clustcr_TRB,
+  clonotype = seurat_clust$CTstrict
+)
+
+# Calculate overlap
+# A perfect clustering would have one cluster per clonotype
+cat("Number of clustcr clusters:", nrow(comparison), "\n")
+cat("Number of unique clonotypes:", ncol(comparison), "\n")
+```
+
+# Analyzing Selection Pressure
+
+Use OLGA Pgen and soNNia to understand selection:
+
+```{r selection}
+# Calculate generation probability
+seurat_pgen <- runOLGA(immLynx_example, chains = "TRB")
+
+# Compare Pgen across sample types
+ggplot(seurat_pgen@meta.data, aes(x = Type, y = olga_pgen_log10_TRB)) +
+  geom_boxplot() +
+  labs(title = "TCR Generation Probability by Sample Type",
+       x = "Sample Type",
+       y = "log10(Pgen)")
+
+# Cells with low Pgen may be under stronger selection
+# because they are rare in the naive repertoire
+low_pgen_cells <- which(seurat_pgen$olga_pgen_log10_TRB < -15)
+cat("Cells with Pgen < 10^-15:", length(low_pgen_cells), "\n")
+```
+
+# Combining Distance-Based Methods
+
+Use TCRdist together with clustering:
+
+```{r combined-distance}
+# Calculate TCR distances
+dist_results <- runTCRdist(immLynx_example, chains = "beta")
+
+# The distance matrix can be used for hierarchical clustering
+# or other downstream analyses
+
+# Convert to distance object for hierarchical clustering
+d <- as.dist(dist_results$distances$pw_beta)
+hc <- hclust(d, method = "complete")
+clusters <- cutree(hc, k = 50)
+
+# Add to Seurat object
+seurat_hclust <- immLynx_example
+seurat_hclust$hclust <- NA
+seurat_hclust$hclust[dist_results$barcodes] <- clusters
+```
+
+# Working with Large Datasets
+
+For large datasets, consider these strategies:
+
+```{r large-data}
+# 1. Use chunked processing for embeddings
+seurat_large <- runEmbeddings(
+  large_seurat_obj,
+  chunk_size = 16,  # Smaller chunks for memory
+  pool = "mean"     # Pooling reduces dimensionality
+)
+
+# 2. Use faster clustering methods
+seurat_large <- runClustTCR(
+  large_seurat_obj,
+  method = "dbscan",  # Often faster than MCL
+  eps = 0.5
+)
+
+# 3. Sample for distance calculations
+# For very large datasets, calculate distances on a subset
+sample_cells <- sample(colnames(large_seurat_obj), 5000)
+subset_obj <- subset(large_seurat_obj, cells = sample_cells)
+dist_results <- runTCRdist(subset_obj)
+```
+
+# HLA Association Analysis
+
+If HLA typing data is available:
+
+```{r hla}
+# Run metaclonotypist
+metaclones <- runMetaclonotypist(immLynx_example, return_seurat = FALSE)
+
+# Create mock HLA data (replace with real data)
+hla_data <- data.frame(
+  barcode = metaclones$barcode,
+  HLA_A_01_01 = sample(c(TRUE, FALSE), nrow(metaclones), replace = TRUE),
+  HLA_A_02_01 = sample(c(TRUE, FALSE), nrow(metaclones), replace = TRUE),
+  HLA_B_07_02 = sample(c(TRUE, FALSE), nrow(metaclones), replace = TRUE)
+)
+
+# Test associations
+hla_results <- runHLAassociation(metaclones, hla_data)
+head(hla_results)
+```
+
+# Exporting Results
+
+Export results for external tools or further analysis:
+
+```{r export}
+# Export TCR data in tcrdist3 format
+tcr_data <- extractTCRdata(immLynx_example, chains = "both", format = "wide")
+tcrdist_format <- convertToTcrdist(tcr_data, chains = "both")
+write.csv(tcrdist_format, "tcr_for_tcrdist.csv", row.names = FALSE)
+
+# Export cluster assignments
+clusters <- data.frame(
+  barcode = colnames(seurat_clust),
+  clustcr = seurat_clust$clustcr_TRB
+)
+write.csv(clusters, "cluster_assignments.csv", row.names = FALSE)
+
+# Export embeddings
+embeddings <- Embeddings(seurat_small, "esm_small")
+write.csv(embeddings, "tcr_embeddings.csv")
+```
+
+# Best Practices
+
+1. **Data Quality**: Always validate your TCR data before analysis
+   ```{r validate}
+   validation <- validateTCRdata(tcr_data, check_sequences = TRUE)
+   if (!validation$valid) {
+     warning(validation$errors)
+   }
+   ```
+
+2. **Memory Management**: For large datasets, use smaller chunk sizes and
+   consider sampling strategies
+
+3. **Reproducibility**: Set random seeds before running stochastic algorithms
+   ```{r seed}
+   set.seed(42)
+   seurat_obj <- runClustTCR(seurat_obj)
+   ```
+
+4. **Multiple Methods**: Use multiple clustering/grouping methods and look for
+   consensus
+
+5. **Biological Validation**: Always validate computational clusters with
+   biological knowledge (antigen specificity, phenotype, etc.)
+
+# Session Info
+
+```{r session, eval=TRUE}
+sessionInfo()
+```
