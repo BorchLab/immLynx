@@ -13,19 +13,25 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
     envname = "immLynxEnv",
     pkgname = "immLynx",
     packages = c(
-        "python=3.8",
-        "pandas",
+        "python=3.9",
+        "pandas>=2.2.1",
         "tensorflow",
         "matplotlib",
         "svalkiers::clustcr",
         "pytorch::faiss-cpu",
         "conda-forge::markov_clustering",
-        "conda-forge::scikit-learn"
+        "conda-forge::scikit-learn",
+        "conda-forge::numpy>=1.26.4",
+        "conda-forge::scipy>=1.12.0",
+        "conda-forge::statsmodels>=0.14.1",
+        "conda-forge::seaborn"
     ),
     pip = c(
         "tcrdist3",
         "DeepTCR",
         "olga",
-        "sonnia"
+        "sonnia",
+        "metaclonotypist",
+        "pyrepseq>=1.5.1"
     )
 )
