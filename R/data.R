@@ -36,5 +36,6 @@
 #' @keywords datasets
 #' @name immLynx_example
 #' @docType data
-"immLynx_example"
+#' @usage data(immLynx_example)
+NULL
 
