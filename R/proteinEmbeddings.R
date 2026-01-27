@@ -1,24 +1,40 @@
 #' Get Protein Embeddings from a Model
+#'
 #' @description Applies a pre-trained model to a batch of tokenized sequences
-#'   to generate embeddings.
-#' @param model HF model (from AutoModel or similar)
+#'   to generate embeddings. This is the core embedding function used by
+#'   \code{\link{runEmbeddings}}.
+#'
+#' @param model HF model (from AutoModel or similar), typically obtained via
+#'   \code{\link{huggingModel}}.
 #' @param tokenized.batch A *list* of tokenized tensors OR a list of such lists
 #'   (i.e., already minibatched). If you pass a single big batch, set chunk_size.
-#' @param pool One of "mean", "cls", or "none". "mean" is recommended.
+#'   Typically obtained via \code{\link{tokenizeSequences}}.
+#' @param pool One of "mean", "cls", or "none". "mean" is recommended for
+#'   sequence-level embeddings.
 #' @param chunk_size If tokenized.batch is a single big batch, split it into
 #'   chunks of this many sequences. Ignored if you pre-batched upstream.
-#' @param prefer_dtype One of "float16","bfloat16","float32"
-#' @param prefer_device One of "auto","cuda","mps","cpu"
+#' @param prefer_dtype One of "float16", "bfloat16", "float32". Lower precision
+#'   uses less memory but may reduce accuracy.
+#' @param prefer_device One of "auto", "cuda", "mps", "cpu". "auto" will select
+#'   the best available device.
+#'
 #' @return An R matrix [n_sequences x hidden] if pool != "none".
 #'         If pool == "none", returns a list of arrays per chunk.
-#' @importFrom reticulate py_to_r array_reshape
-#' @examples
-#'   hf_components <- huggingModel()
-#'   sequences <- c("MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALP",
-#'                  "MKKLFWRAVFLFLLAGLVACSP")
-#'   tokenized_output <- tokenizeSequences(hf_components$tokenizer, sequences)
-#'   model_output <- proteinEmbeddings(hf_components$model, tokenized_output)
 #'
+#' @export
+#' @importFrom reticulate py_to_r array_reshape
+#'
+#' @seealso \code{\link{runEmbeddings}} for a higher-level wrapper that works
+#'   directly with Seurat/SingleCellExperiment objects.
+#'
+#' @examples
+#' \dontrun{
+#'   hf_components <- huggingModel()
+#'   sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF")
+#'   tokenized_output <- tokenizeSequences(hf_components$tokenizer, sequences)
+#'   model_output <- proteinEmbeddings(hf_components$model, tokenized_output,
+#'                                     pool = "mean", chunk_size = 32)
+#' }
 proteinEmbeddings <- function(
     model,
     tokenized.batch,
