@@ -24,7 +24,10 @@ Imports:
     reticulate (>= 1.24),
     immApex,
     methods,
+    S4Vectors,
+    SingleCellExperiment,
     stats,
+    SummarizedExperiment,
     utils
 Suggests:
     BiocStyle,
@@ -34,7 +37,6 @@ Suggests:
     rmarkdown,
     scRepertoire,
     Seurat (>= 5.0.0),
-    SingleCellExperiment,
     spelling,
     testthat (>= 3.0.0),
     turboGliph,
