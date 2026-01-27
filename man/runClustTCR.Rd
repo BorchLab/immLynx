@@ -5,17 +5,18 @@
 \title{Run clusTCR Clustering on scRepertoire Data}
 \usage{
 runClustTCR(
-  seurat_obj,
+  input,
   chains = c("TRB", "TRA", "both"),
   method = "mcl",
   combine_chains = FALSE,
-  return_seurat = TRUE,
+  return_object = TRUE,
   column_prefix = "clustcr",
   ...
 )
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing scRepertoire TCR data in the metadata.}
+\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire
+TCR data in the metadata.}
 
 \item{chains}{Character string specifying which chains to use: "TRA", "TRB", or "both".
 Default is "TRB".}
@@ -25,7 +26,7 @@ Default is "TRB".}
 \item{combine_chains}{Logical. If TRUE and chains="both", concatenates alpha and beta
 sequences with "_". Default is FALSE (clusters chains separately).}
 
-\item{return_seurat}{Logical. If TRUE, adds cluster assignments back to the Seurat object
+\item{return_object}{Logical. If TRUE, adds cluster assignments back to the input object
 metadata. If FALSE, returns only the clustering results. Default is TRUE.}
 
 \item{column_prefix}{Prefix for the new metadata column(s). Default is "clustcr".}
@@ -33,21 +34,27 @@ metadata. If FALSE, returns only the clustering results. Default is TRUE.}
 \item{...}{Additional arguments passed to calculate.clustcr (e.g., inflation, eps, min_samples).}
 }
 \value{
-If return_seurat=TRUE, returns the Seurat object with cluster assignments added
-  to metadata. If return_seurat=FALSE, returns a data.frame with barcodes and cluster
+If return_object=TRUE, returns the input object with cluster assignments added
+  to metadata. If return_object=FALSE, returns a data.frame with barcodes and cluster
   assignments.
 }
 \description{
-This function extracts TCR sequences from a Seurat object with
-  scRepertoire data and performs clustering using the clusTCR algorithm.
+This function extracts TCR sequences from a Seurat or
+  SingleCellExperiment object with scRepertoire data and performs clustering
+  using the clusTCR algorithm.
 }
 \examples{
+\dontrun{
   # Cluster TRB sequences using MCL
-  seurat_obj <- runClustCR(seurat_obj, chains = "TRB", method = "mcl", inflation = 2.5)
+  seurat_obj <- runClustTCR(seurat_obj, chains = "TRB", method = "mcl", inflation = 2.5)
 
   # Cluster both chains separately using DBSCAN
-  seurat_obj <- runClustCR(seurat_obj, chains = "both", method = "dbscan", eps = 0.6)
+  seurat_obj <- runClustTCR(seurat_obj, chains = "both", method = "dbscan", eps = 0.6)
 
   # Cluster concatenated alpha-beta pairs
-  seurat_obj <- runClustCR(seurat_obj, chains = "both", combine_chains = TRUE)
+  seurat_obj <- runClustTCR(seurat_obj, chains = "both", combine_chains = TRUE)
+
+  # Works with SingleCellExperiment too
+  sce <- runClustTCR(sce, chains = "TRB")
+}
 }

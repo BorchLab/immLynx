@@ -4,7 +4,7 @@
 \alias{calculate.deepTCR}
 \title{Run DeepTCR VAE Feature Extraction}
 \usage{
-calculate.deepTCR(output_dir, data_dir, files, latent_dim = 100, epochs = 100)
+\method{calculate}{deepTCR}(output_dir, data_dir, files, latent_dim = 100, epochs = 100)
 }
 \arguments{
 \item{output_dir}{Directory for saving model outputs}

@@ -1,23 +1,24 @@
 #' Calculate Generation Probability (Pgen) for TCRs in scRepertoire Data
 #'
-#' @description Extracts TCR sequences from a Seurat object and calculates their
-#'   generation probability using OLGA.
+#' @description Extracts TCR sequences from a Seurat or SingleCellExperiment object
+#'   and calculates their generation probability using OLGA.
 #'
-#' @param seurat_obj A Seurat object containing scRepertoire TCR data.
+#' @param input A Seurat or SingleCellExperiment object containing scRepertoire TCR data.
 #' @param chains Which chain to analyze: "TRA" or "TRB". Default is "TRB".
 #' @param model OLGA model to use. Options: "humanTRB", "humanTRA", "humanIGH", "mouseTRB".
 #'   If NULL, will be inferred from organism and chains parameters.
 #' @param organism Organism: "human" or "mouse". Used if model is NULL. Default is "human".
 #' @param use_vj_genes Logical. If TRUE, includes V and J gene information in Pgen calculation.
 #'   Default is FALSE (sequence-only Pgen).
-#' @param return_seurat Logical. If TRUE, adds Pgen values to metadata. Default is TRUE.
+#' @param return_object Logical. If TRUE, adds Pgen values to metadata. Default is TRUE.
 #' @param column_name Name for the metadata column. Default is "olga_pgen".
 #'
-#' @return If return_seurat=TRUE, returns Seurat object with Pgen added to metadata.
+#' @return If return_object=TRUE, returns input object with Pgen added to metadata.
 #'   If FALSE, returns data.frame with barcodes, sequences, and Pgen values.
 #'
 #' @export
 #' @importFrom immApex getIR
+#' @importFrom methods is
 #'
 #' @examples
 #' \dontrun{
@@ -28,18 +29,45 @@
 #'   seurat_obj <- runOLGA(seurat_obj, chains = "TRB", use_vj_genes = TRUE)
 #'
 #'   # Just get results without adding to object
-#'   pgen_results <- runOLGA(seurat_obj, chains = "TRB", return_seurat = FALSE)
+#'   pgen_results <- runOLGA(seurat_obj, chains = "TRB", return_object = FALSE)
+#'
+#'   # Works with SingleCellExperiment too
+#'   sce <- runOLGA(sce, chains = "TRB")
 #' }
-runOLGA <- function(seurat_obj,
+runOLGA <- function(input,
                     chains = c("TRB", "TRA"),
                     model = NULL,
                     organism = "human",
                     use_vj_genes = FALSE,
-                    return_seurat = TRUE,
+                    return_object = TRUE,
                     column_name = "olga_pgen") {
-  
+
   chains <- match.arg(chains)
-  
+
+  # Determine input type
+  .is_sce <- methods::is(input, "SingleCellExperiment")
+  .is_seurat <- methods::is(input, "Seurat")
+
+  if (!.is_sce && !.is_seurat) {
+    stop("Input must be a Seurat or SingleCellExperiment object")
+  }
+
+  # Helper to add metadata
+  .add_metadata <- function(obj, col_name, values, cell_names) {
+    if (methods::is(obj, "SingleCellExperiment")) {
+      col_vec <- rep(NA_real_, ncol(obj))
+      names(col_vec) <- colnames(obj)
+      col_vec[cell_names] <- values
+      SummarizedExperiment::colData(obj)[[col_name]] <- col_vec
+    } else {
+      col_vec <- rep(NA_real_, ncol(obj))
+      names(col_vec) <- colnames(obj)
+      col_vec[cell_names] <- values
+      obj[[col_name]] <- col_vec
+    }
+    obj
+  }
+
   # Infer model if not specified
   if (is.null(model)) {
     model <- paste0(organism, chains)
@@ -47,25 +75,25 @@ runOLGA <- function(seurat_obj,
       stop("Cannot infer OLGA model. Please specify explicitly using the 'model' parameter.")
     }
   }
-  
-  message("Extracting ", chains, " sequences from Seurat object...")
-  tcr_data <- immApex::getIR(seurat_obj, chains = chains)
+
+  message("Extracting ", chains, " sequences from object...")
+  tcr_data <- immApex::getIR(input, chains = chains)
   tcr_data <- tcr_data[!is.na(tcr_data$cdr3_aa), ]
-  
+
   if (nrow(tcr_data) == 0) {
     stop("No valid ", chains, " sequences found.")
   }
-  
+
   message("Found ", nrow(tcr_data), " valid sequences")
   message("Calculating generation probabilities with OLGA (", model, ")...")
-  
+
   # Prepare arguments for calculate.olga
   olga_args <- list(
     action = "pgen",
     model = model,
     sequences = tcr_data$cdr3_aa
   )
-  
+
   # Add V and J gene info if requested
   if (use_vj_genes) {
     if (all(!is.na(tcr_data$v)) && all(!is.na(tcr_data$j))) {
@@ -76,10 +104,10 @@ runOLGA <- function(seurat_obj,
       warning("use_vj_genes=TRUE but some V/J genes are NA. Proceeding without gene info.")
     }
   }
-  
+
   # Calculate Pgen
   pgen_values <- do.call(calculate.olga, olga_args)
-  
+
   # Create result data frame
   result_df <- data.frame(
     barcode = tcr_data$barcode,
@@ -90,24 +118,17 @@ runOLGA <- function(seurat_obj,
     log10_pgen = log10(pgen_values),
     stringsAsFactors = FALSE
   )
-  
-  if (return_seurat) {
-    # Add to metadata
-    pgen_col <- rep(NA_real_, ncol(seurat_obj))
-    names(pgen_col) <- colnames(seurat_obj)
-    pgen_col[result_df$barcode] <- result_df$pgen
-    
-    log_pgen_col <- rep(NA_real_, ncol(seurat_obj))
-    names(log_pgen_col) <- colnames(seurat_obj)
-    log_pgen_col[result_df$barcode] <- result_df$log10_pgen
-    
-    seurat_obj[[paste0(column_name, "_", chains)]] <- pgen_col
-    seurat_obj[[paste0(column_name, "_log10_", chains)]] <- log_pgen_col
-    
-    message("Pgen values added to metadata as '", 
+
+  if (return_object) {
+    input <- .add_metadata(input, paste0(column_name, "_", chains),
+                          result_df$pgen, result_df$barcode)
+    input <- .add_metadata(input, paste0(column_name, "_log10_", chains),
+                          result_df$log10_pgen, result_df$barcode)
+
+    message("Pgen values added to metadata as '",
             paste0(column_name, "_", chains), "' and '",
             paste0(column_name, "_log10_", chains), "'")
-    return(seurat_obj)
+    return(input)
   } else {
     return(result_df)
   }
@@ -132,13 +153,13 @@ runOLGA <- function(seurat_obj,
 #' }
 generateOLGA <- function(n = 100, model = "humanTRB") {
   message("Generating ", n, " random sequences with OLGA (", model, ")...")
-  
+
   result <- calculate.olga(
     action = "generate",
     model = model,
     n = n
   )
-  
+
   message("Generation complete.")
   return(result)
 }

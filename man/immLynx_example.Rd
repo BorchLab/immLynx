@@ -27,7 +27,7 @@ A Seurat object with the following components:
 }
 }
 \usage{
-immLynx_example
+data(immLynx_example)
 }
 \description{
 A Seurat object containing single-cell RNA-seq data from multiple patients

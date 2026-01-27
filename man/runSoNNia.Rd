@@ -5,21 +5,21 @@
 \title{Run soNNia Selection Analysis}
 \usage{
 runSoNNia(
-  seurat_obj,
+  input,
   chains = c("TRB", "TRA"),
   background_file,
   organism = "human",
   save_folder = "sonia_output",
   n_epochs = 100,
-  return_seurat = TRUE
+  return_object = TRUE
 )
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing scRepertoire TCR data}
+\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain to analyze: "TRB" or "TRA". Default is "TRB".}
 
-\item{background_file}{Path to CSV file with background sequences (from generateOLGA)}
+\item{background_file}{Path to CSV file with background sequences (from generateOLGA).}
 
 \item{organism}{Organism: "human" or "mouse". Default is "human".}
 
@@ -27,10 +27,10 @@ runSoNNia(
 
 \item{n_epochs}{Number of training epochs. Default is 100.}
 
-\item{return_seurat}{If TRUE, adds selection scores to metadata. Default is TRUE.}
+\item{return_object}{If TRUE, adds selection scores to metadata. Default is TRUE.}
 }
 \value{
-If return_seurat=TRUE, returns Seurat object with selection scores in
+If return_object=TRUE, returns input object with selection scores in
   metadata. Otherwise returns the soNNia results.
 }
 \description{
@@ -40,17 +40,20 @@ Infer selection pressures on TCRs using soNNia. Requires a
 \details{
 This function requires a background dataset of unselected TCR sequences, which
 can be generated using generateOLGA(). The selected sequences are extracted from
-the Seurat object and compared to this background to infer selection pressures.
+the input object and compared to this background to infer selection pressures.
 }
 \examples{
 \dontrun{
   # Generate background
   background <- generateOLGA(n = 10000, model = "humanTRB")
-  write.csv(background, "background.csv", row.names = FALSE)
+  utils::write.csv(background, "background.csv", row.names = FALSE)
 
   # Run soNNia
-  seurat_obj <- runSonia(seurat_obj,
-                         chains = "TRB",
-                         background_file = "background.csv")
+  seurat_obj <- runSoNNia(seurat_obj,
+                          chains = "TRB",
+                          background_file = "background.csv")
+
+  # Works with SingleCellExperiment too
+  sce <- runSoNNia(sce, chains = "TRB", background_file = "background.csv")
 }
 }

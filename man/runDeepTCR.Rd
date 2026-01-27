@@ -5,37 +5,38 @@
 \title{Run DeepTCR on scRepertoire Data}
 \usage{
 runDeepTCR(
-  seurat_obj,
+  input,
   chains = c("TRB", "TRA"),
   output_dir = "deeptcr_output",
   latent_dim = 100,
   epochs = 100,
   reduction_name = "deeptcr",
-  return_seurat = TRUE
+  return_object = TRUE
 )
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing scRepertoire TCR data}
+\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain to use: "TRB" or "TRA". Default is "TRB".}
 
-\item{output_dir}{Directory to save DeepTCR models and results}
+\item{output_dir}{Directory to save DeepTCR models and results.}
 
 \item{latent_dim}{Dimensionality of latent space. Default is 100.}
 
 \item{epochs}{Number of training epochs. Default is 100.}
 
-\item{reduction_name}{Name for dimensional reduction in Seurat. Default is "deeptcr".}
+\item{reduction_name}{Name for dimensional reduction. Default is "deeptcr".}
 
-\item{return_seurat}{If TRUE, adds features to Seurat object. Default is TRUE.}
+\item{return_object}{If TRUE, adds features to input object. Default is TRUE.}
 }
 \value{
-If return_seurat=TRUE, returns Seurat object with DeepTCR features as
+If return_object=TRUE, returns input object with DeepTCR features as
   a dimensional reduction. Otherwise returns the feature matrix.
 }
 \description{
-Extract TCR sequences and run DeepTCR unsupervised feature extraction.
-  Note: This function requires preparing data files in a specific format.
+Extract TCR sequences from a Seurat or SingleCellExperiment object and
+  run DeepTCR unsupervised feature extraction. This function requires preparing
+  data files in a specific format.
 }
 \details{
 DeepTCR requires creating intermediate CSV files with specific columns. This
@@ -43,8 +44,11 @@ function handles the data preparation automatically.
 }
 \examples{
 \dontrun{
-  seurat_obj <- runDeepTCR(seurat_obj, 
+  seurat_obj <- runDeepTCR(seurat_obj,
                            chains = "TRB",
                            output_dir = "deeptcr_output")
+
+  # Works with SingleCellExperiment too
+  sce <- runDeepTCR(sce, chains = "TRB", output_dir = "deeptcr_output")
 }
 }

@@ -5,17 +5,17 @@
 \title{Calculate Generation Probability (Pgen) for TCRs in scRepertoire Data}
 \usage{
 runOLGA(
-  seurat_obj,
+  input,
   chains = c("TRB", "TRA"),
   model = NULL,
   organism = "human",
   use_vj_genes = FALSE,
-  return_seurat = TRUE,
+  return_object = TRUE,
   column_name = "olga_pgen"
 )
 }
 \arguments{
-\item{seurat_obj}{A Seurat object containing scRepertoire TCR data.}
+\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain to analyze: "TRA" or "TRB". Default is "TRB".}
 
@@ -27,17 +27,17 @@ If NULL, will be inferred from organism and chains parameters.}
 \item{use_vj_genes}{Logical. If TRUE, includes V and J gene information in Pgen calculation.
 Default is FALSE (sequence-only Pgen).}
 
-\item{return_seurat}{Logical. If TRUE, adds Pgen values to metadata. Default is TRUE.}
+\item{return_object}{Logical. If TRUE, adds Pgen values to metadata. Default is TRUE.}
 
 \item{column_name}{Name for the metadata column. Default is "olga_pgen".}
 }
 \value{
-If return_seurat=TRUE, returns Seurat object with Pgen added to metadata.
+If return_object=TRUE, returns input object with Pgen added to metadata.
   If FALSE, returns data.frame with barcodes, sequences, and Pgen values.
 }
 \description{
-Extracts TCR sequences from a Seurat object and calculates their
-  generation probability using OLGA.
+Extracts TCR sequences from a Seurat or SingleCellExperiment object
+  and calculates their generation probability using OLGA.
 }
 \examples{
 \dontrun{
@@ -48,6 +48,9 @@ Extracts TCR sequences from a Seurat object and calculates their
   seurat_obj <- runOLGA(seurat_obj, chains = "TRB", use_vj_genes = TRUE)
 
   # Just get results without adding to object
-  pgen_results <- runOLGA(seurat_obj, chains = "TRB", return_seurat = FALSE)
+  pgen_results <- runOLGA(seurat_obj, chains = "TRB", return_object = FALSE)
+
+  # Works with SingleCellExperiment too
+  sce <- runOLGA(sce, chains = "TRB")
 }
 }
