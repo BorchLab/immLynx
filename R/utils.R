@@ -249,13 +249,13 @@ convertToTcrdist <- function(tcr_data,
 
   chains <- match.arg(chains)
 
-  result <- data.frame(stringsAsFactors = FALSE)
-
   # Determine if data is in wide or long format
   is_wide <- any(grepl("_TRA$|_TRB$", names(tcr_data)))
 
   if (is_wide) {
     # Wide format: columns like cdr3_aa_TRA, cdr3_aa_TRB
+    result <- data.frame(row.names = seq_len(nrow(tcr_data)))
+
     if (chains %in% c("alpha", "both")) {
       result$v_a_gene <- tcr_data$v_TRA
       result$j_a_gene <- tcr_data$j_TRA
@@ -272,13 +272,19 @@ convertToTcrdist <- function(tcr_data,
     if (!("chain" %in% names(tcr_data))) {
       # Assume single chain based on request
       if (chains == "alpha") {
-        result$v_a_gene <- tcr_data$v
-        result$j_a_gene <- tcr_data$j
-        result$cdr3_a_aa <- tcr_data$cdr3_aa
+        result <- data.frame(
+          v_a_gene = tcr_data$v,
+          j_a_gene = tcr_data$j,
+          cdr3_a_aa = tcr_data$cdr3_aa,
+          stringsAsFactors = FALSE
+        )
       } else if (chains == "beta") {
-        result$v_b_gene <- tcr_data$v
-        result$j_b_gene <- tcr_data$j
-        result$cdr3_b_aa <- tcr_data$cdr3_aa
+        result <- data.frame(
+          v_b_gene = tcr_data$v,
+          j_b_gene = tcr_data$j,
+          cdr3_b_aa = tcr_data$cdr3_aa,
+          stringsAsFactors = FALSE
+        )
       } else {
         stop("Cannot determine chain type. Please ensure data has 'chain' column or use format='wide'")
       }
@@ -286,14 +292,20 @@ convertToTcrdist <- function(tcr_data,
       # Has chain column - filter and pivot
       if (chains == "alpha") {
         alpha_data <- tcr_data[tcr_data$chain == "TRA", ]
-        result$v_a_gene <- alpha_data$v
-        result$j_a_gene <- alpha_data$j
-        result$cdr3_a_aa <- alpha_data$cdr3_aa
+        result <- data.frame(
+          v_a_gene = alpha_data$v,
+          j_a_gene = alpha_data$j,
+          cdr3_a_aa = alpha_data$cdr3_aa,
+          stringsAsFactors = FALSE
+        )
       } else if (chains == "beta") {
         beta_data <- tcr_data[tcr_data$chain == "TRB", ]
-        result$v_b_gene <- beta_data$v
-        result$j_b_gene <- beta_data$j
-        result$cdr3_b_aa <- beta_data$cdr3_aa
+        result <- data.frame(
+          v_b_gene = beta_data$v,
+          j_b_gene = beta_data$j,
+          cdr3_b_aa = beta_data$cdr3_aa,
+          stringsAsFactors = FALSE
+        )
       } else {
         # Both chains - need to pivot
         alpha_data <- tcr_data[tcr_data$chain == "TRA", c("barcode", "v", "j", "cdr3_aa")]
@@ -311,9 +323,10 @@ convertToTcrdist <- function(tcr_data,
   if (include_count) {
     result$count <- 1L
     # Move count to first position
-    result <- result[, c("count", setdiff(names(result), "count"))]
+    result <- result[, c("count", setdiff(names(result), "count")), drop = FALSE]
   }
 
+  rownames(result) <- NULL
   result
 }
 
@@ -344,6 +357,7 @@ convertToTcrdist <- function(tcr_data,
 #'
 #' @export
 #' @importFrom methods is
+#' @importFrom stats median sd
 #'
 #' @examples
 #' \dontrun{
@@ -478,6 +492,7 @@ summarizeTCRrepertoire <- function(input,
 #' @return Invisibly returns the input object
 #' @export
 #' @method print TCR_summary
+#' @importFrom utils head
 print.TCR_summary <- function(x, ...) {
   cat("=== TCR Repertoire Summary ===\n")
   cat("Chain(s):", x$chains, "\n\n")
