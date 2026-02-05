@@ -23,51 +23,52 @@ calculate.tcrDist <- function(df,
 
   results <- basilisk::basiliskRun(proc, function(df, organism, chains, compute_distances) {
     pd <- reticulate::import("pandas")
+    builtins <- reticulate::import_builtins()
     tcrdist <- reticulate::import("tcrdist")
     tc <- tcrdist$repertoire
 
     # Convert R data.frame to pandas DataFrame
     df_py <- pd$DataFrame(df)
 
-    # Determine which TCRrep class to use based on chains
-    if (length(chains) == 2 && all(c("alpha", "beta") %in% chains)) {
-      # Paired alpha-beta analysis
-      tr <- tc$TCRrep(
-        cell_df = df_py,
-        organism = organism,
-        chains = reticulate::py_eval("['alpha', 'beta']"),
-        compute_distances = compute_distances
-      )
-    } else if ("alpha" %in% chains) {
-      tr <- tc$TCRrep(
-        cell_df = df_py,
-        organism = organism,
-        chains = reticulate::py_eval("['alpha']"),
-        compute_distances = compute_distances
-      )
-    } else {
-      tr <- tc$TCRrep(
-        cell_df = df_py,
-        organism = organism,
-        chains = reticulate::py_eval("['beta']"),
-        compute_distances = compute_distances
-      )
-    }
+    # Convert chains to Python list - reticulate converts R list to Python list
+    chains_list <- as.list(chains)
 
-    # Extract distance matrices
+    # Create TCRrep object
+    tr <- tc$TCRrep(
+      cell_df = df_py,
+      organism = organism,
+      chains = chains_list,
+      compute_distances = compute_distances
+    )
+
+    # Extract distance matrices - use hasattr to check for attributes safely
     result <- list()
 
-    if ("alpha" %in% chains && !is.null(tr$pw_alpha)) {
-      result$pw_alpha <- reticulate::py_to_r(tr$pw_alpha)
+    if ("alpha" %in% chains && builtins$hasattr(tr, "pw_alpha")) {
+      pw_alpha <- tr$pw_alpha
+      if (!is.null(pw_alpha)) {
+        result$pw_alpha <- reticulate::py_to_r(pw_alpha)
+      }
     }
-    if ("beta" %in% chains && !is.null(tr$pw_beta)) {
-      result$pw_beta <- reticulate::py_to_r(tr$pw_beta)
+    if ("beta" %in% chains && builtins$hasattr(tr, "pw_beta")) {
+      pw_beta <- tr$pw_beta
+      if (!is.null(pw_beta)) {
+        result$pw_beta <- reticulate::py_to_r(pw_beta)
+      }
     }
-    if (!is.null(tr$pw_cdr3_a_aa)) {
-      result$pw_cdr3_a_aa <- reticulate::py_to_r(tr$pw_cdr3_a_aa)
+
+    # CDR3-only distances (optional, may not exist depending on tcrdist3 version)
+    if ("alpha" %in% chains && builtins$hasattr(tr, "pw_cdr3_a_aa")) {
+      pw_cdr3_a <- tr$pw_cdr3_a_aa
+      if (!is.null(pw_cdr3_a)) {
+        result$pw_cdr3_a_aa <- reticulate::py_to_r(pw_cdr3_a)
+      }
     }
-    if (!is.null(tr$pw_cdr3_b_aa)) {
-      result$pw_cdr3_b_aa <- reticulate::py_to_r(tr$pw_cdr3_b_aa)
+    if ("beta" %in% chains && builtins$hasattr(tr, "pw_cdr3_b_aa")) {
+      pw_cdr3_b <- tr$pw_cdr3_b_aa
+      if (!is.null(pw_cdr3_b)) {
+        result$pw_cdr3_b_aa <- reticulate::py_to_r(pw_cdr3_b)
+      }
     }
 
     result
