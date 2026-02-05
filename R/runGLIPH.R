@@ -128,6 +128,7 @@ runGLIPH <- function(input,
   }
 
   # Run GLIPH2 via turboGliph
+  # Use empty string for result_folder to avoid saving files
   gliph_result <- turboGliph::gliph_combined(
     cdr3_sequences = gliph_input,
     local_similarities = local_similarities,
@@ -136,9 +137,10 @@ runGLIPH <- function(input,
     global_method = global_method,
     motif_length = motif_length,
     gccutoff = gccutoff,
-    vgene_match = vgene_match,
+    vgene_match = if (vgene_match) "CDR3" else "none",
     n_cores = n_cores,
-    result_folder = NULL  # Don't save files
+    result_folder = "",  # Empty string to suppress file output
+    lcminove = 10  # Single value for local minimum observations
   )
 
   # Extract results
