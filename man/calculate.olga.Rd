@@ -4,7 +4,7 @@
 \alias{calculate.olga}
 \title{Calculate Generation Probability using OLGA}
 \usage{
-\method{calculate}{olga}(
+calculate.olga(
   action = c("pgen", "generate"),
   model = "humanTRB",
   sequences = NULL,

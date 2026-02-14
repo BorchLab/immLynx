@@ -5,19 +5,19 @@
 \title{Generate Protein Language Model Embeddings for TCR Sequences}
 \usage{
 runEmbeddings(
-  input,
+  seurat_obj,
   chains = c("TRB", "TRA", "both"),
   model_name = "facebook/esm2_t12_35M_UR50D",
   pool = "mean",
   chunk_size = 32,
   reduction_name = "tcr_esm",
   reduction_key = "ESM_",
-  return_object = TRUE,
+  return_seurat = TRUE,
   ...
 )
 }
 \arguments{
-\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
+\item{seurat_obj}{A Seurat object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain(s) to embed: "TRB", "TRA", or "both". Default is "TRB".}
 
@@ -28,22 +28,24 @@ Other options: "facebook/esm2_t33_650M_UR50D", "facebook/esm2_t36_3B_UR50D"}
 
 \item{chunk_size}{Number of sequences to process at once. Default is 32.}
 
-\item{reduction_name}{Name for the dimensional reduction. Default is "tcr_esm".}
+\item{reduction_name}{Name for the dimensional reduction (stored in Seurat object).
+Default is "tcr_esm".}
 
 \item{reduction_key}{Key prefix for embeddings in reduction. Default is "ESM_".}
 
-\item{return_object}{Logical. If TRUE, adds embeddings as dimensional reduction.
+\item{return_seurat}{Logical. If TRUE, adds embeddings as dimensional reduction.
 If FALSE, returns list with embeddings and metadata. Default is TRUE.}
 
 \item{...}{Additional arguments passed to proteinEmbeddings().}
 }
 \value{
-If return_object=TRUE, returns input object with embeddings added as a
-  dimensional reduction. If FALSE, returns list with embeddings matrix and metadata.
+If return_seurat=TRUE, returns Seurat object with embeddings added as a
+  dimensional reduction (accessible via seurat_obj[[reduction_name]]).
+  If FALSE, returns list with embeddings matrix and metadata.
 }
 \description{
-Extracts TCR CDR3 sequences from a Seurat or SingleCellExperiment object
-  and generates embeddings using a protein language model (e.g., ESM-2).
+Extracts TCR CDR3 sequences from a Seurat object and generates embeddings
+  using a protein language model (e.g., ESM-2).
 }
 \details{
 This function uses protein language models to generate dense vector
@@ -58,15 +60,12 @@ This function uses protein language models to generate dense vector
   seurat_obj <- runEmbeddings(seurat_obj, chains = "TRB")
 
   # Use larger model for better embeddings
-  seurat_obj <- runEmbeddings(seurat_obj,
+  seurat_obj <- runEmbeddings(seurat_obj, 
                               chains = "TRB",
                               model_name = "facebook/esm2_t33_650M_UR50D")
 
   # Visualize embeddings
   seurat_obj <- RunUMAP(seurat_obj, reduction = "tcr_esm", dims = 1:30)
   DimPlot(seurat_obj, reduction = "umap")
-
-  # Works with SingleCellExperiment too
-  sce <- runEmbeddings(sce, chains = "TRB")
 }
 }

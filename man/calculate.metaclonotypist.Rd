@@ -4,7 +4,7 @@
 \alias{calculate.metaclonotypist}
 \title{Internal Metaclonotypist Calculation Function}
 \usage{
-\method{calculate}{metaclonotypist}(
+calculate.metaclonotypist(
   cdr3_sequences,
   v_genes = NULL,
   j_genes = NULL,

@@ -33,7 +33,6 @@ into the R environment. It provides unified interfaces for:
 - Sequence generation probability (OLGA)
 - Selection inference (soNNia)
 - TCR clustering (clusTCR)
-- Deep learning features (DeepTCR)
 - Protein language model embeddings (ESM-2)
 - Metaclone discovery (metaclonotypist)
 - Specificity group identification (GLIPH2)
@@ -233,23 +232,6 @@ seurat_obj <- runSoNNia(
   chains = "TRB",
   background_file = "background.csv"
 )
-```
-
-## Deep Learning Features with DeepTCR
-
-Extract unsupervised features using DeepTCR:
-```{r deeptcr}
-# Run DeepTCR VAE
-seurat_obj <- runDeepTCR(
-  immLynx_example,
-  chains = "TRB",
-  output_dir = "deeptcr_output",
-  latent_dim = 100,
-  epochs = 100
-)
-
-# Access the learned features as a dimensional reduction
-seurat_obj[["deeptcr"]]
 ```
 
 # Workflow Example

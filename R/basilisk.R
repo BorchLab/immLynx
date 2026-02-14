@@ -23,9 +23,7 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
         "conda-forge::numpy=1.23.4",
         "conda-forge::scipy=1.8.0",
         "conda-forge::statsmodels=0.13.2",
-        "conda-forge::seaborn=0.12.1",
-        # Pre-built parasail from bioconda (avoids autotools compilation)
-        "bioconda::parasail-python=1.3.4"
+        "conda-forge::seaborn=0.12.1"
     ),
     channels = c("conda-forge", "bioconda", "svalkiers", "pytorch"),
     pip = c(

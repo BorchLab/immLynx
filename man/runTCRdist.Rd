@@ -5,7 +5,7 @@
 \title{Calculate TCR Distances on scRepertoire Data}
 \usage{
 runTCRdist(
-  input,
+  seurat_obj,
   chains = "beta",
   organism = "human",
   compute_distances = TRUE,
@@ -13,7 +13,7 @@ runTCRdist(
 )
 }
 \arguments{
-\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
+\item{seurat_obj}{A Seurat object containing scRepertoire TCR data.}
 
 \item{chains}{Character vector specifying chains: "alpha", "beta", or c("alpha", "beta").
 Default is "beta".}
@@ -22,21 +22,19 @@ Default is "beta".}
 
 \item{compute_distances}{Logical. Whether to compute full distance matrix. Default TRUE.}
 
-\item{add_to_object}{Logical. If TRUE, attempts to add distance matrix to object
-(stored in misc slot for Seurat or metadata for SCE). Default is FALSE due to large
-matrix size.}
+\item{add_to_object}{Logical. If TRUE, attempts to add distance matrix to Seurat object
+(stored in misc slot). Default is FALSE due to large matrix size.}
 }
 \value{
 A list containing:
   \item{distances}{Distance matrices (pw_alpha, pw_beta, pw_cdr3_a_aa, pw_cdr3_b_aa)}
   \item{barcodes}{Cell barcodes corresponding to matrix rows/columns}
   \item{tcr_data}{The formatted TCR data.frame used for analysis}
-  If add_to_object=TRUE, returns the input object with distances stored.
+  If add_to_object=TRUE, returns the Seurat object with distances in obj@misc$tcrdist
 }
 \description{
-This function extracts TCR sequences from a Seurat or
-  SingleCellExperiment object with scRepertoire data and calculates pairwise
-  TCR distances using tcrdist3.
+This function extracts TCR sequences from a Seurat object with
+  scRepertoire data and calculates pairwise TCR distances using tcrdist3.
 }
 \examples{
 \dontrun{
@@ -48,8 +46,5 @@ This function extracts TCR sequences from a Seurat or
 
   # Calculate both chains
   dist_results <- runTCRdist(seurat_obj, chains = c("alpha", "beta"))
-
-  # Works with SingleCellExperiment too
-  dist_results <- runTCRdist(sce, chains = "beta")
 }
 }

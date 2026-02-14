@@ -4,7 +4,12 @@
 \alias{calculate.tcrDist}
 \title{Calculate TCR Distances using tcrdist3}
 \usage{
-\method{calculate}{tcrDist}(df, organism = "human", chains = "beta", compute_distances = TRUE)
+calculate.tcrDist(
+  df,
+  organism = "human",
+  chains = "beta",
+  compute_distances = TRUE
+)
 }
 \arguments{
 \item{df}{A data.frame with TCR sequences in tcrdist3 format}

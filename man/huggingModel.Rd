@@ -8,8 +8,7 @@ huggingModel(model_name = "facebook/esm2_t12_35M_UR50D")
 }
 \arguments{
 \item{model_name}{A string specifying the model identifier from the
-Hugging Face Hub. For ESM-2 35M, this is "facebook/esm2_t12_35M_UR50D".
-Other options include "facebook/esm2_t33_650M_UR50D" for larger models.}
+Hugging Face Hub. For ESM-2 35M, this is "facebook/esm2_t12_35M_UR50D".}
 }
 \value{
 A list containing the R-wrapped Python objects for the 'model'
@@ -25,7 +24,4 @@ Downloads or loads a cached pre-trained model and its
   model <- hf_components$model
   tokenizer <- hf_components$tokenizer
 }
-}
-\seealso{
-\code{\link{tokenizeSequences}}, \code{\link{proteinEmbeddings}}
 }

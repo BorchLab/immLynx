@@ -4,7 +4,7 @@
 \alias{calculate.sonia}
 \title{Run soNNia Selection Analysis}
 \usage{
-\method{calculate}{sonia}(
+calculate.sonia(
   data_folder,
   data_filename,
   pgen_filename,

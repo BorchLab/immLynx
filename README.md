@@ -1,19 +1,15 @@
 # immLynx
 Linking advanced TCR python pipelines and Hugging Face models in R
 
-<!-- badges: start -->
-  [![R-CMD-check](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml)
-  [![Codecov test coverage](https://codecov.io/gh/BorchLab/immLynx/graph/badge.svg)](https://app.codecov.io/gh/BorchLab/immLynx)
-<!-- badges: end -->
-
 <img align="right" src="https://github.com/BorchLab/immLynx/blob/main/www/immlynx_hex.png" width="305" height="352">
+
+## Introduction
 
 immLynx provides a unified R interface for running multiple state-of-the-art TCR analysis
 pipelines on single-cell TCR sequencing data. The package seamlessly integrates
 with Seurat and scRepertoire workflows, wrapping popular Python-based tools to enable:
 
 *   **tcrdist3**: Calculate pairwise distances between T-cell receptors using `runTCRdist`
-*   **DeepTCR**: Perform unsupervised feature extraction from TCR sequences with `runDeepTCR`
 *   **OLGA**: Compute the generation probability of CDR3 sequences or generate new sequences with `runOLGA`
 *   **soNNia**: Infer selection pressures on TCRs using `runSoNNia`
 *   **clusTCR**: Cluster large sets of CDR3 sequences with `runClustTCR`
@@ -191,14 +187,7 @@ dist_results <- runTCRdist(seurat_obj,
 beta_dist <- dist_results$distances$pw_beta
 ```
 
-### Deep Learning and Selection
-
-**DeepTCR VAE:**
-```r
-seurat_obj <- runDeepTCR(seurat_obj,
-                         output_dir = "deeptcr_output",
-                         latent_dim = 100)
-```
+### Selection Inference
 
 **soNNia Selection:**
 ```r
@@ -235,7 +224,6 @@ If you use immLynx in your research, please cite the underlying tools:
 - **tcrdist3**: [Mayer-Blackwell et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/36087210/)
 - **OLGA**: [Sethna et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/30657870/)
 - **soNNia**: [Isacchini et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/33795515/)
-- **DeepTCR**: [Sidhom et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/33707415/)
 - **metaclonotypist**: [qimmuno](https://github.com/qimmuno/metaclonotypist)
 - **turboGliph/GLIPH2**: [Glanville et al. (2017)](https://pubmed.ncbi.nlm.nih.gov/28636589/)
 - **ESM-2**: [Lin et al. (2023)](https://pubmed.ncbi.nlm.nih.gov/36927031/)

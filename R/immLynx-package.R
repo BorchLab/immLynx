@@ -30,9 +30,8 @@
 #'   \item \code{\link{runEmbeddings}}: Generate protein embeddings using ESM-2
 #' }
 #'
-#' **Deep Learning:**
+#' **Selection Inference:**
 #' \itemize{
-#'   \item \code{\link{runDeepTCR}}: Run DeepTCR VAE feature extraction
 #'   \item \code{\link{runSoNNia}}: Infer selection with soNNia
 #' }
 #'
@@ -62,7 +61,6 @@
 #' \itemize{
 #'   \item clustcr - TCR clustering
 #'   \item tcrdist3 - TCR distance calculations
-#'   \item DeepTCR - Deep learning features
 #'   \item olga - Generation probability
 #'   \item sonnia - Selection inference
 #'   \item metaclonotypist - Metaclone discovery

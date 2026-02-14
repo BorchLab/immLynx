@@ -8,10 +8,10 @@ Description: A comprehensive toolkit that bridges popular Python-based immune
     repertoire analysis tools and Hugging Face protein language models into the
     R environment. Provides unified interfaces for TCR distance calculations
     (tcrdist3), sequence generation probability (OLGA), selection inference
-    (soNNia), clustering (clusTCR), deep learning features (DeepTCR), protein
-    embeddings (ESM-2), metaclone discovery (metaclonotypist), and specificity
-    group identification (GLIPH2). Fully compatible with the scRepertoire and
-    immApex ecosystem for single-cell immune repertoire analysis.
+    (soNNia), clustering (clusTCR), protein embeddings (ESM-2), metaclone
+    discovery (metaclonotypist), and specificity group identification (GLIPH2).
+    Fully compatible with the scRepertoire and immApex ecosystem for single-cell
+    immune repertoire analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
 RoxygenNote: 7.3.3

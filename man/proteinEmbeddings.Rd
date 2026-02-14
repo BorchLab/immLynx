@@ -14,24 +14,19 @@ proteinEmbeddings(
 )
 }
 \arguments{
-\item{model}{HF model (from AutoModel or similar), typically obtained via
-\code{\link{huggingModel}}.}
+\item{model}{HF model (from AutoModel or similar)}
 
 \item{tokenized.batch}{A *list* of tokenized tensors OR a list of such lists
-(i.e., already minibatched). If you pass a single big batch, set chunk_size.
-Typically obtained via \code{\link{tokenizeSequences}}.}
+(i.e., already minibatched). If you pass a single big batch, set chunk_size.}
 
-\item{pool}{One of "mean", "cls", or "none". "mean" is recommended for
-sequence-level embeddings.}
+\item{pool}{One of "mean", "cls", or "none". "mean" is recommended.}
 
 \item{chunk_size}{If tokenized.batch is a single big batch, split it into
 chunks of this many sequences. Ignored if you pre-batched upstream.}
 
-\item{prefer_dtype}{One of "float16", "bfloat16", "float32". Lower precision
-uses less memory but may reduce accuracy.}
+\item{prefer_dtype}{One of "float16","bfloat16","float32"}
 
-\item{prefer_device}{One of "auto", "cuda", "mps", "cpu". "auto" will select
-the best available device.}
+\item{prefer_device}{One of "auto","cuda","mps","cpu"}
 }
 \value{
 An R matrix [n_sequences x hidden] if pool != "none".
@@ -39,19 +34,13 @@ An R matrix [n_sequences x hidden] if pool != "none".
 }
 \description{
 Applies a pre-trained model to a batch of tokenized sequences
-  to generate embeddings. This is the core embedding function used by
-  \code{\link{runEmbeddings}}.
+  to generate embeddings.
 }
 \examples{
-\dontrun{
   hf_components <- huggingModel()
-  sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF")
+  sequences <- c("MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALP",
+                 "MKKLFWRAVFLFLLAGLVACSP")
   tokenized_output <- tokenizeSequences(hf_components$tokenizer, sequences)
-  model_output <- proteinEmbeddings(hf_components$model, tokenized_output,
-                                    pool = "mean", chunk_size = 32)
-}
-}
-\seealso{
-\code{\link{runEmbeddings}} for a higher-level wrapper that works
-  directly with Seurat/SingleCellExperiment objects.
+  model_output <- proteinEmbeddings(hf_components$model, tokenized_output)
+
 }

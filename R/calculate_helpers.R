@@ -23,52 +23,51 @@ calculate.tcrDist <- function(df,
 
   results <- basilisk::basiliskRun(proc, function(df, organism, chains, compute_distances) {
     pd <- reticulate::import("pandas")
-    builtins <- reticulate::import_builtins()
     tcrdist <- reticulate::import("tcrdist")
     tc <- tcrdist$repertoire
 
     # Convert R data.frame to pandas DataFrame
     df_py <- pd$DataFrame(df)
 
-    # Convert chains to Python list - reticulate converts R list to Python list
-    chains_list <- as.list(chains)
+    # Determine which TCRrep class to use based on chains
+    if (length(chains) == 2 && all(c("alpha", "beta") %in% chains)) {
+      # Paired alpha-beta analysis
+      tr <- tc$TCRrep(
+        cell_df = df_py,
+        organism = organism,
+        chains = reticulate::py_eval("['alpha', 'beta']"),
+        compute_distances = compute_distances
+      )
+    } else if ("alpha" %in% chains) {
+      tr <- tc$TCRrep(
+        cell_df = df_py,
+        organism = organism,
+        chains = reticulate::py_eval("['alpha']"),
+        compute_distances = compute_distances
+      )
+    } else {
+      tr <- tc$TCRrep(
+        cell_df = df_py,
+        organism = organism,
+        chains = reticulate::py_eval("['beta']"),
+        compute_distances = compute_distances
+      )
+    }
 
-    # Create TCRrep object
-    tr <- tc$TCRrep(
-      cell_df = df_py,
-      organism = organism,
-      chains = chains_list,
-      compute_distances = compute_distances
-    )
-
-    # Extract distance matrices - use hasattr to check for attributes safely
+    # Extract distance matrices
     result <- list()
 
-    if ("alpha" %in% chains && builtins$hasattr(tr, "pw_alpha")) {
-      pw_alpha <- tr$pw_alpha
-      if (!is.null(pw_alpha)) {
-        result$pw_alpha <- reticulate::py_to_r(pw_alpha)
-      }
+    if ("alpha" %in% chains && !is.null(tr$pw_alpha)) {
+      result$pw_alpha <- reticulate::py_to_r(tr$pw_alpha)
     }
-    if ("beta" %in% chains && builtins$hasattr(tr, "pw_beta")) {
-      pw_beta <- tr$pw_beta
-      if (!is.null(pw_beta)) {
-        result$pw_beta <- reticulate::py_to_r(pw_beta)
-      }
+    if ("beta" %in% chains && !is.null(tr$pw_beta)) {
+      result$pw_beta <- reticulate::py_to_r(tr$pw_beta)
     }
-
-    # CDR3-only distances (optional, may not exist depending on tcrdist3 version)
-    if ("alpha" %in% chains && builtins$hasattr(tr, "pw_cdr3_a_aa")) {
-      pw_cdr3_a <- tr$pw_cdr3_a_aa
-      if (!is.null(pw_cdr3_a)) {
-        result$pw_cdr3_a_aa <- reticulate::py_to_r(pw_cdr3_a)
-      }
+    if (!is.null(tr$pw_cdr3_a_aa)) {
+      result$pw_cdr3_a_aa <- reticulate::py_to_r(tr$pw_cdr3_a_aa)
     }
-    if ("beta" %in% chains && builtins$hasattr(tr, "pw_cdr3_b_aa")) {
-      pw_cdr3_b <- tr$pw_cdr3_b_aa
-      if (!is.null(pw_cdr3_b)) {
-        result$pw_cdr3_b_aa <- reticulate::py_to_r(pw_cdr3_b)
-      }
+    if (!is.null(tr$pw_cdr3_b_aa)) {
+      result$pw_cdr3_b_aa <- reticulate::py_to_r(tr$pw_cdr3_b_aa)
     }
 
     result
@@ -217,55 +216,6 @@ calculate.olga <- function(action = c("pgen", "generate"),
      v_genes = v_genes, j_genes = j_genes, n = n)
 
   return(result)
-}
-
-
-#' Run DeepTCR VAE Feature Extraction
-#' @description Internal function that calls DeepTCR via basilisk.
-#' @param output_dir Directory for saving model outputs
-#' @param data_dir Directory containing input data
-#' @param files Character vector of input file names
-#' @param latent_dim Dimensionality of latent space
-#' @param epochs Number of training epochs
-#' @return Matrix of learned features
-#' @keywords internal
-calculate.deepTCR <- function(output_dir,
-                              data_dir,
-                              files,
-                              latent_dim = 100,
-                              epochs = 100) {
-
-  proc <- basilisk::basiliskStart(immLynxEnv)
-  on.exit(basilisk::basiliskStop(proc))
-
-  features <- basilisk::basiliskRun(proc, function(output_dir, data_dir, files, latent_dim, epochs) {
-    DeepTCR <- reticulate::import("DeepTCR")
-    np <- reticulate::import("numpy")
-
-    # Initialize DeepTCR repertoire model
-    DTCR_R <- DeepTCR$DeepTCR_U(output_dir)
-
-    # Get data
-    DTCR_R$Get_Data(
-      directory = data_dir,
-      Load_Prev_Data = FALSE
-    )
-
-    # Train VAE
-    DTCR_R$Train_VAE(
-      latent_dim = as.integer(latent_dim),
-      epochs_min = as.integer(epochs)
-    )
-
-    # Get features
-    feats <- DTCR_R$features
-
-    # Convert to R matrix
-    reticulate::py_to_r(feats)
-  }, output_dir = output_dir, data_dir = data_dir, files = files,
-     latent_dim = latent_dim, epochs = epochs)
-
-  return(features)
 }
 
 

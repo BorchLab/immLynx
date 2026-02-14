@@ -13,9 +13,9 @@ tokenizeSequences(
 )
 }
 \arguments{
-\item{tokenizer}{The tokenizer object returned by \code{\link{huggingModel}}.}
+\item{tokenizer}{The tokenizer object returned by `initialize_protein_model_and_tokenizer`.}
 
-\item{aa_sequences}{A character vector of amino acid sequences (e.g., CDR3 sequences).}
+\item{aa_sequences}{A character vector of amino acid sequences.}
 
 \item{padding}{A logical or string. If TRUE, pads sequences to the length
 of the longest sequence in the batch. Defaults to TRUE.}
@@ -32,16 +32,14 @@ The tokenized output, typically a dictionary-like object containing
 }
 \description{
 Takes a vector of amino acid sequences and uses a Hugging Face
-  tokenizer to convert them into numerical input IDs suitable for model input.
+  tokenizer to convert them into numerical input IDs.
 }
 \examples{
 \dontrun{
-  hf_components <- huggingModel()
-  sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF")
+  hf_components <- initialize_protein_model_and_tokenizer()
+  sequences <- c("MKTAYIAKQRQISFVKSHFSRQLEERLGLIEVQAPILSRVGDGTQDNLSGAEKAVQVKVKALP",
+                 "MKKLFWRAVFLFLLAGLVACSP")
   tokenized_output <- tokenizeSequences(hf_components$tokenizer, sequences)
   print(tokenized_output)
 }
-}
-\seealso{
-\code{\link{huggingModel}}, \code{\link{proteinEmbeddings}}
 }

@@ -4,7 +4,13 @@
 \alias{calculate.clustcr}
 \title{Cluster TCRs using clusTCR}
 \usage{
-\method{calculate}{clustcr}(sequences, method = "mcl", inflation = 2, eps = 0.5, min_samples = 2)
+calculate.clustcr(
+  sequences,
+  method = "mcl",
+  inflation = 2,
+  eps = 0.5,
+  min_samples = 2
+)
 }
 \arguments{
 \item{sequences}{Character vector of CDR3 amino acid sequences}
