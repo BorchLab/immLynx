@@ -1,6 +1,11 @@
 # immLynx
 Linking advanced TCR python pipelines and Hugging Face models in R
 
+<!-- badges: start -->
+  [![R-CMD-check](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml)
+  [![Codecov test coverage](https://codecov.io/gh/BorchLab/immLynx/graph/badge.svg)](https://app.codecov.io/gh/BorchLab/immLynx)
+<!-- badges: end -->
+
 <img align="right" src="https://github.com/BorchLab/immLynx/blob/main/www/immlynx_hex.png" width="305" height="352">
 
 ## Introduction
