@@ -9,8 +9,7 @@ Description: A comprehensive toolkit that bridges popular Python-based immune
     R environment. Provides unified interfaces for TCR distance calculations
     (tcrdist3), sequence generation probability (OLGA), selection inference
     (soNNia), clustering (clusTCR), protein embeddings (ESM-2), metaclone
-    discovery (metaclonotypist), and specificity group identification (GLIPH2).
-    Fully compatible with the scRepertoire and immApex ecosystem for single-cell
+    discovery (metaclonotypist). Fully compatible with the scRepertoire and immApex ecosystem for single-cell
     immune repertoire analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
@@ -39,7 +38,6 @@ Suggests:
     Seurat (>= 5.0.0),
     spelling,
     testthat (>= 3.0.0),
-    turboGliph,
     withr
 VignetteBuilder: knitr
 Language: en-US

@@ -11,7 +11,6 @@
 #' \itemize{
 #'   \item \code{\link{runClustTCR}}: Cluster TCRs using clusTCR (MCL or DBSCAN)
 #'   \item \code{\link{runMetaclonotypist}}: Identify metaclones with metaclonotypist
-#'   \item \code{\link{runGLIPH}}: Find specificity groups with GLIPH2
 #' }
 #'
 #' **Distance Metrics:**

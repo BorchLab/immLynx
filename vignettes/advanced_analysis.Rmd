@@ -32,7 +32,7 @@ immLynx, including:
 - Comparing clustering approaches
 - Integration with scRepertoire clonotype data
 - Custom embedding workflows
-- Metaclone and GLIPH2 analysis
+- Metaclone analysis
 
 # Setup
 
@@ -65,34 +65,6 @@ seurat_all <- runClustTCR(seurat_mcl_3, method = "dbscan", eps = 0.5,
 cat("MCL (inflation=2):", length(unique(na.omit(seurat_all$mcl_2_TRB))), "clusters\n")
 cat("MCL (inflation=3):", length(unique(na.omit(seurat_all$mcl_3_TRB))), "clusters\n")
 cat("DBSCAN:", length(unique(na.omit(seurat_all$dbscan_TRB))), "clusters\n")
-```
-
-## Metaclonotypist vs GLIPH2
-
-Both metaclonotypist and GLIPH2 identify groups of related TCRs, but use
-different algorithms:
-
-```{r meta-vs-gliph}
-# Metaclonotypist (Python-based, uses tcrdist)
-seurat_meta <- runMetaclonotypist(
-  immLynx_example,
-  chains = "beta",
-  method = "tcrdist",
-  max_dist = 20,
-  column_name = "metaclone"
-)
-
-# GLIPH2 (R-based turboGliph, uses motif analysis)
-seurat_both <- runGLIPH(
-  seurat_meta,
-  chains = "TRB",
-  column_prefix = "gliph"
-)
-
-# Compare assignments
-table(metaclone = seurat_both$metaclone,
-      gliph = seurat_both$gliph_cluster,
-      useNA = "ifany")
 ```
 
 # Custom Embedding Workflows

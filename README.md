@@ -14,7 +14,6 @@ with Seurat and scRepertoire workflows, wrapping popular Python-based tools to e
 *   **soNNia**: Infer selection pressures on TCRs using `runSoNNia`
 *   **clusTCR**: Cluster large sets of CDR3 sequences with `runClustTCR`
 *   **metaclonotypist**: Identify TCR metaclones with `runMetaclonotypist`
-*   **GLIPH2**: Find TCR specificity groups with `runGLIPH` (via turboGliph)
 *   **ESM-2**: Generate protein language model embeddings with `runEmbeddings`
 
 For more details on each function, please refer to the R documentation (e.g., `?runTCRdist`).
@@ -37,11 +36,6 @@ remotes::install_github("BorchLab/immLynx")
 
 The first time you use immLynx, it will automatically install the required Python
 packages in an isolated environment via basilisk. This may take several minutes.
-
-**Optional: Install turboGliph for GLIPH2 analysis:**
-```r
-remotes::install_github("HetzDra/turboGliph")
-```
 
 ## Quick Start
 
@@ -124,20 +118,6 @@ seurat_obj <- runMetaclonotypist(seurat_obj,
 seurat_obj <- runMetaclonotypist(seurat_obj,
                                   method = "sceptr",
                                   max_dist = 1.0)
-```
-
-### GLIPH2 Specificity Groups
-
-Find TCR specificity groups (requires turboGliph):
-
-```r
-# Run GLIPH2 analysis
-seurat_obj <- runGLIPH(seurat_obj, chains = "TRB")
-
-# Get detailed results
-gliph_results <- runGLIPH(seurat_obj, return_seurat = FALSE)
-motifs <- extractGLIPHmotifs(gliph_results)
-scores <- scoreGLIPH(gliph_results)
 ```
 
 ### Generation Probability
@@ -225,8 +205,15 @@ If you use immLynx in your research, please cite the underlying tools:
 - **OLGA**: [Sethna et al. (2019)](https://pubmed.ncbi.nlm.nih.gov/30657870/)
 - **soNNia**: [Isacchini et al. (2021)](https://pubmed.ncbi.nlm.nih.gov/33795515/)
 - **metaclonotypist**: [qimmuno](https://github.com/qimmuno/metaclonotypist)
-- **turboGliph/GLIPH2**: [Glanville et al. (2017)](https://pubmed.ncbi.nlm.nih.gov/28636589/)
 - **ESM-2**: [Lin et al. (2023)](https://pubmed.ncbi.nlm.nih.gov/36927031/)
+
+## Related Packages
+
+If you are interested in GLIPH2 specificity group analysis, please see [immGLIPH](https://github.com/BorchLab/immGLIPH), a dedicated R package for running GLIPH:
+
+```r
+remotes::install_github("BorchLab/immGLIPH")
+```
 
 ## Bug Reports/New Features
 

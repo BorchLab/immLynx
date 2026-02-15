@@ -6,7 +6,6 @@ DBSCAN
 DeepTCR
 ESM
 Embeddings
-GLIPH
 Glanville
 HLA
 Hotspots
@@ -65,7 +64,6 @@ et
 extractTCRdata
 facebook
 generateOLGA
-gliph
 https
 humanIGH
 humanTRA
@@ -92,7 +90,6 @@ pubmed
 pw
 qimmuno
 rrs
-runGLIPH
 runMetaclonotypist
 scRepertoire
 sceptr
@@ -105,5 +102,4 @@ tcrdist
 tf
 tokenized
 tokenizer
-turboGliph
 unselected

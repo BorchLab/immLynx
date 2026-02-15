@@ -35,8 +35,6 @@ into the R environment. It provides unified interfaces for:
 - TCR clustering (clusTCR)
 - Protein language model embeddings (ESM-2)
 - Metaclone discovery (metaclonotypist)
-- Specificity group identification (GLIPH2)
-
 immLynx is fully compatible with the scRepertoire and immApex ecosystem for
 single-cell immune repertoire analysis.
 
@@ -197,24 +195,6 @@ seurat_obj <- runMetaclonotypist(
 
 # View metaclone assignments
 table(seurat_obj$metaclone)
-```
-
-## Specificity Groups with GLIPH2
-
-Identify TCR specificity groups using GLIPH2:
-
-```{r gliph}
-# Run GLIPH2 analysis (requires turboGliph package)
-seurat_obj <- runGLIPH(
-  immLynx_example,
-  chains = "TRB",
-  local_similarities = TRUE,
-  global_similarities = TRUE
-)
-
-# Get detailed GLIPH results
-gliph_results <- runGLIPH(immLynx_example, return_seurat = FALSE)
-head(gliph_results$clusters)
 ```
 
 ## Selection Inference with soNNia
