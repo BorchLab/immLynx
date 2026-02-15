@@ -68,6 +68,7 @@ test_that("runTCRdist handles both chains", {
 test_that("runTCRdist validates organism argument", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
+  skip("Requires Python environment")
 
   data("immLynx_example", package = "immLynx")
 
