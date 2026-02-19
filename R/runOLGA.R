@@ -21,18 +21,27 @@
 #' @importFrom methods is
 #'
 #' @examples
-#' \dontrun{
-#'   # Calculate Pgen for TRB sequences
-#'   seurat_obj <- runOLGA(seurat_obj, chains = "TRB", model = "humanTRB")
+#' data(immLynx_example)
+#' \donttest{
+#'   # Calculate Pgen for TRB chain
+#'   seurat_obj <- runOLGA(immLynx_example, chains = "TRB")
 #'
-#'   # Calculate Pgen with V/J gene info
-#'   seurat_obj <- runOLGA(seurat_obj, chains = "TRB", use_vj_genes = TRUE)
+#'   # Calculate Pgen for TRA chain
+#'   seurat_obj <- runOLGA(immLynx_example, chains = "TRA")
 #'
-#'   # Just get results without adding to object
-#'   pgen_results <- runOLGA(seurat_obj, chains = "TRB", return_object = FALSE)
+#'   # Include V and J gene information
+#'   seurat_obj <- runOLGA(immLynx_example,
+#'                         chains = "TRB",
+#'                         use_vj_genes = TRUE)
 #'
-#'   # Works with SingleCellExperiment too
-#'   sce <- runOLGA(sce, chains = "TRB")
+#'   # Get results as data.frame
+#'   pgen_df <- runOLGA(immLynx_example,
+#'                      chains = "TRB",
+#'                      return_object = FALSE)
+#'
+#'   # Specify model explicitly for mouse data
+#'   seurat_obj <- runOLGA(immLynx_example,
+#'                         model = "mouseTRB")
 #' }
 runOLGA <- function(input,
                     chains = c("TRB", "TRA"),
@@ -126,8 +135,8 @@ runOLGA <- function(input,
                           result_df$log10_pgen, result_df$barcode)
 
     message("Pgen values added to metadata as '",
-            paste0(column_name, "_", chains), "' and '",
-            paste0(column_name, "_log10_", chains), "'")
+            column_name, "_", chains, "' and '",
+            column_name, "_log10_", chains, "'")
     return(input)
   } else {
     return(result_df)
@@ -147,9 +156,18 @@ runOLGA <- function(input,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#'   # Generate 100 human TRB sequences
+#' # Available models
+#' models <- c("humanTRB", "humanTRA", "humanIGH", "mouseTRB")
+#' \donttest{
+#'   # Generate 100 random human TRB sequences
 #'   random_seqs <- generateOLGA(n = 100, model = "humanTRB")
+#'   head(random_seqs)
+#'
+#'   # Generate human TRA sequences
+#'   tra_seqs <- generateOLGA(n = 50, model = "humanTRA")
+#'
+#'   # Generate mouse TRB sequences
+#'   mouse_seqs <- generateOLGA(n = 200, model = "mouseTRB")
 #' }
 generateOLGA <- function(n = 100, model = "humanTRB") {
   message("Generating ", n, " random sequences with OLGA (", model, ")...")
