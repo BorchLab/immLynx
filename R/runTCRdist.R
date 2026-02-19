@@ -101,34 +101,53 @@ runTCRdist <- function(input,
            genes)
   }
 
-  formatted_df <- data.frame(count = integer(), stringsAsFactors = FALSE)
-
-  # Add alpha chain data if present
-  if ("alpha" %in% names(tcr_list)) {
+  if (length(tcr_list) == 2) {
+    # Both chains: merge by barcode to ensure matched rows
     alpha_data <- tcr_list[["alpha"]]
-    formatted_df$v_a_gene <- .add_allele(alpha_data$v)
-    formatted_df$j_a_gene <- .add_allele(alpha_data$j)
-    formatted_df$cdr3_a_aa <- alpha_data$cdr3_aa
-    formatted_df$count <- 1
-  }
-
-  # Add beta chain data if present
-  if ("beta" %in% names(tcr_list)) {
     beta_data <- tcr_list[["beta"]]
-    if (nrow(formatted_df) == 0) {
-      formatted_df <- data.frame(count = rep(1, nrow(beta_data)),
-                                stringsAsFactors = FALSE)
-    }
-    formatted_df$v_b_gene <- .add_allele(beta_data$v)
-    formatted_df$j_b_gene <- .add_allele(beta_data$j)
-    formatted_df$cdr3_b_aa <- beta_data$cdr3_aa
-  }
+    common_barcodes <- intersect(alpha_data$barcode, beta_data$barcode)
 
-  # Add cell barcodes (not used by tcrdist3 but useful for mapping back)
-  if ("beta" %in% names(tcr_list)) {
-    barcodes <- tcr_list[["beta"]]$barcode
+    if (length(common_barcodes) == 0) {
+      stop("No cells have both alpha and beta chain sequences.")
+    }
+
+    alpha_data <- alpha_data[match(common_barcodes, alpha_data$barcode), ]
+    beta_data <- beta_data[match(common_barcodes, beta_data$barcode), ]
+
+    formatted_df <- data.frame(
+      count = rep(1L, length(common_barcodes)),
+      v_a_gene = .add_allele(alpha_data$v),
+      j_a_gene = .add_allele(alpha_data$j),
+      cdr3_a_aa = alpha_data$cdr3_aa,
+      v_b_gene = .add_allele(beta_data$v),
+      j_b_gene = .add_allele(beta_data$j),
+      cdr3_b_aa = beta_data$cdr3_aa,
+      stringsAsFactors = FALSE
+    )
+    barcodes <- common_barcodes
   } else {
-    barcodes <- tcr_list[["alpha"]]$barcode
+    # Single chain
+    chain_name <- names(tcr_list)[1]
+    chain_data <- tcr_list[[chain_name]]
+    barcodes <- chain_data$barcode
+
+    if (chain_name == "alpha") {
+      formatted_df <- data.frame(
+        count = rep(1L, nrow(chain_data)),
+        v_a_gene = .add_allele(chain_data$v),
+        j_a_gene = .add_allele(chain_data$j),
+        cdr3_a_aa = chain_data$cdr3_aa,
+        stringsAsFactors = FALSE
+      )
+    } else {
+      formatted_df <- data.frame(
+        count = rep(1L, nrow(chain_data)),
+        v_b_gene = .add_allele(chain_data$v),
+        j_b_gene = .add_allele(chain_data$j),
+        cdr3_b_aa = chain_data$cdr3_aa,
+        stringsAsFactors = FALSE
+      )
+    }
   }
 
   message("Calculating TCR distances for ", nrow(formatted_df), " sequences...")
