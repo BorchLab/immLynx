@@ -39,17 +39,23 @@ This function extracts TCR sequences from a Seurat or
   TCR distances using tcrdist3.
 }
 \examples{
-\dontrun{
-  # Calculate beta chain distances
-  dist_results <- runTCRdist(seurat_obj, chains = "beta", organism = "human")
+data(immLynx_example)
+\donttest{
+  # Calculate TCR distances for beta chain
+  dist_results <- runTCRdist(immLynx_example,
+                             chains = "beta")
 
-  # Access distance matrix
-  beta_distances <- dist_results$distances$pw_beta
+  # Access the distance matrix
+  dist_matrix <- dist_results$distances
+  barcodes <- dist_results$barcodes
 
-  # Calculate both chains
-  dist_results <- runTCRdist(seurat_obj, chains = c("alpha", "beta"))
+  # Calculate for both chains
+  dist_both <- runTCRdist(immLynx_example,
+                          chains = c("alpha", "beta"))
 
-  # Works with SingleCellExperiment too
-  dist_results <- runTCRdist(sce, chains = "beta")
+  # Add distances directly to the Seurat object
+  seurat_obj <- runTCRdist(immLynx_example,
+                           chains = "beta",
+                           add_to_object = TRUE)
 }
 }

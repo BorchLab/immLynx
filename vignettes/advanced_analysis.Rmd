@@ -16,7 +16,6 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE,
   message = FALSE,
   warning = FALSE,
   tidy = FALSE
@@ -52,19 +51,18 @@ immLynx provides multiple approaches for grouping TCRs. Let's compare them:
 
 ```{r clustcr-compare}
 # MCL clustering with different inflation parameters
-seurat_mcl_2 <- runClustTCR(immLynx_example, method = "mcl", inflation = 2.0,
+seurat_mcl_2 <- runClustTCR(immLynx_example, inflation = 2.0,
                             column_prefix = "mcl_2")
-seurat_mcl_3 <- runClustTCR(seurat_mcl_2, method = "mcl", inflation = 3.0,
+seurat_mcl_3 <- runClustTCR(seurat_mcl_2, inflation = 3.0,
                             column_prefix = "mcl_3")
 
-# DBSCAN clustering
-seurat_all <- runClustTCR(seurat_mcl_3, method = "dbscan", eps = 0.5,
-                          column_prefix = "dbscan")
-
 # Compare number of clusters
-cat("MCL (inflation=2):", length(unique(na.omit(seurat_all$mcl_2_TRB))), "clusters\n")
-cat("MCL (inflation=3):", length(unique(na.omit(seurat_all$mcl_3_TRB))), "clusters\n")
-cat("DBSCAN:", length(unique(na.omit(seurat_all$dbscan_TRB))), "clusters\n")
+cat("MCL (inflation=2):",
+    length(unique(na.omit(seurat_mcl_3$mcl_2_TRB))),
+    "clusters\n")
+cat("MCL (inflation=3):",
+    length(unique(na.omit(seurat_mcl_3$mcl_3_TRB))),
+    "clusters\n")
 ```
 
 # Custom Embedding Workflows
@@ -74,7 +72,7 @@ cat("DBSCAN:", length(unique(na.omit(seurat_all$dbscan_TRB))), "clusters\n")
 ESM-2 comes in different sizes. Larger models may provide better embeddings
 but require more computational resources:
 
-```{r esm-models}
+```{r esm-models, eval=FALSE}
 # Small model (35M parameters) - fast, lower quality
 seurat_small <- runEmbeddings(
   immLynx_example,
@@ -104,7 +102,7 @@ p1 + p2
 
 For paired alpha-beta TCRs:
 
-```{r both-chains}
+```{r both-chains, eval=FALSE}
 # Embed both chains concatenated
 seurat_paired <- runEmbeddings(
   immLynx_example,
@@ -149,7 +147,7 @@ Use OLGA Pgen and soNNia to understand selection:
 seurat_pgen <- runOLGA(immLynx_example, chains = "TRB")
 
 # Compare Pgen across sample types
-ggplot(seurat_pgen@meta.data, aes(x = Type, y = olga_pgen_log10_TRB)) +
+ggplot(seurat_pgen[[]], aes(x = Type, y = olga_pgen_log10_TRB)) +
   geom_boxplot() +
   labs(title = "TCR Generation Probability by Sample Type",
        x = "Sample Type",
@@ -173,21 +171,22 @@ dist_results <- runTCRdist(immLynx_example, chains = "beta")
 # or other downstream analyses
 
 # Convert to distance object for hierarchical clustering
+# Note: tcrdist3 deduplicates sequences, so the matrix may be
+# smaller than the total number of input cells
 d <- as.dist(dist_results$distances$pw_beta)
 hc <- hclust(d, method = "complete")
-clusters <- cutree(hc, k = 50)
+n_unique <- nrow(dist_results$distances$pw_beta)
+clusters <- cutree(hc, k = min(50, n_unique))
 
-# Add to Seurat object
-seurat_hclust <- immLynx_example
-seurat_hclust$hclust <- NA
-seurat_hclust$hclust[dist_results$barcodes] <- clusters
+cat("Distance matrix:", n_unique, "x", n_unique, "\n")
+cat("Hierarchical clusters:", length(unique(clusters)), "\n")
 ```
 
 # Working with Large Datasets
 
 For large datasets, consider these strategies:
 
-```{r large-data}
+```{r large-data, eval=FALSE}
 # 1. Use chunked processing for embeddings
 seurat_large <- runEmbeddings(
   large_seurat_obj,
@@ -195,11 +194,10 @@ seurat_large <- runEmbeddings(
   pool = "mean"     # Pooling reduces dimensionality
 )
 
-# 2. Use faster clustering methods
+# 2. Cluster with MCL
 seurat_large <- runClustTCR(
   large_seurat_obj,
-  method = "dbscan",  # Often faster than MCL
-  eps = 0.5
+  inflation = 2.0
 )
 
 # 3. Sample for distance calculations
@@ -234,7 +232,7 @@ head(hla_results)
 
 Export results for external tools or further analysis:
 
-```{r export}
+```{r export, eval=FALSE}
 # Export TCR data in tcrdist3 format
 tcr_data <- extractTCRdata(immLynx_example, chains = "both", format = "wide")
 tcrdist_format <- convertToTcrdist(tcr_data, chains = "both")
@@ -255,7 +253,7 @@ write.csv(embeddings, "tcr_embeddings.csv")
 # Best Practices
 
 1. **Data Quality**: Always validate your TCR data before analysis
-   ```{r validate}
+   ```{r validate, eval=FALSE}
    validation <- validateTCRdata(tcr_data, check_sequences = TRUE)
    if (!validation$valid) {
      warning(validation$errors)
@@ -266,7 +264,7 @@ write.csv(embeddings, "tcr_embeddings.csv")
    consider sampling strategies
 
 3. **Reproducibility**: Set random seeds before running stochastic algorithms
-   ```{r seed}
+   ```{r seed, eval=FALSE}
    set.seed(42)
    seurat_obj <- runClustTCR(seurat_obj)
    ```

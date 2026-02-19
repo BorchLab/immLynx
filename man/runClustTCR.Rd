@@ -21,7 +21,8 @@ TCR data in the metadata.}
 \item{chains}{Character string specifying which chains to use: "TRA", "TRB", or "both".
 Default is "TRB".}
 
-\item{method}{Clustering method to use: 'mcl' (default) or 'dbscan'.}
+\item{method}{Clustering method passed to clusTCR. Default is "mcl"
+(Markov Clustering), which is accurate for typical repertoire datasets.}
 
 \item{combine_chains}{Logical. If TRUE and chains="both", concatenates alpha and beta
 sequences with "_". Default is FALSE (clusters chains separately).}
@@ -31,7 +32,7 @@ metadata. If FALSE, returns only the clustering results. Default is TRUE.}
 
 \item{column_prefix}{Prefix for the new metadata column(s). Default is "clustcr".}
 
-\item{...}{Additional arguments passed to calculate.clustcr (e.g., inflation, eps, min_samples).}
+\item{...}{Additional arguments passed to calculate.clustcr (e.g., inflation).}
 }
 \value{
 If return_object=TRUE, returns the input object with cluster assignments added
@@ -44,17 +45,29 @@ This function extracts TCR sequences from a Seurat or
   using the clusTCR algorithm.
 }
 \examples{
-\dontrun{
-  # Cluster TRB sequences using MCL
-  seurat_obj <- runClustTCR(seurat_obj, chains = "TRB", method = "mcl", inflation = 2.5)
+data(immLynx_example)
+\donttest{
+  # Cluster TRB chain using MCL algorithm
+  seurat_obj <- runClustTCR(immLynx_example,
+                            chains = "TRB")
 
-  # Cluster both chains separately using DBSCAN
-  seurat_obj <- runClustTCR(seurat_obj, chains = "both", method = "dbscan", eps = 0.6)
+  # Adjust MCL inflation parameter
+  seurat_obj <- runClustTCR(immLynx_example,
+                            chains = "TRB",
+                            inflation = 3.0)
 
-  # Cluster concatenated alpha-beta pairs
-  seurat_obj <- runClustTCR(seurat_obj, chains = "both", combine_chains = TRUE)
+  # Cluster both chains separately
+  seurat_obj <- runClustTCR(immLynx_example,
+                            chains = "both")
 
-  # Works with SingleCellExperiment too
-  sce <- runClustTCR(sce, chains = "TRB")
+  # Combine alpha and beta chains before clustering
+  seurat_obj <- runClustTCR(immLynx_example,
+                            chains = "both",
+                            combine_chains = TRUE)
+
+  # Get results as data.frame
+  clusters_df <- runClustTCR(immLynx_example,
+                             chains = "TRB",
+                             return_object = FALSE)
 }
 }

@@ -39,12 +39,18 @@ Validates that TCR data is in the correct format for immLynx
   and gene nomenclature.
 }
 \examples{
-\dontrun{
-  # Get validation report
-  report <- validateTCRdata(tcr_data, strict = FALSE)
-  print(report$errors)
+# Create example TCR data
+tcr_data <- data.frame(
+  barcode = paste0("cell_", 1:5),
+  cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF",
+              "CASNQGLNEKLFF", "CASSLDRNEQFF"),
+  v = paste0("TRBV", c("7-2", "12-3", "5-1", "28", "7-9")),
+  j = paste0("TRBJ", c("2-2", "1-1", "2-7", "1-5", "2-1")),
+  chain = rep("TRB", 5),
+  stringsAsFactors = FALSE
+)
+report <- validateTCRdata(tcr_data, strict = FALSE)
+report$valid
+report$summary
 
-  # Strict validation (stops on error)
-  validateTCRdata(tcr_data, strict = TRUE)
-}
 }

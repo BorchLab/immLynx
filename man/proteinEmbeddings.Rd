@@ -43,12 +43,38 @@ Applies a pre-trained model to a batch of tokenized sequences
   \code{\link{runEmbeddings}}.
 }
 \examples{
+sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
 \dontrun{
+  # Full workflow: load model, tokenize, embed
   hf_components <- huggingModel()
-  sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF")
-  tokenized_output <- tokenizeSequences(hf_components$tokenizer, sequences)
-  model_output <- proteinEmbeddings(hf_components$model, tokenized_output,
-                                    pool = "mean", chunk_size = 32)
+  tokenized <- tokenizeSequences(hf_components$tokenizer,
+                                 sequences)
+
+  # Mean pooling (recommended for sequence-level tasks)
+  embeddings <- proteinEmbeddings(hf_components$model,
+                                  tokenized,
+                                  pool = "mean",
+                                  chunk_size = 32)
+  dim(embeddings)  # [n_sequences x hidden_dim]
+
+  # CLS token embedding
+  cls_emb <- proteinEmbeddings(hf_components$model,
+                               tokenized,
+                               pool = "cls",
+                               chunk_size = 32)
+
+  # Per-token embeddings (no pooling)
+  token_emb <- proteinEmbeddings(hf_components$model,
+                                 tokenized,
+                                 pool = "none",
+                                 chunk_size = 32)
+
+  # Use GPU with half precision for speed
+  embeddings_gpu <- proteinEmbeddings(
+      hf_components$model, tokenized,
+      pool = "mean", chunk_size = 64,
+      prefer_device = "cuda",
+      prefer_dtype = "float16")
 }
 }
 \seealso{

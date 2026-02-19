@@ -43,17 +43,22 @@ can be generated using generateOLGA(). The selected sequences are extracted from
 the input object and compared to this background to infer selection pressures.
 }
 \examples{
+data(immLynx_example)
 \dontrun{
-  # Generate background
-  background <- generateOLGA(n = 10000, model = "humanTRB")
-  utils::write.csv(background, "background.csv", row.names = FALSE)
+  # Step 1: Generate background sequences with OLGA
+  background <- generateOLGA(n = 1000, model = "humanTRB")
+  bg_file <- tempfile(fileext = ".csv")
+  utils::write.csv(background, bg_file, row.names = FALSE)
 
-  # Run soNNia
-  seurat_obj <- runSoNNia(seurat_obj,
+  # Step 2: Run soNNia selection analysis
+  seurat_obj <- runSoNNia(immLynx_example,
                           chains = "TRB",
-                          background_file = "background.csv")
+                          background_file = bg_file)
 
-  # Works with SingleCellExperiment too
-  sce <- runSoNNia(sce, chains = "TRB", background_file = "background.csv")
+  # Get raw results instead of adding to object
+  sonia_results <- runSoNNia(immLynx_example,
+                             chains = "TRB",
+                             background_file = bg_file,
+                             return_object = FALSE)
 }
 }

@@ -40,17 +40,26 @@ Extracts TCR sequences from a Seurat or SingleCellExperiment object
   and calculates their generation probability using OLGA.
 }
 \examples{
-\dontrun{
-  # Calculate Pgen for TRB sequences
-  seurat_obj <- runOLGA(seurat_obj, chains = "TRB", model = "humanTRB")
+data(immLynx_example)
+\donttest{
+  # Calculate Pgen for TRB chain
+  seurat_obj <- runOLGA(immLynx_example, chains = "TRB")
 
-  # Calculate Pgen with V/J gene info
-  seurat_obj <- runOLGA(seurat_obj, chains = "TRB", use_vj_genes = TRUE)
+  # Calculate Pgen for TRA chain
+  seurat_obj <- runOLGA(immLynx_example, chains = "TRA")
 
-  # Just get results without adding to object
-  pgen_results <- runOLGA(seurat_obj, chains = "TRB", return_object = FALSE)
+  # Include V and J gene information
+  seurat_obj <- runOLGA(immLynx_example,
+                        chains = "TRB",
+                        use_vj_genes = TRUE)
 
-  # Works with SingleCellExperiment too
-  sce <- runOLGA(sce, chains = "TRB")
+  # Get results as data.frame
+  pgen_df <- runOLGA(immLynx_example,
+                     chains = "TRB",
+                     return_object = FALSE)
+
+  # Specify model explicitly for mouse data
+  seurat_obj <- runOLGA(immLynx_example,
+                        model = "mouseTRB")
 }
 }

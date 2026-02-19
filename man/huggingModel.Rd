@@ -20,12 +20,27 @@ Downloads or loads a cached pre-trained model and its
   corresponding tokenizer from the Hugging Face Hub.
 }
 \examples{
+# Default model is ESM-2 35M
+model_name <- "facebook/esm2_t12_35M_UR50D"
 \dontrun{
-  hf_components <- huggingModel()
-  model <- hf_components$model
-  tokenizer <- hf_components$tokenizer
+  # Load the default ESM-2 35M model
+  hf_components <- huggingModel(model_name)
+  names(hf_components)  # "model" and "tokenizer"
+
+  # Load a larger ESM-2 model (650M parameters)
+  hf_large <- huggingModel("facebook/esm2_t33_650M_UR50D")
+
+  # Use with tokenizeSequences and proteinEmbeddings
+  sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF")
+  tokenized <- tokenizeSequences(hf_components$tokenizer,
+                                 sequences)
+  embeddings <- proteinEmbeddings(hf_components$model,
+                                  tokenized,
+                                  pool = "mean",
+                                  chunk_size = 32)
 }
 }
 \seealso{
-\code{\link{tokenizeSequences}}, \code{\link{proteinEmbeddings}}
+\code{\link{tokenizeSequences}}, \code{\link{proteinEmbeddings}},
+  \code{\link{runEmbeddings}}
 }

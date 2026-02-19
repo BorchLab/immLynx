@@ -38,8 +38,18 @@ Tests associations between metaclone membership and HLA alleles
   using Fisher's exact test with FDR correction.
 }
 \examples{
-\dontrun{
-  metaclones <- runMetaclonotypist(seurat_obj, return_seurat = FALSE)
-  hla_results <- runHLAassociation(metaclones, hla_data)
-}
+# Create example metaclone and HLA data
+metaclone_data <- data.frame(
+  barcode = paste0("cell_", 1:20),
+  metaclone = rep(c("MC1", "MC2"), each = 10),
+  stringsAsFactors = FALSE
+)
+hla_data <- data.frame(
+  barcode = paste0("cell_", 1:20),
+  HLA_A = c(rep("A*02:01", 8), rep("A*01:01", 4),
+            rep("A*02:01", 3), rep("A*01:01", 5)),
+  stringsAsFactors = FALSE
+)
+results <- runHLAassociation(metaclone_data, hla_data)
+
 }

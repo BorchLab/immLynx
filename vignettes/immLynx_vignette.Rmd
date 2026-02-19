@@ -16,7 +16,6 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  eval = FALSE,
   message = FALSE,
   warning = FALSE,
   tidy = FALSE
@@ -165,7 +164,7 @@ head(random_seqs)
 ## Protein Language Model Embeddings
 
 Generate TCR embeddings using ESM-2:
-```{r embeddings}
+```{r embeddings, eval=FALSE}
 # Generate embeddings for TRB sequences
 seurat_obj <- runEmbeddings(
   immLynx_example,
@@ -201,7 +200,7 @@ table(seurat_obj$metaclone)
 
 Infer selection pressures on TCRs:
 
-```{r sonnia}
+```{r sonnia, eval=FALSE}
 # First generate background sequences
 background <- generateOLGA(n = 10000, model = "humanTRB")
 write.csv(background, "background.csv", row.names = FALSE)
@@ -218,7 +217,7 @@ seurat_obj <- runSoNNia(
 
 Here's a complete workflow combining multiple analyses:
 
-```{r workflow}
+```{r workflow, eval=FALSE}
 library(immLynx)
 library(Seurat)
 library(ggplot2)
