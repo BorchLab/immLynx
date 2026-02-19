@@ -36,13 +36,11 @@ NULL
 #' @importFrom immApex getIR
 #'
 #' @examples
-#' \dontrun{
-#'   # Extract beta chain data
-#'   tcr_data <- extractTCRdata(seurat_obj, chains = "TRB")
+#' # Extract beta chain data
+#' data(immLynx_example)
+#' tcr_data <- extractTCRdata(immLynx_example, chains = "TRB")
+#' head(tcr_data)
 #'
-#'   # Extract both chains in wide format
-#'   tcr_wide <- extractTCRdata(seurat_obj, chains = "both", format = "wide")
-#' }
 extractTCRdata <- function(input,
                            chains = c("TRB", "TRA", "TRG", "TRD",
                                      "IGH", "IGL", "IGK", "both"),
@@ -112,14 +110,20 @@ extractTCRdata <- function(input,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#'   # Get validation report
-#'   report <- validateTCRdata(tcr_data, strict = FALSE)
-#'   print(report$errors)
+#' # Create example TCR data
+#' tcr_data <- data.frame(
+#'   barcode = paste0("cell_", 1:5),
+#'   cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF",
+#'               "CASNQGLNEKLFF", "CASSLDRNEQFF"),
+#'   v = paste0("TRBV", c("7-2", "12-3", "5-1", "28", "7-9")),
+#'   j = paste0("TRBJ", c("2-2", "1-1", "2-7", "1-5", "2-1")),
+#'   chain = rep("TRB", 5),
+#'   stringsAsFactors = FALSE
+#' )
+#' report <- validateTCRdata(tcr_data, strict = FALSE)
+#' report$valid
+#' report$summary
 #'
-#'   # Strict validation (stops on error)
-#'   validateTCRdata(tcr_data, strict = TRUE)
-#' }
 validateTCRdata <- function(tcr_data,
                             check_genes = FALSE,
                             check_sequences = TRUE,
@@ -196,10 +200,12 @@ validateTCRdata <- function(tcr_data,
 
   if (strict) {
     if (!valid) {
-      stop("TCR data validation failed:\n", paste(errors, collapse = "\n"))
+      stop("TCR data validation:\n",
+           paste(errors, collapse = "\n"))
     }
     if (length(warnings) > 0) {
-      warning("TCR data validation warnings:\n", paste(warnings, collapse = "\n"))
+      warning("TCR data validation:\n",
+              paste(warnings, collapse = "\n"))
     }
     return(invisible(TRUE))
   }
@@ -238,11 +244,19 @@ validateTCRdata <- function(tcr_data,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#'   # Extract and convert data
-#'   tcr_data <- extractTCRdata(seurat_obj, chains = "both", format = "wide")
-#'   tcrdist_format <- convertToTcrdist(tcr_data, chains = "both")
-#' }
+#' # Convert long-format TCR data to tcrdist3 format
+#' tcr_data <- data.frame(
+#'   barcode = paste0("cell_", 1:5),
+#'   cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF",
+#'               "CASNQGLNEKLFF", "CASSLDRNEQFF"),
+#'   v = paste0("TRBV", c("7-2", "12-3", "5-1", "28", "7-9")),
+#'   j = paste0("TRBJ", c("2-2", "1-1", "2-7", "1-5", "2-1")),
+#'   chain = rep("TRB", 5),
+#'   stringsAsFactors = FALSE
+#' )
+#' tcrdist_format <- convertToTcrdist(tcr_data, chains = "beta")
+#' head(tcrdist_format)
+#'
 convertToTcrdist <- function(tcr_data,
                              chains = c("beta", "alpha", "both"),
                              include_count = TRUE) {
@@ -360,10 +374,21 @@ convertToTcrdist <- function(tcr_data,
 #' @importFrom stats median sd
 #'
 #' @examples
-#' \dontrun{
-#'   summary <- summarizeTCRrepertoire(seurat_obj, chains = "TRB")
-#'   print(summary)
-#' }
+#' # Summarize from a data.frame
+#' tcr_data <- data.frame(
+#'   barcode = paste0("cell_", 1:10),
+#'   cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
+#'               "CASSYSTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
+#'               "CASNQGLNEKLFF", "CASSYSTGELFF", "CASSLGTGELFF",
+#'               "CASSIRSSYEQYF"),
+#'   v = rep("TRBV7-2", 10),
+#'   j = rep("TRBJ2-2", 10),
+#'   chain = rep("TRB", 10),
+#'   stringsAsFactors = FALSE
+#' )
+#' summary <- summarizeTCRrepertoire(tcr_data)
+#' print(summary)
+#'
 summarizeTCRrepertoire <- function(input,
                                    chains = c("TRB", "TRA", "both"),
                                    group.by = NULL,
@@ -390,10 +415,11 @@ summarizeTCRrepertoire <- function(input,
 
   # Top clones
   top_n <- min(10, length(clone_freq))
+  top_idx <- seq_len(top_n)
   top_clones <- data.frame(
-    cdr3_aa = names(clone_freq)[1:top_n],
-    count = as.integer(clone_freq[1:top_n]),
-    proportion = as.numeric(clone_freq[1:top_n]) / total_cells,
+    cdr3_aa = names(clone_freq)[top_idx],
+    count = as.integer(clone_freq[top_idx]),
+    proportion = as.numeric(clone_freq[top_idx]) / total_cells,
     stringsAsFactors = FALSE
   )
 
@@ -493,6 +519,22 @@ summarizeTCRrepertoire <- function(input,
 #' @export
 #' @method print TCR_summary
 #' @importFrom utils head
+#'
+#' @examples
+#' tcr_data <- data.frame(
+#'   barcode = paste0("cell_", 1:10),
+#'   cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
+#'               "CASSYSTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
+#'               "CASNQGLNEKLFF", "CASSYSTGELFF", "CASSLGTGELFF",
+#'               "CASSIRSSYEQYF"),
+#'   v = rep("TRBV7-2", 10),
+#'   j = rep("TRBJ2-2", 10),
+#'   chain = rep("TRB", 10),
+#'   stringsAsFactors = FALSE
+#' )
+#' summary_obj <- summarizeTCRrepertoire(tcr_data)
+#' print(summary_obj)
+#'
 print.TCR_summary <- function(x, ...) {
   cat("=== TCR Repertoire Summary ===\n")
   cat("Chain(s):", x$chains, "\n\n")
