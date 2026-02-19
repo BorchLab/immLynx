@@ -26,7 +26,7 @@
 #'
 #' @examples
 #' data(immLynx_example)
-#' \donttest{
+#' \dontrun{
 #'   # Step 1: Generate background sequences with OLGA
 #'   background <- generateOLGA(n = 1000, model = "humanTRB")
 #'   bg_file <- tempfile(fileext = ".csv")
@@ -36,13 +36,6 @@
 #'   seurat_obj <- runSoNNia(immLynx_example,
 #'                           chains = "TRB",
 #'                           background_file = bg_file)
-#'
-#'   # Customize training parameters
-#'   seurat_obj <- runSoNNia(immLynx_example,
-#'                           chains = "TRB",
-#'                           background_file = bg_file,
-#'                           n_epochs = 200,
-#'                           save_folder = "my_sonia_output")
 #'
 #'   # Get raw results instead of adding to object
 #'   sonia_results <- runSoNNia(immLynx_example,

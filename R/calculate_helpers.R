@@ -262,21 +262,44 @@ calculate.sonia <- function(data_folder,
   proc <- basilisk::basiliskStart(immLynxEnv)
   on.exit(basilisk::basiliskStop(proc))
 
-  results <- basilisk::basiliskRun(proc, function(data_folder, data_filename, pgen_filename,
-                                                   organism, dataset_type, n_epochs, save_folder) {
+  # Read and prepare data as lists of lists: [[cdr3, v_gene, j_gene], ...]
+  data_path <- file.path(data_folder, data_filename)
+  pgen_path <- file.path(data_folder, pgen_filename)
+
+  selected_csv <- utils::read.csv(data_path, stringsAsFactors = FALSE)
+  background_csv <- utils::read.csv(pgen_path, stringsAsFactors = FALSE)
+
+  # Build data_seqs: list of character vectors [cdr3, v, j]
+  sel_cols <- names(selected_csv)
+  cdr3_col <- grep("cdr3", sel_cols, value = TRUE)[1]
+  v_col <- grep("^v", sel_cols, value = TRUE)[1]
+  j_col <- grep("^j", sel_cols, value = TRUE)[1]
+
+  data_seqs <- lapply(seq_len(nrow(selected_csv)), function(i) {
+    c(selected_csv[[cdr3_col]][i],
+      if (!is.na(v_col)) selected_csv[[v_col]][i] else "",
+      if (!is.na(j_col)) selected_csv[[j_col]][i] else "")
+  })
+
+  # Build gen_seqs from background (OLGA output has aa_seq column)
+  bg_cols <- names(background_csv)
+  aa_col <- grep("aa_seq|aa", bg_cols, value = TRUE)[1]
+
+  gen_seqs <- lapply(seq_len(nrow(background_csv)), function(i) {
+    c(background_csv[[aa_col]][i], "", "")
+  })
+
+  results <- basilisk::basiliskRun(proc, function(data_seqs, gen_seqs,
+                                                   dataset_type, n_epochs, save_folder) {
     sonnia <- reticulate::import("sonnia.sonnia")
 
     # Determine chain type (soNNia uses 'humanTRB' format)
     chain_type <- if (dataset_type == "TCR") "humanTRB" else "humanIGH"
 
-    # Build file paths
-    data_path <- file.path(data_folder, data_filename)
-    pgen_path <- file.path(data_folder, pgen_filename)
-
-    # Use file-based loading to avoid reticulate conversion issues
+    # Initialize and train soNNia model
     qm <- sonnia$SoNNia(
-      data_seq_file = data_path,
-      gen_seq_file = pgen_path,
+      data_seqs = data_seqs,
+      gen_seqs = gen_seqs,
       chain_type = chain_type
     )
 
@@ -296,8 +319,8 @@ calculate.sonia <- function(data_folder,
       selection_factors = selection_factors,
       model_path = save_folder
     )
-  }, data_folder = data_folder, data_filename = data_filename, pgen_filename = pgen_filename,
-     organism = organism, dataset_type = dataset_type, n_epochs = n_epochs, save_folder = save_folder)
+  }, data_seqs = data_seqs, gen_seqs = gen_seqs,
+     dataset_type = dataset_type, n_epochs = n_epochs, save_folder = save_folder)
 
   return(results)
 }
