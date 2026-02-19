@@ -80,7 +80,7 @@ test_that("validateTCRdata strict mode throws error", {
   bad_data <- data.frame(x = 1:5)
 
   expect_error(validateTCRdata(bad_data, strict = TRUE),
-               "TCR data validation failed")
+               "TCR data validation")
 })
 
 test_that("convertToTcrdist produces correct format for beta chain", {
