@@ -14,16 +14,16 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
     pkgname = "immLynx",
     packages = c(
         "python=3.9",
-        "conda-forge::pandas=1.4.4",
-        "conda-forge::matplotlib=3.5.3",
-        "bioconda::markov_clustering=0.0.6",
-        "svalkiers::clustcr=1.0.3",
-        "pytorch::faiss-cpu=1.7.4",
-        "conda-forge::scikit-learn=1.1.3",
-        "conda-forge::numpy=1.23.4",
-        "conda-forge::scipy=1.8.0",
-        "conda-forge::statsmodels=0.13.2",
-        "conda-forge::seaborn=0.12.1"
+        "pandas=1.4.4",
+        "matplotlib=3.5.3",
+        "markov_clustering=0.0.6",
+        "clustcr=1.0.3",
+        "faiss-cpu=1.7.4",
+        "scikit-learn=1.1.3",
+        "numpy=1.23.4",
+        "scipy=1.8.0",
+        "statsmodels=0.13.2",
+        "seaborn=0.12.1"
     ),
     channels = c("conda-forge", "bioconda", "svalkiers", "pytorch"),
     pip = c(
