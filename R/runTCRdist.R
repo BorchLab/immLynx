@@ -24,18 +24,24 @@
 #' @importFrom methods is
 #'
 #' @examples
-#' \dontrun{
-#'   # Calculate beta chain distances
-#'   dist_results <- runTCRdist(seurat_obj, chains = "beta", organism = "human")
+#' data(immLynx_example)
+#' \donttest{
+#'   # Calculate TCR distances for beta chain
+#'   dist_results <- runTCRdist(immLynx_example,
+#'                              chains = "beta")
 #'
-#'   # Access distance matrix
-#'   beta_distances <- dist_results$distances$pw_beta
+#'   # Access the distance matrix
+#'   dist_matrix <- dist_results$distances
+#'   barcodes <- dist_results$barcodes
 #'
-#'   # Calculate both chains
-#'   dist_results <- runTCRdist(seurat_obj, chains = c("alpha", "beta"))
+#'   # Calculate for both chains
+#'   dist_both <- runTCRdist(immLynx_example,
+#'                           chains = c("alpha", "beta"))
 #'
-#'   # Works with SingleCellExperiment too
-#'   dist_results <- runTCRdist(sce, chains = "beta")
+#'   # Add distances directly to the Seurat object
+#'   seurat_obj <- runTCRdist(immLynx_example,
+#'                            chains = "beta",
+#'                            add_to_object = TRUE)
 #' }
 runTCRdist <- function(input,
                        chains = "beta",
@@ -72,7 +78,7 @@ runTCRdist <- function(input,
     chain_data <- chain_data[!is.na(chain_data$cdr3_aa), ]
 
     if (nrow(chain_data) == 0) {
-      warning(paste0("No valid ", chain, " chain sequences found."))
+      warning("No valid ", chain, " chain sequences found.")
       next
     }
 
@@ -84,16 +90,24 @@ runTCRdist <- function(input,
   }
 
   # Format data for tcrdist3
-  # tcrdist3 expects specific column names
+  # tcrdist3 expects specific column names and IMGT allele format
   message("Formatting data for tcrdist3...")
+
+  # tcrdist3 requires allele suffixes (e.g., TRBV10-3*01)
+  # scRepertoire data typically lacks allele info
+  .add_allele <- function(genes) {
+    ifelse(!is.na(genes) & !grepl("\\*", genes),
+           paste0(genes, "*01"),
+           genes)
+  }
 
   formatted_df <- data.frame(count = integer(), stringsAsFactors = FALSE)
 
   # Add alpha chain data if present
   if ("alpha" %in% names(tcr_list)) {
     alpha_data <- tcr_list[["alpha"]]
-    formatted_df$v_a_gene <- alpha_data$v
-    formatted_df$j_a_gene <- alpha_data$j
+    formatted_df$v_a_gene <- .add_allele(alpha_data$v)
+    formatted_df$j_a_gene <- .add_allele(alpha_data$j)
     formatted_df$cdr3_a_aa <- alpha_data$cdr3_aa
     formatted_df$count <- 1
   }
@@ -105,8 +119,8 @@ runTCRdist <- function(input,
       formatted_df <- data.frame(count = rep(1, nrow(beta_data)),
                                 stringsAsFactors = FALSE)
     }
-    formatted_df$v_b_gene <- beta_data$v
-    formatted_df$j_b_gene <- beta_data$j
+    formatted_df$v_b_gene <- .add_allele(beta_data$v)
+    formatted_df$j_b_gene <- .add_allele(beta_data$j)
     formatted_df$cdr3_b_aa <- beta_data$cdr3_aa
   }
 
@@ -136,8 +150,8 @@ runTCRdist <- function(input,
 
   if (add_to_object) {
     if (.is_seurat) {
-      input@misc$tcrdist <- output
-      message("TCR distances added to object at obj@misc$tcrdist")
+      Seurat::Misc(input, slot = "tcrdist") <- output
+      message("TCR distances added to object misc slot")
     } else {
       # For SCE, store in metadata
       S4Vectors::metadata(input)$tcrdist <- output
