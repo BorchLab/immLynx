@@ -1,9 +1,13 @@
 # immLynx
 Linking advanced TCR python pipelines and Hugging Face models in R
 
-<img align="right" src="https://github.com/BorchLab/immLynx/blob/main/www/immlynx_hex.png" width="305" height="352">
+<!-- badges: start -->
+  [![R-CMD-check](https://github.com/ncborcherding/immLynx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ncborcherding/immLynx/actions/workflows/R-CMD-check.yaml)
+  [![Codecov test coverage](https://codecov.io/gh/ncborcherding/immLynx/graph/badge.svg)](https://app.codecov.io/gh/ncborcherding/immLynx)
+<!-- badges: end -->
 
-## Introduction
+
+<img align="right" src="https://github.com/BorchLab/immLynx/blob/main/www/immlynx_hex.png" width="305" height="352">
 
 immLynx provides a unified R interface for running multiple state-of-the-art TCR analysis
 pipelines on single-cell TCR sequencing data. The package seamlessly integrates
