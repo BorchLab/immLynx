@@ -29,45 +29,43 @@ calculate.tcrDist <- function(df,
     # Convert R data.frame to pandas DataFrame
     df_py <- pd$DataFrame(df)
 
-    # Determine which TCRrep class to use based on chains
+    # Build chains as R list so reticulate converts to Python list
+    # (R list -> Python list, R character vector -> Python str)
     if (length(chains) == 2 && all(c("alpha", "beta") %in% chains)) {
-      # Paired alpha-beta analysis
-      tr <- tc$TCRrep(
-        cell_df = df_py,
-        organism = organism,
-        chains = reticulate::py_eval("['alpha', 'beta']"),
-        compute_distances = compute_distances
-      )
+      py_chains <- list("alpha", "beta")
     } else if ("alpha" %in% chains) {
-      tr <- tc$TCRrep(
-        cell_df = df_py,
-        organism = organism,
-        chains = reticulate::py_eval("['alpha']"),
-        compute_distances = compute_distances
-      )
+      py_chains <- list("alpha")
     } else {
-      tr <- tc$TCRrep(
-        cell_df = df_py,
-        organism = organism,
-        chains = reticulate::py_eval("['beta']"),
-        compute_distances = compute_distances
-      )
+      py_chains <- list("beta")
     }
 
-    # Extract distance matrices
+    tr <- tc$TCRrep(
+      cell_df = df_py,
+      organism = organism,
+      chains = py_chains,
+      compute_distances = compute_distances
+    )
+
+    # Extract distance matrices using py_has_attr to avoid AttributeError
     result <- list()
 
-    if ("alpha" %in% chains && !is.null(tr$pw_alpha)) {
-      result$pw_alpha <- reticulate::py_to_r(tr$pw_alpha)
+    .safe_extract <- function(obj, attr_name) {
+      if (reticulate::py_has_attr(obj, attr_name)) {
+        val <- obj[[attr_name]]
+        if (!is.null(val)) {
+          return(reticulate::py_to_r(val))
+        }
+      }
+      NULL
     }
-    if ("beta" %in% chains && !is.null(tr$pw_beta)) {
-      result$pw_beta <- reticulate::py_to_r(tr$pw_beta)
+
+    if ("alpha" %in% chains) {
+      result$pw_alpha <- .safe_extract(tr, "pw_alpha")
+      result$pw_cdr3_a_aa <- .safe_extract(tr, "pw_cdr3_a_aa")
     }
-    if (!is.null(tr$pw_cdr3_a_aa)) {
-      result$pw_cdr3_a_aa <- reticulate::py_to_r(tr$pw_cdr3_a_aa)
-    }
-    if (!is.null(tr$pw_cdr3_b_aa)) {
-      result$pw_cdr3_b_aa <- reticulate::py_to_r(tr$pw_cdr3_b_aa)
+    if ("beta" %in% chains) {
+      result$pw_beta <- .safe_extract(tr, "pw_beta")
+      result$pw_cdr3_b_aa <- .safe_extract(tr, "pw_cdr3_b_aa")
     }
 
     result
@@ -95,33 +93,38 @@ calculate.clustcr <- function(sequences,
   proc <- basilisk::basiliskStart(immLynxEnv)
   on.exit(basilisk::basiliskStop(proc))
 
-  clusters <- basilisk::basiliskRun(proc, function(sequences, method, inflation, eps, min_samples) {
+  cluster_df <- basilisk::basiliskRun(proc, function(sequences,
+      method, inflation, eps, min_samples) {
     pd <- reticulate::import("pandas")
     clustcr <- reticulate::import("clustcr")
 
-    # Create a DataFrame with sequences
-    df <- pd$DataFrame(list(CDR3 = sequences))
+    # clusTCR fit() expects an iterable of CDR3 sequences
+    cdr3_series <- pd$Series(sequences)
 
-    if (method == "mcl") {
-      # MCL clustering
-      clustering <- clustcr$Clustering(method = "MCL", mcl_params = list(inflation = inflation))
-    } else if (method == "dbscan") {
-      # DBSCAN clustering
-      clustering <- clustcr$Clustering(method = "DBSCAN", dbscan_params = list(eps = eps, min_samples = as.integer(min_samples)))
-    } else {
-      stop("Unknown clustering method: ", method)
-    }
+    # MCL clustering - mcl_params is [inflation, expansion]
+    clustering <- clustcr$Clustering(
+        method = "MCL",
+        mcl_params = list(1.2, inflation)
+    )
 
-    # Fit the clustering
-    result <- clustering$fit(df)
+    result <- clustering$fit(cdr3_series)
 
-    # Get cluster labels
-    labels <- reticulate::py_to_r(result$cluster_df$cluster)
+    # clusters_df has columns: junction_aa, cluster
+    # Only clustered sequences are returned (singletons dropped)
+    reticulate::py_to_r(result$clusters_df)
+  }, sequences = sequences, method = method,
+     inflation = inflation, eps = eps,
+     min_samples = min_samples)
 
-    labels
-  }, sequences = sequences, method = method, inflation = inflation, eps = eps, min_samples = min_samples)
+  # Map cluster assignments back to input sequences
+  # Sequences not in a cluster get NA
+  cluster_map <- stats::setNames(
+      cluster_df$cluster,
+      cluster_df$junction_aa
+  )
+  labels <- unname(cluster_map[sequences])
 
-  return(clusters)
+  return(labels)
 }
 
 
@@ -149,26 +152,44 @@ calculate.olga <- function(action = c("pgen", "generate"),
 
   result <- basilisk::basiliskRun(proc, function(action, model, sequences, v_genes, j_genes, n) {
     olga <- reticulate::import("olga")
+    os <- reticulate::import("os")
 
-    # Load the appropriate model
-    if (model == "humanTRB") {
-      load_model <- olga$load_model$load_model_parms("human_T_beta")
-      gen_model <- olga$generation_probability$GenerationProbabilityVDJ(load_model[[1]], load_model[[2]])
-      seq_gen <- olga$sequence_generation$SequenceGenerationVDJ(load_model[[1]], load_model[[2]])
-    } else if (model == "humanTRA") {
-      load_model <- olga$load_model$load_model_parms("human_T_alpha")
-      gen_model <- olga$generation_probability$GenerationProbabilityVJ(load_model[[1]], load_model[[2]])
-      seq_gen <- olga$sequence_generation$SequenceGenerationVJ(load_model[[1]], load_model[[2]])
-    } else if (model == "humanIGH") {
-      load_model <- olga$load_model$load_model_parms("human_B_heavy")
-      gen_model <- olga$generation_probability$GenerationProbabilityVDJ(load_model[[1]], load_model[[2]])
-      seq_gen <- olga$sequence_generation$SequenceGenerationVDJ(load_model[[1]], load_model[[2]])
-    } else if (model == "mouseTRB") {
-      load_model <- olga$load_model$load_model_parms("mouse_T_beta")
-      gen_model <- olga$generation_probability$GenerationProbabilityVDJ(load_model[[1]], load_model[[2]])
-      seq_gen <- olga$sequence_generation$SequenceGenerationVDJ(load_model[[1]], load_model[[2]])
-    } else {
+    # Map model names to OLGA default model directories and chain types
+    model_map <- list(
+      humanTRB  = list(dir = "human_T_beta",  type = "VDJ"),
+      humanTRA  = list(dir = "human_T_alpha", type = "VJ"),
+      humanIGH  = list(dir = "human_B_heavy", type = "VDJ"),
+      mouseTRB  = list(dir = "mouse_T_beta",  type = "VDJ")
+    )
+
+    if (!model %in% names(model_map)) {
       stop("Unknown model: ", model)
+    }
+
+    model_info <- model_map[[model]]
+    olga_dir <- os$path$dirname(olga$`__file__`)
+    model_path <- os$path$join(olga_dir, "default_models", model_info$dir)
+
+    marginals_file <- os$path$join(model_path, "model_marginals.txt")
+    params_file    <- os$path$join(model_path, "model_params.txt")
+    v_anchor_file  <- os$path$join(model_path, "V_gene_CDR3_anchors.csv")
+    j_anchor_file  <- os$path$join(model_path, "J_gene_CDR3_anchors.csv")
+
+    # Load genomic data and generative model
+    if (model_info$type == "VDJ") {
+      genomic_data <- olga$load_model$GenomicDataVDJ()
+      genomic_data$load_igor_genomic_data(params_file, v_anchor_file, j_anchor_file)
+      gen_model_data <- olga$load_model$GenerativeModelVDJ()
+      gen_model_data$load_and_process_igor_model(marginals_file)
+      pgen_calc <- olga$generation_probability$GenerationProbabilityVDJ(gen_model_data, genomic_data)
+      seq_gen   <- olga$sequence_generation$SequenceGenerationVDJ(gen_model_data, genomic_data)
+    } else {
+      genomic_data <- olga$load_model$GenomicDataVJ()
+      genomic_data$load_igor_genomic_data(params_file, v_anchor_file, j_anchor_file)
+      gen_model_data <- olga$load_model$GenerativeModelVJ()
+      gen_model_data$load_and_process_igor_model(marginals_file)
+      pgen_calc <- olga$generation_probability$GenerationProbabilityVJ(gen_model_data, genomic_data)
+      seq_gen   <- olga$sequence_generation$SequenceGenerationVJ(gen_model_data, genomic_data)
     }
 
     if (action == "pgen") {
@@ -182,10 +203,10 @@ calculate.olga <- function(action = c("pgen", "generate"),
         if (!is.null(v_genes) && !is.null(j_genes) &&
             !is.na(v_genes[i]) && !is.na(j_genes[i])) {
           # With V/J gene info
-          pgen <- gen_model$compute_aa_CDR3_pgen(seq_aa, v_genes[i], j_genes[i])
+          pgen <- pgen_calc$compute_aa_CDR3_pgen(seq_aa, v_genes[i], j_genes[i])
         } else {
           # Without V/J gene info - marginalize over genes
-          pgen <- gen_model$compute_aa_CDR3_pgen(seq_aa)
+          pgen <- pgen_calc$compute_aa_CDR3_pgen(seq_aa)
         }
 
         pgen_values[i] <- pgen
@@ -243,28 +264,19 @@ calculate.sonia <- function(data_folder,
 
   results <- basilisk::basiliskRun(proc, function(data_folder, data_filename, pgen_filename,
                                                    organism, dataset_type, n_epochs, save_folder) {
-    sonnia <- reticulate::import("sonnia")
-    pd <- reticulate::import("pandas")
-    np <- reticulate::import("numpy")
+    sonnia <- reticulate::import("sonnia.sonnia")
 
-    # Determine chain type for model loading
-    if (dataset_type == "TCR") {
-      chain_type <- "human_T_beta"
-    } else {
-      chain_type <- "human_B_heavy"
-    }
+    # Determine chain type (soNNia uses 'humanTRB' format)
+    chain_type <- if (dataset_type == "TCR") "humanTRB" else "humanIGH"
 
-    # Load data
+    # Build file paths
     data_path <- file.path(data_folder, data_filename)
     pgen_path <- file.path(data_folder, pgen_filename)
 
-    data_seqs <- pd$read_csv(data_path)
-    pgen_seqs <- pd$read_csv(pgen_path)
-
-    # Initialize and train soNNia model
+    # Use file-based loading to avoid reticulate conversion issues
     qm <- sonnia$SoNNia(
-      data_seqs = reticulate::py_to_r(data_seqs$values$tolist()),
-      gen_seqs = reticulate::py_to_r(pgen_seqs$values$tolist()),
+      data_seq_file = data_path,
+      gen_seq_file = pgen_path,
       chain_type = chain_type
     )
 
@@ -272,7 +284,7 @@ calculate.sonia <- function(data_folder,
     qm$infer_selection(epochs = as.integer(n_epochs))
 
     # Get selection factors
-    selection_factors <- qm$compute_Q(qm$data_seqs)
+    selection_factors <- reticulate::py_to_r(qm$compute_Q(qm$data_seqs))
 
     # Save the model
     if (!is.null(save_folder)) {
@@ -281,7 +293,7 @@ calculate.sonia <- function(data_folder,
     }
 
     list(
-      selection_factors = reticulate::py_to_r(selection_factors),
+      selection_factors = selection_factors,
       model_path = save_folder
     )
   }, data_folder = data_folder, data_filename = data_filename, pgen_filename = pgen_filename,
