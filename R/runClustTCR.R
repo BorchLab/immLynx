@@ -8,13 +8,14 @@
 #'   TCR data in the metadata.
 #' @param chains Character string specifying which chains to use: "TRA", "TRB", or "both".
 #'   Default is "TRB".
-#' @param method Clustering method to use: 'mcl' (default) or 'dbscan'.
+#' @param method Clustering method passed to clusTCR. Default is "mcl"
+#'   (Markov Clustering), which is accurate for typical repertoire datasets.
 #' @param combine_chains Logical. If TRUE and chains="both", concatenates alpha and beta
 #'   sequences with "_". Default is FALSE (clusters chains separately).
 #' @param return_object Logical. If TRUE, adds cluster assignments back to the input object
 #'   metadata. If FALSE, returns only the clustering results. Default is TRUE.
 #' @param column_prefix Prefix for the new metadata column(s). Default is "clustcr".
-#' @param ... Additional arguments passed to calculate.clustcr (e.g., inflation, eps, min_samples).
+#' @param ... Additional arguments passed to calculate.clustcr (e.g., inflation).
 #'
 #' @return If return_object=TRUE, returns the input object with cluster assignments added
 #'   to metadata. If return_object=FALSE, returns a data.frame with barcodes and cluster
@@ -25,18 +26,30 @@
 #' @importFrom methods is
 #'
 #' @examples
-#' \dontrun{
-#'   # Cluster TRB sequences using MCL
-#'   seurat_obj <- runClustTCR(seurat_obj, chains = "TRB", method = "mcl", inflation = 2.5)
+#' data(immLynx_example)
+#' \donttest{
+#'   # Cluster TRB chain using MCL algorithm
+#'   seurat_obj <- runClustTCR(immLynx_example,
+#'                             chains = "TRB")
 #'
-#'   # Cluster both chains separately using DBSCAN
-#'   seurat_obj <- runClustTCR(seurat_obj, chains = "both", method = "dbscan", eps = 0.6)
+#'   # Adjust MCL inflation parameter
+#'   seurat_obj <- runClustTCR(immLynx_example,
+#'                             chains = "TRB",
+#'                             inflation = 3.0)
 #'
-#'   # Cluster concatenated alpha-beta pairs
-#'   seurat_obj <- runClustTCR(seurat_obj, chains = "both", combine_chains = TRUE)
+#'   # Cluster both chains separately
+#'   seurat_obj <- runClustTCR(immLynx_example,
+#'                             chains = "both")
 #'
-#'   # Works with SingleCellExperiment too
-#'   sce <- runClustTCR(sce, chains = "TRB")
+#'   # Combine alpha and beta chains before clustering
+#'   seurat_obj <- runClustTCR(immLynx_example,
+#'                             chains = "both",
+#'                             combine_chains = TRUE)
+#'
+#'   # Get results as data.frame
+#'   clusters_df <- runClustTCR(immLynx_example,
+#'                              chains = "TRB",
+#'                              return_object = FALSE)
 #' }
 runClustTCR <- function(input,
                         chains = c("TRB", "TRA", "both"),
@@ -121,7 +134,9 @@ runClustTCR <- function(input,
       if (return_object) {
         input <- .add_metadata(input, paste0(column_prefix, "_combined"),
                               result_df$cluster, result_df$barcode)
-        message("Cluster assignments added to metadata as '", paste0(column_prefix, "_combined"), "'")
+        col_name <- paste0(column_prefix, "_combined")
+        message("Cluster assignments added to metadata as '",
+                col_name, "'")
         return(input)
       } else {
         return(result_df)
@@ -137,12 +152,16 @@ runClustTCR <- function(input,
         chain_data <- chain_data[!is.na(chain_data$cdr3_aa), ]
 
         if (nrow(chain_data) == 0) {
-          warning(paste0("No valid ", chain_name, " sequences found. Skipping..."))
+          warning("No valid ", chain_name,
+                  " sequences found. Skipping...")
           next
         }
 
         # Cluster
-        clusters <- calculate.clustcr(sequences = chain_data$cdr3_aa, method = method, ...)
+        clusters <- calculate.clustcr(
+          sequences = chain_data$cdr3_aa,
+          method = method, ...
+        )
 
         result_df <- data.frame(
           barcode = chain_data$barcode,
@@ -155,15 +174,19 @@ runClustTCR <- function(input,
         results[[chain_name]] <- result_df
 
         if (return_object) {
-          input <- .add_metadata(input, paste0(column_prefix, "_", chain_name),
-                                result_df$cluster, result_df$barcode)
+          input <- .add_metadata(
+            input, paste0(column_prefix, "_", chain_name),
+            result_df$cluster, result_df$barcode
+          )
         }
       }
 
       if (return_object) {
-        message("Cluster assignments added to metadata as '",
-                paste0(column_prefix, "_TRA"), "' and '",
-                paste0(column_prefix, "_TRB"), "'")
+        message(
+          "Cluster assignments added to metadata as '",
+          column_prefix, "_TRA' and '",
+          column_prefix, "_TRB'"
+        )
         return(input)
       } else {
         return(do.call(rbind, results))
@@ -176,13 +199,17 @@ runClustTCR <- function(input,
     chain_data <- chain_data[!is.na(chain_data$cdr3_aa), ]
 
     if (nrow(chain_data) == 0) {
-      stop(paste0("No valid ", chains, " sequences found."))
+      stop("No valid ", chains, " sequences found.")
     }
 
-    message(paste0("Found ", nrow(chain_data), " valid ", chains, " sequences"))
+    message("Found ", nrow(chain_data), " valid ",
+            chains, " sequences")
 
     # Cluster
-    clusters <- calculate.clustcr(sequences = chain_data$cdr3_aa, method = method, ...)
+    clusters <- calculate.clustcr(
+      sequences = chain_data$cdr3_aa,
+      method = method, ...
+    )
 
     result_df <- data.frame(
       barcode = chain_data$barcode,
@@ -193,10 +220,11 @@ runClustTCR <- function(input,
     )
 
     if (return_object) {
-      input <- .add_metadata(input, paste0(column_prefix, "_", chains),
+      col_name <- paste0(column_prefix, "_", chains)
+      input <- .add_metadata(input, col_name,
                             result_df$cluster, result_df$barcode)
       message("Cluster assignments added to metadata as '",
-              paste0(column_prefix, "_", chains), "'")
+              col_name, "'")
       return(input)
     } else {
       return(result_df)
