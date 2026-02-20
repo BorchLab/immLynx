@@ -62,3 +62,18 @@ skip_if_no_python <- function() {
     testthat::skip("Python environment not available")
   }
 }
+
+# Check if transformers (Hugging Face) is available
+transformers_available <- function() {
+  tryCatch({
+    reticulate::import("transformers", convert = FALSE)
+    TRUE
+  }, error = function(e) FALSE)
+}
+
+# Skip test if transformers/torch not available
+skip_if_no_transformers <- function() {
+  if (!transformers_available()) {
+    testthat::skip("Python 'transformers' library not available")
+  }
+}
