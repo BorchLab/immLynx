@@ -17,3 +17,19 @@ Invisibly returns the input object
 \description{
 Custom print method for TCR repertoire summary objects.
 }
+\examples{
+tcr_data <- data.frame(
+  barcode = paste0("cell_", 1:10),
+  cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
+              "CASSYSTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
+              "CASNQGLNEKLFF", "CASSYSTGELFF", "CASSLGTGELFF",
+              "CASSIRSSYEQYF"),
+  v = rep("TRBV7-2", 10),
+  j = rep("TRBJ2-2", 10),
+  chain = rep("TRB", 10),
+  stringsAsFactors = FALSE
+)
+summary_obj <- summarizeTCRrepertoire(tcr_data)
+print(summary_obj)
+
+}

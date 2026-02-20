@@ -41,4 +41,8 @@ and VDJ sequencing data from 8 samples across 4 patients. Each patient contribut
 two samples: blood (B) and lymph node (L) tissue. More information on the 
 data can be found in the following [manuscript](https://pubmed.ncbi.nlm.nih.gov/33622974/).
 }
+\examples{
+data(immLynx_example)
+immLynx_example
+}
 \keyword{datasets}

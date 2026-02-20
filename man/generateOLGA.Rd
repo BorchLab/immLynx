@@ -18,8 +18,17 @@ Data.frame with generated sequences (nt_seq, aa_seq, v_index, j_index).
 Generate random TCR sequences from OLGA's generative model.
 }
 \examples{
+# Available models
+models <- c("humanTRB", "humanTRA", "humanIGH", "mouseTRB")
 \dontrun{
-  # Generate 100 human TRB sequences
+  # Generate 100 random human TRB sequences
   random_seqs <- generateOLGA(n = 100, model = "humanTRB")
+  head(random_seqs)
+
+  # Generate human TRA sequences
+  tra_seqs <- generateOLGA(n = 50, model = "humanTRA")
+
+  # Generate mouse TRB sequences
+  mouse_seqs <- generateOLGA(n = 200, model = "mouseTRB")
 }
 }

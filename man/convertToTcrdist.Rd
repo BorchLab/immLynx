@@ -36,9 +36,17 @@ Converts TCR data from immLynx/scRepertoire format to the format
   required by tcrdist3 for distance calculations.
 }
 \examples{
-\dontrun{
-  # Extract and convert data
-  tcr_data <- extractTCRdata(seurat_obj, chains = "both", format = "wide")
-  tcrdist_format <- convertToTcrdist(tcr_data, chains = "both")
-}
+# Convert long-format TCR data to tcrdist3 format
+tcr_data <- data.frame(
+  barcode = paste0("cell_", 1:5),
+  cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF",
+              "CASNQGLNEKLFF", "CASSLDRNEQFF"),
+  v = paste0("TRBV", c("7-2", "12-3", "5-1", "28", "7-9")),
+  j = paste0("TRBJ", c("2-2", "1-1", "2-7", "1-5", "2-1")),
+  chain = rep("TRB", 5),
+  stringsAsFactors = FALSE
+)
+tcrdist_format <- convertToTcrdist(tcr_data, chains = "beta")
+head(tcrdist_format)
+
 }

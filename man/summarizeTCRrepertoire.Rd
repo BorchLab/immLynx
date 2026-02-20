@@ -40,8 +40,19 @@ Generates summary statistics for TCR repertoire data including
   diversity metrics, clonality measures, and sequence characteristics.
 }
 \examples{
-\dontrun{
-  summary <- summarizeTCRrepertoire(seurat_obj, chains = "TRB")
-  print(summary)
-}
+# Summarize from a data.frame
+tcr_data <- data.frame(
+  barcode = paste0("cell_", 1:10),
+  cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
+              "CASSYSTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
+              "CASNQGLNEKLFF", "CASSYSTGELFF", "CASSLGTGELFF",
+              "CASSIRSSYEQYF"),
+  v = rep("TRBV7-2", 10),
+  j = rep("TRBJ2-2", 10),
+  chain = rep("TRB", 10),
+  stringsAsFactors = FALSE
+)
+summary <- summarizeTCRrepertoire(tcr_data)
+print(summary)
+
 }

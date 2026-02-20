@@ -10,7 +10,8 @@
 #' @param max_edits Maximum CDR3 edit distance for initial screening. Default is 2.
 #' @param max_dist Maximum distance threshold for clustering. Default is 20 for
 #'   tcrdist, 1.5 for sceptr.
-#' @param clustering Clustering algorithm: "leiden" (default), "louvain", or "mcl".
+#' @param clustering Clustering algorithm: "cc" (connected components, default),
+#'   "leiden", "louvain", or "mcl".
 #' @param resolution Resolution parameter for leiden/louvain clustering. Default is 1.0.
 #' @param return_seurat Logical. If TRUE and input is Seurat object, adds metaclone
 #'   assignments to metadata. Default is TRUE.
@@ -41,22 +42,26 @@
 #' @importFrom methods is
 #'
 #' @examples
+#' data(immLynx_example)
 #' \dontrun{
 #'   # Run metaclonotypist on beta chain
-#'   seurat_obj <- runMetaclonotypist(seurat_obj, chains = "beta")
+#'   seurat_obj <- runMetaclonotypist(immLynx_example, chains = "beta")
 #'
-#'   # Use SCEPTR distance metric
-#'   seurat_obj <- runMetaclonotypist(seurat_obj, method = "sceptr", max_dist = 1.0)
+#'   # Get results as data.frame instead of adding to object
+#'   metaclones <- runMetaclonotypist(immLynx_example,
+#'                                    return_seurat = FALSE)
 #'
-#'   # Get results as data.frame
-#'   metaclones <- runMetaclonotypist(seurat_obj, return_seurat = FALSE)
+#'   # Adjust edit distance threshold
+#'   seurat_obj <- runMetaclonotypist(immLynx_example,
+#'                                    max_edits = 3,
+#'                                    max_dist = 50)
 #' }
 runMetaclonotypist <- function(input,
                                chains = c("beta", "alpha"),
                                method = c("tcrdist", "sceptr"),
                                max_edits = 2,
                                max_dist = NULL,
-                               clustering = c("leiden", "louvain", "mcl"),
+                               clustering = c("cc", "leiden", "louvain", "mcl"),
                                resolution = 1.0,
                                return_seurat = TRUE,
                                column_name = "metaclone") {
@@ -106,19 +111,40 @@ if (is.null(max_dist)) {
     resolution = resolution
   )
 
-  # Build result data.frame
+  # Map cluster results back to input sequences
+  # metaclonotypist only returns clustered sequences (singletons dropped)
+  # Build bioidentity for mapping (same as in calculate.metaclonotypist)
+  if ("v" %in% names(tcr_data) && !is.null(tcr_data$v)) {
+    input_bioidentity <- paste0(tcr_data$v, ":", tcr_data$cdr3_aa)
+  } else {
+    input_bioidentity <- tcr_data$cdr3_aa
+  }
+
+  cluster_map <- stats::setNames(
+    as.character(results$cluster),
+    as.character(results$node)
+  )
+
+  mapped_clusters <- unname(cluster_map[input_bioidentity])
+
   result_df <- data.frame(
     barcode = tcr_data$barcode,
     cdr3_aa = tcr_data$cdr3_aa,
-    metaclone = results$cluster,
+    metaclone = mapped_clusters,
     stringsAsFactors = FALSE
   )
 
-  # Add metaclone size
-  metaclone_sizes <- table(result_df$metaclone)
-  result_df$metaclone_size <- as.integer(metaclone_sizes[as.character(result_df$metaclone)])
+  # Add metaclone size (only for clustered cells)
+  non_na <- result_df$metaclone[!is.na(result_df$metaclone)]
+  metaclone_sizes <- table(non_na)
+  result_df$metaclone_size <- as.integer(
+    metaclone_sizes[as.character(result_df$metaclone)]
+  )
 
-  message("Identified ", length(unique(results$cluster)), " metaclones")
+  n_clustered <- sum(!is.na(mapped_clusters))
+  n_metaclones <- length(unique(non_na))
+  message("Identified ", n_metaclones, " metaclones covering ", n_clustered,
+          " of ", nrow(tcr_data), " sequences")
 
   if (return_seurat && is_seurat) {
     # Add to Seurat metadata
@@ -173,14 +199,29 @@ calculate.metaclonotypist <- function(cdr3_sequences,
     pd <- reticulate::import("pandas")
     mc <- reticulate::import("metaclonotypist")
 
-    # Build input DataFrame
-    df_data <- list(cdr3 = cdr3_sequences)
+    # Metaclonotypist uses pyrepseq standard column names:
+    # CDR3B/CDR3A for CDR3 sequences, TRBV/TRAV for V genes, TRBJ/TRAJ for J genes
+    chain_letter <- toupper(substr(chain, 1, 1))
+    cdr3_col <- paste0("CDR3", chain_letter)
+    v_col <- paste0("TR", chain_letter, "V")
+    j_col <- paste0("TR", chain_letter, "J")
+
+    df_data <- list()
+    df_data[[cdr3_col]] <- cdr3_sequences
 
     if (!is.null(v_genes)) {
-      df_data$v_gene <- v_genes
+      df_data[[v_col]] <- v_genes
     }
     if (!is.null(j_genes)) {
-      df_data$j_gene <- j_genes
+      df_data[[j_col]] <- j_genes
+    }
+
+    # Build bioidentity column (required for node labeling)
+    # bioidentity is typically V gene + CDR3 combination
+    if (!is.null(v_genes)) {
+      df_data[["bioidentity"]] <- paste0(v_genes, ":", cdr3_sequences)
+    } else {
+      df_data[["bioidentity"]] <- cdr3_sequences
     }
 
     df <- pd$DataFrame(df_data)
@@ -204,10 +245,13 @@ calculate.metaclonotypist <- function(cdr3_sequences,
       )
     }
 
-    # Extract cluster assignments
-    clusters <- reticulate::py_to_r(result$cluster$values)
+    # Convert result to R data.frame
+    result_r <- reticulate::py_to_r(result)
 
-    list(cluster = clusters)
+    list(
+      cluster = result_r$cluster,
+      node = result_r$node
+    )
 
   }, cdr3_sequences = cdr3_sequences, v_genes = v_genes, j_genes = j_genes,
      chain = chain, method = method, max_edits = max_edits, max_dist = max_dist,
@@ -242,10 +286,20 @@ calculate.metaclonotypist <- function(cdr3_sequences,
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#'   metaclones <- runMetaclonotypist(seurat_obj, return_seurat = FALSE)
-#'   hla_results <- runHLAassociation(metaclones, hla_data)
-#' }
+#' # Create example metaclone and HLA data
+#' metaclone_data <- data.frame(
+#'   barcode = paste0("cell_", 1:20),
+#'   metaclone = rep(c("MC1", "MC2"), each = 10),
+#'   stringsAsFactors = FALSE
+#' )
+#' hla_data <- data.frame(
+#'   barcode = paste0("cell_", 1:20),
+#'   HLA_A = c(rep("A*02:01", 8), rep("A*01:01", 4),
+#'             rep("A*02:01", 3), rep("A*01:01", 5)),
+#'   stringsAsFactors = FALSE
+#' )
+#' results <- runHLAassociation(metaclone_data, hla_data)
+#'
 runHLAassociation <- function(metaclone_data,
                               hla_data,
                               by = "barcode",
@@ -279,13 +333,22 @@ runHLAassociation <- function(metaclone_data,
   # Run association tests
   results <- list()
 
-  for (mc in unique(merged$metaclone)) {
-    mc_data <- merged[merged$metaclone == mc, ]
+  # Only test non-NA metaclones
+  unique_mc <- unique(merged$metaclone)
+  unique_mc <- unique_mc[!is.na(unique_mc)]
+
+  for (mc in unique_mc) {
+    mc_data <- merged[!is.na(merged$metaclone) & merged$metaclone == mc, ]
 
     for (hla in hla_cols) {
       # Create contingency table
-      in_mc <- merged$metaclone == mc
-      has_hla <- !is.na(merged[[hla]]) & merged[[hla]] != ""
+      in_mc <- !is.na(merged$metaclone) & merged$metaclone == mc
+      hla_vals <- merged[[hla]]
+      if (is.logical(hla_vals)) {
+        has_hla <- !is.na(hla_vals) & hla_vals
+      } else {
+        has_hla <- !is.na(hla_vals) & hla_vals != ""
+      }
 
       cont_table <- table(in_mc, has_hla)
 

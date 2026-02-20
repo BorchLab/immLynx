@@ -29,21 +29,31 @@
 #' @importFrom methods is
 #'
 #' @examples
+#' data(immLynx_example)
 #' \dontrun{
-#'   # Generate embeddings for TRB sequences
-#'   seurat_obj <- runEmbeddings(seurat_obj, chains = "TRB")
+#'   # Generate ESM-2 embeddings for TRB chain
+#'   seurat_obj <- runEmbeddings(immLynx_example,
+#'                               chains = "TRB")
 #'
-#'   # Use larger model for better embeddings
-#'   seurat_obj <- runEmbeddings(seurat_obj,
+#'   # Use a larger ESM-2 model
+#'   seurat_obj <- runEmbeddings(immLynx_example,
 #'                               chains = "TRB",
 #'                               model_name = "facebook/esm2_t33_650M_UR50D")
 #'
-#'   # Visualize embeddings
-#'   seurat_obj <- RunUMAP(seurat_obj, reduction = "tcr_esm", dims = 1:30)
-#'   DimPlot(seurat_obj, reduction = "umap")
+#'   # Embed both chains together
+#'   seurat_obj <- runEmbeddings(immLynx_example,
+#'                               chains = "both")
 #'
-#'   # Works with SingleCellExperiment too
-#'   sce <- runEmbeddings(sce, chains = "TRB")
+#'   # Use CLS pooling instead of mean pooling
+#'   seurat_obj <- runEmbeddings(immLynx_example,
+#'                               chains = "TRB",
+#'                               pool = "cls")
+#'
+#'   # Get raw embeddings as a list
+#'   emb_list <- runEmbeddings(immLynx_example,
+#'                             chains = "TRB",
+#'                             return_object = FALSE)
+#'   dim(emb_list$embeddings)
 #' }
 runEmbeddings <- function(input,
                           chains = c("TRB", "TRA", "both"),
@@ -157,7 +167,7 @@ runEmbeddings <- function(input,
                                 nrow = ncol(input),
                                 ncol = ncol(embeddings),
                                 dimnames = list(colnames(input),
-                                              paste0(reduction_key, 1:ncol(embeddings))))
+                                              paste0(reduction_key, seq_len(ncol(embeddings)))))
 
       # Fill in embeddings for cells with TCR data
       cell_embeddings[barcodes, ] <- embeddings
@@ -189,7 +199,7 @@ runEmbeddings <- function(input,
                                 nrow = ncol(input),
                                 ncol = ncol(embeddings),
                                 dimnames = list(colnames(input),
-                                              paste0(reduction_key, 1:ncol(embeddings))))
+                                              paste0(reduction_key, seq_len(ncol(embeddings)))))
       cell_embeddings[barcodes, ] <- embeddings
 
       # Add as reduced dimension

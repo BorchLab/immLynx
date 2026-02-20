@@ -37,5 +37,9 @@
 #' @name immLynx_example
 #' @docType data
 #' @usage data(immLynx_example)
+#'
+#' @examples
+#' data(immLynx_example)
+#' immLynx_example
 NULL
 

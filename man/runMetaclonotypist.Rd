@@ -10,7 +10,7 @@ runMetaclonotypist(
   method = c("tcrdist", "sceptr"),
   max_edits = 2,
   max_dist = NULL,
-  clustering = c("leiden", "louvain", "mcl"),
+  clustering = c("cc", "leiden", "louvain", "mcl"),
   resolution = 1,
   return_seurat = TRUE,
   column_name = "metaclone"
@@ -28,7 +28,8 @@ runMetaclonotypist(
 \item{max_dist}{Maximum distance threshold for clustering. Default is 20 for
 tcrdist, 1.5 for sceptr.}
 
-\item{clustering}{Clustering algorithm: "leiden" (default), "louvain", or "mcl".}
+\item{clustering}{Clustering algorithm: "cc" (connected components, default),
+"leiden", "louvain", or "mcl".}
 
 \item{resolution}{Resolution parameter for leiden/louvain clustering. Default is 1.0.}
 
@@ -60,15 +61,19 @@ antigens. The algorithm:
 3. Applies graph-based clustering (Leiden by default) to identify metaclones
 }
 \examples{
+data(immLynx_example)
 \dontrun{
   # Run metaclonotypist on beta chain
-  seurat_obj <- runMetaclonotypist(seurat_obj, chains = "beta")
+  seurat_obj <- runMetaclonotypist(immLynx_example, chains = "beta")
 
-  # Use SCEPTR distance metric
-  seurat_obj <- runMetaclonotypist(seurat_obj, method = "sceptr", max_dist = 1.0)
+  # Get results as data.frame instead of adding to object
+  metaclones <- runMetaclonotypist(immLynx_example,
+                                   return_seurat = FALSE)
 
-  # Get results as data.frame
-  metaclones <- runMetaclonotypist(seurat_obj, return_seurat = FALSE)
+  # Adjust edit distance threshold
+  seurat_obj <- runMetaclonotypist(immLynx_example,
+                                   max_edits = 3,
+                                   max_dist = 50)
 }
 }
 \references{

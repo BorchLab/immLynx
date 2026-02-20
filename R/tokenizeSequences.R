@@ -17,14 +17,30 @@
 #'
 #' @export
 #'
-#' @seealso \code{\link{huggingModel}}, \code{\link{proteinEmbeddings}}
+#' @seealso \code{\link{huggingModel}}, \code{\link{proteinEmbeddings}},
+#'   \code{\link{runEmbeddings}}
 #'
 #' @examples
+#' sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
 #' \dontrun{
+#'   # Initialize model and tokenizer
 #'   hf_components <- huggingModel()
-#'   sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF")
-#'   tokenized_output <- tokenizeSequences(hf_components$tokenizer, sequences)
-#'   print(tokenized_output)
+#'
+#'   # Tokenize CDR3 sequences
+#'   tokenized <- tokenizeSequences(hf_components$tokenizer,
+#'                                  sequences)
+#'
+#'   # Tokenize without padding (variable-length output)
+#'   tokenized_nopad <- tokenizeSequences(
+#'       hf_components$tokenizer,
+#'       sequences,
+#'       padding = FALSE)
+#'
+#'   # Pass tokenized output to proteinEmbeddings
+#'   embeddings <- proteinEmbeddings(hf_components$model,
+#'                                   tokenized,
+#'                                   pool = "mean",
+#'                                   chunk_size = 32)
 #' }
 tokenizeSequences <- function(tokenizer, 
                               aa_sequences, 

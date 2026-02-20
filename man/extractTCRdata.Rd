@@ -43,11 +43,9 @@ Extracts T-cell receptor data from a Seurat object that has been
   \code{immApex::getIR()} that provides additional formatting options.
 }
 \examples{
-\dontrun{
-  # Extract beta chain data
-  tcr_data <- extractTCRdata(seurat_obj, chains = "TRB")
+# Extract beta chain data
+data(immLynx_example)
+tcr_data <- extractTCRdata(immLynx_example, chains = "TRB")
+head(tcr_data)
 
-  # Extract both chains in wide format
-  tcr_wide <- extractTCRdata(seurat_obj, chains = "both", format = "wide")
-}
 }
