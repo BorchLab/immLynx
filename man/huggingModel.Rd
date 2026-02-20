@@ -13,11 +13,13 @@ Other options include "facebook/esm2_t33_650M_UR50D" for larger models.}
 }
 \value{
 A list containing the R-wrapped Python objects for the 'model'
-  and 'tokenizer'.
+  and 'tokenizer', along with the basilisk process handle. The process
+  must be stopped when no longer needed via \code{basilisk::basiliskStop()}.
 }
 \description{
 Downloads or loads a cached pre-trained model and its
-  corresponding tokenizer from the Hugging Face Hub.
+  corresponding tokenizer from the Hugging Face Hub. Uses the basilisk-managed
+  Python environment which includes \code{transformers} and \code{torch}.
 }
 \examples{
 # Default model is ESM-2 35M
@@ -25,10 +27,7 @@ model_name <- "facebook/esm2_t12_35M_UR50D"
 \dontrun{
   # Load the default ESM-2 35M model
   hf_components <- huggingModel(model_name)
-  names(hf_components)  # "model" and "tokenizer"
-
-  # Load a larger ESM-2 model (650M parameters)
-  hf_large <- huggingModel("facebook/esm2_t33_650M_UR50D")
+  names(hf_components)  # "model", "tokenizer", "proc"
 
   # Use with tokenizeSequences and proteinEmbeddings
   sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF")
@@ -38,6 +37,9 @@ model_name <- "facebook/esm2_t12_35M_UR50D"
                                   tokenized,
                                   pool = "mean",
                                   chunk_size = 32)
+
+  # Clean up the basilisk process when done
+  basilisk::basiliskStop(hf_components$proc)
 }
 }
 \seealso{
