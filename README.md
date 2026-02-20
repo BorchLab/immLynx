@@ -2,8 +2,8 @@
 Linking advanced TCR python pipelines and Hugging Face models in R
 
 <!-- badges: start -->
-  [![R-CMD-check](https://github.com/ncborcherding/immLynx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/ncborcherding/immLynx/actions/workflows/R-CMD-check.yaml)
-  [![Codecov test coverage](https://codecov.io/gh/ncborcherding/immLynx/graph/badge.svg)](https://app.codecov.io/gh/ncborcherding/immLynx)
+  [![R-CMD-check](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml)
+  [![Codecov test coverage](https://codecov.io/gh/BorchLab/immLynx/graph/badge.svg)](https://app.codecov.io/gh/BorchLab/immLynx)
 <!-- badges: end -->
 
 
