@@ -77,6 +77,7 @@ runEmbeddings <- function(input,
 
   message("Loading Hugging Face model: ", model_name)
   hf_components <- huggingModel(model_name = model_name)
+  on.exit(basilisk::basiliskStop(hf_components$proc), add = TRUE)
 
   message("Extracting TCR sequences from object...")
 

@@ -2,6 +2,8 @@
 #'
 #' @description Takes a vector of amino acid sequences and uses a Hugging Face
 #'   tokenizer to convert them into numerical input IDs suitable for model input.
+#'   The tokenizer should be obtained from \code{\link{huggingModel}}, which
+#'   manages the Python environment via basilisk.
 #'
 #' @param tokenizer The tokenizer object returned by \code{\link{huggingModel}}.
 #' @param aa_sequences A character vector of amino acid sequences (e.g., CDR3 sequences).
@@ -41,28 +43,33 @@
 #'                                   tokenized,
 #'                                   pool = "mean",
 #'                                   chunk_size = 32)
+#'
+#'   # Clean up
+#'   basilisk::basiliskStop(hf_components$proc)
 #' }
-tokenizeSequences <- function(tokenizer, 
-                              aa_sequences, 
-                              padding = TRUE, 
-                              truncation = TRUE, 
+tokenizeSequences <- function(tokenizer,
+                              aa_sequences,
+                              padding = TRUE,
+                              truncation = TRUE,
                               return_tensors = "pt") {
-  
+
   if (is.null(tokenizer)) {
     stop("Tokenizer object is NULL. Please initialize it first.")
   }
-  
-  message("Tokenizing", length(aa_sequences), "sequences...\n")
-  
+
+  message("Tokenizing ", length(aa_sequences), " sequences...")
+
   # The tokenizer is a Python function, so we call it directly.
+  # It must be called within an active basilisk process (e.g., from
+  # huggingModel() or runEmbeddings()).
   tokenized_output <- tokenizer(
     aa_sequences,
     padding = padding,
     truncation = truncation,
     return_tensors = return_tensors
   )
-  
-  message("Tokenization complete.\n")
-  
+
+  message("Tokenization complete.")
+
   return(tokenized_output)
 }
