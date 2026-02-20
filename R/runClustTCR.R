@@ -27,7 +27,7 @@
 #'
 #' @examples
 #' data(immLynx_example)
-#' \donttest{
+#' \dontrun{
 #'   # Cluster TRB chain using MCL algorithm
 #'   seurat_obj <- runClustTCR(immLynx_example,
 #'                             chains = "TRB")
