@@ -21,6 +21,14 @@ knitr::opts_chunk$set(
   tidy = FALSE
 )
 library(BiocStyle)
+
+python_available <- tryCatch({
+    proc <- basilisk::basiliskStart(immLynx::immLynxEnv)
+    on.exit(basilisk::basiliskStop(proc))
+    TRUE
+}, error = function(e) {
+    FALSE
+})
 ```
 
 # Introduction
@@ -109,7 +117,7 @@ print(summary)
 
 Cluster TCRs based on sequence similarity using the clusTCR algorithm:
 
-```{r clustcr}
+```{r clustcr, eval=python_available}
 # Cluster TRB sequences using MCL algorithm
 seurat_obj <- runClustTCR(
   immLynx_example,
@@ -126,7 +134,7 @@ table(seurat_obj$clustcr_TRB)
 
 Calculate pairwise TCR distances:
 
-```{r tcrdist}
+```{r tcrdist, eval=python_available}
 # Calculate beta chain distances
 dist_results <- runTCRdist(
   immLynx_example,
@@ -141,7 +149,7 @@ dim(dist_results$distances$pw_beta)
 ## Generation Probability with OLGA
 
 Calculate the generation probability (Pgen) for TCR sequences:
-```{r olga}
+```{r olga, eval=python_available}
 # Calculate Pgen for TRB sequences
 seurat_obj <- runOLGA(
   immLynx_example,
@@ -155,7 +163,7 @@ hist(log10(seurat_obj$olga_pgen_TRB), breaks = 50)
 
 Generate random TCR sequences:
 
-```{r generate}
+```{r generate, eval=python_available}
 # Generate 100 random human TRB sequences
 random_seqs <- generateOLGA(n = 100, model = "humanTRB")
 head(random_seqs)
@@ -182,7 +190,7 @@ Seurat::DimPlot(seurat_obj, reduction = "umap")
 
 Identify TCR metaclones - groups of related T cell receptors:
 
-```{r metaclonotypist}
+```{r metaclonotypist, eval=python_available}
 # Run metaclonotypist
 seurat_obj <- runMetaclonotypist(
   immLynx_example,

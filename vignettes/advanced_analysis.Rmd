@@ -21,6 +21,14 @@ knitr::opts_chunk$set(
   tidy = FALSE
 )
 library(BiocStyle)
+
+python_available <- tryCatch({
+    proc <- basilisk::basiliskStart(immLynx::immLynxEnv)
+    on.exit(basilisk::basiliskStop(proc))
+    TRUE
+}, error = function(e) {
+    FALSE
+})
 ```
 
 # Introduction
@@ -49,7 +57,7 @@ immLynx provides multiple approaches for grouping TCRs. Let's compare them:
 
 ## clusTCR Clustering
 
-```{r clustcr-compare}
+```{r clustcr-compare, eval=python_available}
 # MCL clustering with different inflation parameters
 seurat_mcl_2 <- runClustTCR(immLynx_example, inflation = 2.0,
                             column_prefix = "mcl_2")
@@ -119,7 +127,7 @@ DimPlot(seurat_paired)
 
 immLynx is designed to work seamlessly with scRepertoire data:
 
-```{r screpertoire-integration}
+```{r screpertoire-integration, eval=python_available}
 # The example data already has scRepertoire clonotype info
 # Let's compare TCR clusters to clonotypes
 
@@ -142,7 +150,7 @@ cat("Number of unique clonotypes:", ncol(comparison), "\n")
 
 Use OLGA Pgen and soNNia to understand selection:
 
-```{r selection}
+```{r selection, eval=python_available}
 # Calculate generation probability
 seurat_pgen <- runOLGA(immLynx_example, chains = "TRB")
 
@@ -163,7 +171,7 @@ cat("Cells with Pgen < 10^-15:", length(low_pgen_cells), "\n")
 
 Use TCRdist together with clustering:
 
-```{r combined-distance}
+```{r combined-distance, eval=python_available}
 # Calculate TCR distances
 dist_results <- runTCRdist(immLynx_example, chains = "beta")
 
@@ -211,7 +219,7 @@ dist_results <- runTCRdist(subset_obj)
 
 If HLA typing data is available:
 
-```{r hla}
+```{r hla, eval=python_available}
 # Run metaclonotypist
 metaclones <- runMetaclonotypist(immLynx_example, return_seurat = FALSE)
 

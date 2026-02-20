@@ -1,7 +1,9 @@
 AutoModel
 BCR
 CDR
+CMD
 Clonotypes
+Codecov
 DBSCAN
 ESM
 Embeddings
@@ -52,7 +54,6 @@ cpu
 cuda
 dbscan
 embeddings
-eps
 esm
 et
 extractTCRdata
