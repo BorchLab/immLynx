@@ -63,17 +63,8 @@ skip_if_no_python <- function() {
   }
 }
 
-# Check if transformers (Hugging Face) is available
-transformers_available <- function() {
-  tryCatch({
-    reticulate::import("transformers", convert = FALSE)
-    TRUE
-  }, error = function(e) FALSE)
-}
-
-# Skip test if transformers/torch not available
+# Alias: skip_if_no_transformers now delegates to skip_if_no_python
+# since transformers and torch are included in the basilisk environment
 skip_if_no_transformers <- function() {
-  if (!transformers_available()) {
-    testthat::skip("Python 'transformers' library not available")
-  }
+  skip_if_no_python()
 }

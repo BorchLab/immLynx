@@ -33,6 +33,8 @@ The tokenized output, typically a dictionary-like object containing
 \description{
 Takes a vector of amino acid sequences and uses a Hugging Face
   tokenizer to convert them into numerical input IDs suitable for model input.
+  The tokenizer should be obtained from \code{\link{huggingModel}}, which
+  manages the Python environment via basilisk.
 }
 \examples{
 sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
@@ -55,6 +57,9 @@ sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
                                   tokenized,
                                   pool = "mean",
                                   chunk_size = 32)
+
+  # Clean up
+  basilisk::basiliskStop(hf_components$proc)
 }
 }
 \seealso{

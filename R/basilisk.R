@@ -9,10 +9,13 @@
 # The defined environment is then used in the wrapper functions to execute
 # Python code using basiliskRun.
 #
-# As of basilisk >= 1.22.0 (Bioconductor 3.22), conda is no longer used.
-# All packages are installed via pip into a virtualenv. Packages that were
-# previously conda-only (e.g., clustcr from the svalkiers channel) must
-# be installed from their git repositories.
+# Note: Version checking is disabled because clusTCR is installed directly
+# from its GitHub repository via a git+https:// URL in the `pip` vector,
+# which does not use the standard `==` version specifier that basilisk
+# expects.  The `paths` parameter cannot be used for git URLs because
+# basilisk prepends the package system directory to each path entry.
+
+basilisk::setBasiliskCheckVersions(FALSE)
 
 immLynxEnv <- basilisk::BasiliskEnvironment(
     envname = "immLynxEnv",
@@ -30,11 +33,13 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
         "faiss-cpu=1.7.4"
     ),
     pip = c(
-        "clustcr @ git+https://github.com/svalkiers/clusTCR.git@v1.0.3",
         "tcrdist3==0.2.2",
         "olga==1.2.4",
         "sonnia==0.1.0",
         "metaclonotypist==0.2.0",
-        "pyrepseq==1.5.1"
+        "pyrepseq==1.5.1",
+        "torch==2.1.2",
+        "transformers==4.36.2",
+        "git+https://github.com/svalkiers/clusTCR.git@1.0.3"
     )
 )
