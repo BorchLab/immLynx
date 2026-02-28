@@ -35,7 +35,7 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
     pip = c(
         "tcrdist3==0.2.2",
         "olga==1.2.4",
-        "sonnia==0.1.0",
+        "sonnia==0.2.5",
         "metaclonotypist==0.2.0",
         "pyrepseq==1.5.1",
         "torch==2.1.2",
