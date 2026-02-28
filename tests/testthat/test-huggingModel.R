@@ -25,7 +25,7 @@ test_that("huggingModel has single parameter", {
 # ===========================================================================
 
 test_that("huggingModel returns list with model and tokenizer", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   result <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(result$proc))
@@ -39,7 +39,7 @@ test_that("huggingModel returns list with model and tokenizer", {
 })
 
 test_that("huggingModel returns a basilisk process handle", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   result <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(result$proc))
@@ -49,7 +49,7 @@ test_that("huggingModel returns a basilisk process handle", {
 })
 
 test_that("huggingModel produces initialization message", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   expect_message(
     {
@@ -61,7 +61,7 @@ test_that("huggingModel produces initialization message", {
 })
 
 test_that("huggingModel produces tokenizer loading message", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   expect_message(
     {
@@ -73,7 +73,7 @@ test_that("huggingModel produces tokenizer loading message", {
 })
 
 test_that("huggingModel produces model loading message", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   expect_message(
     {
@@ -85,7 +85,7 @@ test_that("huggingModel produces model loading message", {
 })
 
 test_that("huggingModel produces success message", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   expect_message(
     {
@@ -97,7 +97,7 @@ test_that("huggingModel produces success message", {
 })
 
 test_that("huggingModel errors with invalid model name", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   expect_error(
     huggingModel("completely/nonexistent-model-xyz-12345"),
@@ -106,7 +106,7 @@ test_that("huggingModel errors with invalid model name", {
 })
 
 test_that("huggingModel tokenizer can tokenize sequences", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   result <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(result$proc))
@@ -120,7 +120,7 @@ test_that("huggingModel tokenizer can tokenize sequences", {
 })
 
 test_that("huggingModel model has eval method", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   result <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(result$proc))

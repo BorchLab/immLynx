@@ -39,7 +39,7 @@ test_that("tokenizeSequences has all expected parameters", {
 # ===========================================================================
 
 test_that("tokenizeSequences returns tokenized output with input_ids", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -52,7 +52,7 @@ test_that("tokenizeSequences returns tokenized output with input_ids", {
 })
 
 test_that("tokenizeSequences returns attention_mask", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -64,7 +64,7 @@ test_that("tokenizeSequences returns attention_mask", {
 })
 
 test_that("tokenizeSequences handles single sequence", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -76,7 +76,7 @@ test_that("tokenizeSequences handles single sequence", {
 })
 
 test_that("tokenizeSequences produces tokenization message", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -88,7 +88,7 @@ test_that("tokenizeSequences produces tokenization message", {
 })
 
 test_that("tokenizeSequences produces completion message", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -100,7 +100,7 @@ test_that("tokenizeSequences produces completion message", {
 })
 
 test_that("tokenizeSequences message contains sequence count", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -112,7 +112,7 @@ test_that("tokenizeSequences message contains sequence count", {
 })
 
 test_that("tokenizeSequences handles many sequences", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -128,7 +128,7 @@ test_that("tokenizeSequences handles many sequences", {
 
 test_that("tokenizeSequences padding pads shorter sequences", {
 
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))

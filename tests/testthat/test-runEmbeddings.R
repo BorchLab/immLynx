@@ -89,7 +89,7 @@ test_that("runEmbeddings has all expected parameters", {
 test_that("runEmbeddings adds dimensional reduction to Seurat object", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -103,7 +103,7 @@ test_that("runEmbeddings adds dimensional reduction to Seurat object", {
 test_that("runEmbeddings returns list when return_object=FALSE", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -123,7 +123,7 @@ test_that("runEmbeddings returns list when return_object=FALSE", {
 test_that("runEmbeddings list output has correct model_name", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -138,7 +138,7 @@ test_that("runEmbeddings list output has correct model_name", {
 test_that("runEmbeddings handles custom reduction name", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -152,7 +152,7 @@ test_that("runEmbeddings handles custom reduction name", {
 test_that("runEmbeddings handles both chains", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -166,7 +166,7 @@ test_that("runEmbeddings handles both chains", {
 test_that("runEmbeddings adds chain metadata to Seurat object", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -179,7 +179,7 @@ test_that("runEmbeddings adds chain metadata to Seurat object", {
 test_that("runEmbeddings embeddings have barcodes as rownames", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -194,7 +194,7 @@ test_that("runEmbeddings embeddings have barcodes as rownames", {
 test_that("runEmbeddings produces loading model message", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -208,7 +208,7 @@ test_that("runEmbeddings produces loading model message", {
 test_that("runEmbeddings produces sequence extraction message", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -222,7 +222,7 @@ test_that("runEmbeddings produces sequence extraction message", {
 test_that("runEmbeddings embedding matrix has correct dimensions", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -239,7 +239,7 @@ test_that("runEmbeddings embedding matrix has correct dimensions", {
 test_that("runEmbeddings metadata has expected columns", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -255,7 +255,7 @@ test_that("runEmbeddings metadata has expected columns", {
 test_that("runEmbeddings TRB-only chain info is correct", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -269,7 +269,7 @@ test_that("runEmbeddings TRB-only chain info is correct", {
 test_that("runEmbeddings with cls pooling works", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -285,7 +285,7 @@ test_that("runEmbeddings with cls pooling works", {
 test_that("runEmbeddings with custom chunk_size works", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -301,7 +301,7 @@ test_that("runEmbeddings with custom chunk_size works", {
 test_that("runEmbeddings embedding values are finite", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 
@@ -315,7 +315,7 @@ test_that("runEmbeddings embedding values are finite", {
 test_that("runEmbeddings Seurat object retains original cells", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
   original_ncells <- ncol(immLynx_example)
@@ -330,7 +330,7 @@ test_that("runEmbeddings Seurat object retains original cells", {
 test_that("runEmbeddings custom reduction key works", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   data("immLynx_example", package = "immLynx")
 

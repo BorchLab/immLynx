@@ -76,7 +76,7 @@ test_that("proteinEmbeddings pool default includes all options", {
 # ===========================================================================
 
 test_that("proteinEmbeddings returns matrix with mean pooling", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -94,7 +94,7 @@ test_that("proteinEmbeddings returns matrix with mean pooling", {
 })
 
 test_that("proteinEmbeddings returns matrix with cls pooling", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -111,7 +111,7 @@ test_that("proteinEmbeddings returns matrix with cls pooling", {
 })
 
 test_that("proteinEmbeddings returns list with no pooling", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -128,7 +128,7 @@ test_that("proteinEmbeddings returns list with no pooling", {
 })
 
 test_that("proteinEmbeddings mean and cls produce same dimensions", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -148,7 +148,7 @@ test_that("proteinEmbeddings mean and cls produce same dimensions", {
 })
 
 test_that("proteinEmbeddings respects chunk_size", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -172,7 +172,7 @@ test_that("proteinEmbeddings respects chunk_size", {
 })
 
 test_that("proteinEmbeddings embedding values are finite", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -188,7 +188,7 @@ test_that("proteinEmbeddings embedding values are finite", {
 })
 
 test_that("proteinEmbeddings hidden dim matches ESM-2 35M", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -205,7 +205,7 @@ test_that("proteinEmbeddings hidden dim matches ESM-2 35M", {
 })
 
 test_that("proteinEmbeddings single sequence produces 1-row matrix", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -221,7 +221,7 @@ test_that("proteinEmbeddings single sequence produces 1-row matrix", {
 })
 
 test_that("proteinEmbeddings different sequences produce different embeddings", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -239,7 +239,7 @@ test_that("proteinEmbeddings different sequences produce different embeddings", 
 })
 
 test_that("proteinEmbeddings cpu device works", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
@@ -256,7 +256,7 @@ test_that("proteinEmbeddings cpu device works", {
 })
 
 test_that("proteinEmbeddings float32 dtype works", {
-  skip_if_no_python()
+  skip_if_no_transformers()
 
   hf <- huggingModel("facebook/esm2_t12_35M_UR50D")
   on.exit(basilisk::basiliskStop(hf$proc))
