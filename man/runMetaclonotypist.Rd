@@ -62,7 +62,7 @@ antigens. The algorithm:
 }
 \examples{
 data(immLynx_example)
-\dontrun{
+\donttest{
   # Run metaclonotypist on beta chain
   seurat_obj <- runMetaclonotypist(immLynx_example, chains = "beta")
 

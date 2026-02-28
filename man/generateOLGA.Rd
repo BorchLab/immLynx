@@ -20,7 +20,7 @@ Generate random TCR sequences from OLGA's generative model.
 \examples{
 # Available models
 models <- c("humanTRB", "humanTRA", "humanIGH", "mouseTRB")
-\dontrun{
+\donttest{
   # Generate 100 random human TRB sequences
   random_seqs <- generateOLGA(n = 100, model = "humanTRB")
   head(random_seqs)
