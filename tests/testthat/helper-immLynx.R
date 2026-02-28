@@ -56,6 +56,18 @@ python_available <- function() {
   }, error = function(e) FALSE)
 }
 
+# Check if transformers module is available in the basilisk environment
+transformers_available <- function() {
+  tryCatch({
+    proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+    on.exit(basilisk::basiliskStop(proc))
+    basilisk::basiliskRun(proc, function() {
+      reticulate::import("transformers")
+      TRUE
+    })
+  }, error = function(e) FALSE)
+}
+
 # Skip test if Python not available
 skip_if_no_python <- function() {
   if (!python_available()) {
@@ -63,8 +75,10 @@ skip_if_no_python <- function() {
   }
 }
 
-# Alias: skip_if_no_transformers now delegates to skip_if_no_python
-# since transformers and torch are included in the basilisk environment
+# Skip test if transformers/torch not available in basilisk env
 skip_if_no_transformers <- function() {
   skip_if_no_python()
+  if (!transformers_available()) {
+    testthat::skip("transformers module not available in Python environment")
+  }
 }

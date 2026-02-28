@@ -46,7 +46,7 @@ This function extracts TCR sequences from a Seurat or
 }
 \examples{
 data(immLynx_example)
-\dontrun{
+\donttest{
   # Cluster TRB chain using MCL algorithm
   seurat_obj <- runClustTCR(immLynx_example,
                             chains = "TRB")

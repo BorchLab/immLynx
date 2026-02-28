@@ -12,6 +12,7 @@ permissions: read-all
 jobs:
   test-coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
@@ -27,6 +28,16 @@ jobs:
           extra-packages: any::covr, any::xml2
           needs: coverage
 
+      - name: Cache basilisk Python environment
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/R/basilisk
+            ~/.local/share/R/basilisk
+          key: basilisk-${{ runner.os }}-${{ hashFiles('R/basilisk.R') }}
+          restore-keys: |
+            basilisk-${{ runner.os }}-
+
       - name: Test coverage
         run: |
           cov <- covr::package_coverage(
@@ -40,8 +51,12 @@ jobs:
 
       - uses: codecov/codecov-action@v5
         with:
+          # Fail if error if not on PR, or if on PR and token is given
+          fail_ci_if_error: ${{ github.event_name != 'pull_request' || secrets.CODECOV_TOKEN }}
+          files: ./cobertura.xml
+          plugins: noop
+          disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: BorchLab/immLynx
 
       - name: Show testthat output
         if: always()

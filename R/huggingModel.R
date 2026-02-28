@@ -21,7 +21,7 @@
 #' @examples
 #' # Default model is ESM-2 35M
 #' model_name <- "facebook/esm2_t12_35M_UR50D"
-#' \dontrun{
+#' \donttest{
 #'   # Load the default ESM-2 35M model
 #'   hf_components <- huggingModel(model_name)
 #'   names(hf_components)  # "model", "tokenizer", "proc"

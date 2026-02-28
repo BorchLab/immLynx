@@ -30,7 +30,7 @@
 #'
 #' @examples
 #' data(immLynx_example)
-#' \dontrun{
+#' \donttest{
 #'   # Generate ESM-2 embeddings for TRB chain
 #'   seurat_obj <- runEmbeddings(immLynx_example,
 #'                               chains = "TRB")

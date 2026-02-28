@@ -24,19 +24,13 @@
 #'
 #' @examples
 #' sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
-#' \dontrun{
+#' \donttest{
 #'   # Initialize model and tokenizer
 #'   hf_components <- huggingModel()
 #'
 #'   # Tokenize CDR3 sequences
 #'   tokenized <- tokenizeSequences(hf_components$tokenizer,
 #'                                  sequences)
-#'
-#'   # Tokenize without padding (variable-length output)
-#'   tokenized_nopad <- tokenizeSequences(
-#'       hf_components$tokenizer,
-#'       sequences,
-#'       padding = FALSE)
 #'
 #'   # Pass tokenized output to proteinEmbeddings
 #'   embeddings <- proteinEmbeddings(hf_components$model,

@@ -26,7 +26,7 @@
 #'
 #' @examples
 #' data(immLynx_example)
-#' \dontrun{
+#' \donttest{
 #'   # Step 1: Generate background sequences with OLGA
 #'   background <- generateOLGA(n = 1000, model = "humanTRB")
 #'   bg_file <- tempfile(fileext = ".csv")

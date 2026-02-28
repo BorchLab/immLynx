@@ -293,21 +293,36 @@ calculate.sonia <- function(data_folder,
                                                    dataset_type, n_epochs, save_folder) {
     sonnia <- reticulate::import("sonnia.sonnia")
 
-    # Determine chain type (soNNia uses 'humanTRB' format)
-    chain_type <- if (dataset_type == "TCR") "humanTRB" else "humanIGH"
+    # Determine model identifier for the chain type
+    model_id <- if (dataset_type == "TCR") "humanTRB" else "humanIGH"
 
-    # Initialize and train soNNia model
-    qm <- sonnia$SoNNia(
-      data_seqs = data_seqs,
-      gen_seqs = gen_seqs,
-      chain_type = chain_type
+    # Initialize soNNia model — try pgen_model (>=0.4.0) then chain_type (<=0.1.x)
+    qm <- tryCatch(
+      sonnia$SoNNia(
+        data_seqs = data_seqs,
+        gen_seqs = gen_seqs,
+        pgen_model = model_id
+      ),
+      error = function(e) {
+        sonnia$SoNNia(
+          data_seqs = data_seqs,
+          gen_seqs = gen_seqs,
+          chain_type = model_id
+        )
+      }
     )
 
     # Train the model
     qm$infer_selection(epochs = as.integer(n_epochs))
 
-    # Get selection factors
-    selection_factors <- reticulate::py_to_r(qm$compute_Q(qm$data_seqs))
+    # Get selection factors — try evaluate_selection_factors (>=0.4.0)
+    # then compute_Q (<=0.1.x)
+    selection_factors <- tryCatch(
+      reticulate::py_to_r(qm$evaluate_selection_factors(qm$data_seqs)),
+      error = function(e) {
+        reticulate::py_to_r(qm$compute_Q(qm$data_seqs))
+      }
+    )
 
     # Save the model
     if (!is.null(save_folder)) {

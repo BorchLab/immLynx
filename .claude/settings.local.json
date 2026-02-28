@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(Rscript:*)",
+      "Bash(/tmp/task1_summary.txt:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:pypi.org)",
+      "Bash(for file in R/huggingModel.R R/proteinEmbeddings.R R/runClustTCR.R R/runEmbeddings.R R/runMetaclonotypist.R R/runOLGA.R R/runTCRdist.R R/tokenizeSequences.R)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Bash(R:*)",
+      "Bash(ls:*)",
+      "Bash(find:*)",
+      "WebFetch(domain:anaconda.org)",
+      "Bash(# Check for basilisk in Bioc-specific locations find /Users/nick -name \"\"basilisk\"\" -path \"\"*/R/*/library/*\"\" -type d)",
+      "Bash(pip install:*)",
+      "Bash(/Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/bin/Rscript:*)"
+    ]
+  }
+}

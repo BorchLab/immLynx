@@ -140,15 +140,8 @@ test_that("runMetaclonotypist handles custom column name", {
 
 test_that("runMetaclonotypist accepts data.frame input", {
   skip_if_no_python()
-  skip("metaclonotypist Python library IndexError with small datasets")
 
-  tcr_data <- data.frame(
-    barcode = paste0("cell_", 1:10),
-    cdr3_aa = c("CASSLAPGATNEKLFF", "CASSLGQAYEQYF", "CASRLAGQETQYF",
-                "CASSYSGGNTGELFF", "CASSQDRTGQETQYF", "CASSLNRDNEQFF",
-                "CASSLTGTEAFF", "CASSYSQGSYEQYF", "CASSLAGDTDTQYF",
-                "CASSLVSGSTDTQYF")
-  )
+  tcr_data <- create_mock_tcr_data(100)
 
   result <- runMetaclonotypist(tcr_data, chains = "beta",
                                return_seurat = FALSE)
