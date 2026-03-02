@@ -29,6 +29,9 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      # Disable \donttest example execution: basilisk Python env + model
+      # downloads are too expensive for CI. Tests cover all functionality.
+      _R_CHECK_DONTTEST_EXAMPLES_: false
 
     steps:
       - uses: actions/checkout@v4
