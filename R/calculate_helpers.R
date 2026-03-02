@@ -23,8 +23,7 @@ calculate.tcrDist <- function(df,
 
   results <- basilisk::basiliskRun(proc, function(df, organism, chains, compute_distances) {
     pd <- reticulate::import("pandas")
-    tcrdist <- reticulate::import("tcrdist")
-    tc <- tcrdist$repertoire
+    tc <- reticulate::import("tcrdist.repertoire")
 
     # Convert R data.frame to pandas DataFrame
     df_py <- pd$DataFrame(df)

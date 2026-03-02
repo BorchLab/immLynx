@@ -47,26 +47,73 @@ create_mock_paired_data <- function(n = 50) {
   )
 }
 
+# ---------------------------------------------------------------------------
+# Module availability checks (cached per test session)
+# ---------------------------------------------------------------------------
+
+# Cache to avoid redundant basilisk process starts during a test session
+.module_cache <- new.env(parent = emptyenv())
+
 # Check if Python environment is available
 python_available <- function() {
-  tryCatch({
-    proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
-    on.exit(basilisk::basiliskStop(proc))
-    TRUE
-  }, error = function(e) FALSE)
+  if (is.null(.module_cache$python)) {
+    .module_cache$python <- tryCatch({
+      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      on.exit(basilisk::basiliskStop(proc))
+      TRUE
+    }, error = function(e) FALSE)
+  }
+  .module_cache$python
 }
 
 # Check if transformers module is available in the basilisk environment
 transformers_available <- function() {
-  tryCatch({
-    proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
-    on.exit(basilisk::basiliskStop(proc))
-    basilisk::basiliskRun(proc, function() {
-      reticulate::import("transformers")
-      TRUE
-    })
-  }, error = function(e) FALSE)
+  if (is.null(.module_cache$transformers)) {
+    .module_cache$transformers <- tryCatch({
+      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      on.exit(basilisk::basiliskStop(proc))
+      basilisk::basiliskRun(proc, function() {
+        reticulate::import("transformers")
+        TRUE
+      })
+    }, error = function(e) FALSE)
+  }
+  .module_cache$transformers
 }
+
+# Check if tcrdist module (with submodules) is importable
+tcrdist_available <- function() {
+  if (is.null(.module_cache$tcrdist)) {
+    .module_cache$tcrdist <- tryCatch({
+      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      on.exit(basilisk::basiliskStop(proc))
+      basilisk::basiliskRun(proc, function() {
+        reticulate::import("tcrdist.repertoire")
+        TRUE
+      })
+    }, error = function(e) FALSE)
+  }
+  .module_cache$tcrdist
+}
+
+# Check if metaclonotypist module is importable
+metaclonotypist_available <- function() {
+  if (is.null(.module_cache$metaclonotypist)) {
+    .module_cache$metaclonotypist <- tryCatch({
+      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      on.exit(basilisk::basiliskStop(proc))
+      basilisk::basiliskRun(proc, function() {
+        reticulate::import("metaclonotypist")
+        TRUE
+      })
+    }, error = function(e) FALSE)
+  }
+  .module_cache$metaclonotypist
+}
+
+# ---------------------------------------------------------------------------
+# Skip helpers
+# ---------------------------------------------------------------------------
 
 # Skip test if Python not available
 skip_if_no_python <- function() {
@@ -80,5 +127,21 @@ skip_if_no_transformers <- function() {
   skip_if_no_python()
   if (!transformers_available()) {
     testthat::skip("transformers module not available in Python environment")
+  }
+}
+
+# Skip test if tcrdist is not importable (e.g., shared lib issues on macOS)
+skip_if_no_tcrdist <- function() {
+  skip_if_no_python()
+  if (!tcrdist_available()) {
+    testthat::skip("tcrdist module not available (possible shared library issue)")
+  }
+}
+
+# Skip test if metaclonotypist is not importable (e.g., shared lib issues on macOS)
+skip_if_no_metaclonotypist <- function() {
+  skip_if_no_python()
+  if (!metaclonotypist_available()) {
+    testthat::skip("metaclonotypist module not available (possible shared library issue)")
   }
 }

@@ -96,7 +96,7 @@ test_that("runMetaclonotypist rejects data.frame with all NA sequences", {
 test_that("runMetaclonotypist adds metaclone column to Seurat object", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_metaclonotypist()
 
   data("immLynx_example", package = "immLynx")
 
@@ -110,7 +110,7 @@ test_that("runMetaclonotypist adds metaclone column to Seurat object", {
 test_that("runMetaclonotypist returns data.frame when return_seurat=FALSE", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_metaclonotypist()
 
   data("immLynx_example", package = "immLynx")
 
@@ -127,7 +127,7 @@ test_that("runMetaclonotypist returns data.frame when return_seurat=FALSE", {
 test_that("runMetaclonotypist handles custom column name", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_metaclonotypist()
 
   data("immLynx_example", package = "immLynx")
 
@@ -139,7 +139,7 @@ test_that("runMetaclonotypist handles custom column name", {
 })
 
 test_that("runMetaclonotypist accepts data.frame input", {
-  skip_if_no_python()
+  skip_if_no_metaclonotypist()
 
   tcr_data <- create_mock_tcr_data(100)
 
@@ -152,7 +152,7 @@ test_that("runMetaclonotypist accepts data.frame input", {
 test_that("runMetaclonotypist produces messages during execution", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_metaclonotypist()
 
   data("immLynx_example", package = "immLynx")
 
