@@ -1,13 +1,18 @@
 # Bioconductor-compliant management of Python environments
 #
-# This script defines a basilisk environment for immlynx.
+# This script defines basilisk environments for immLynx.
 #
-# The environment is defined using the BasiliskEnvironment function, which
-# specifies the name of the environment, the package name, and the list of
-# required Python packages.
+# Two separate environments are used so that installation failures in
+# problematic packages (soNNia and clusTCR) do not prevent the rest of
+# the Python tooling from working.
 #
-# The defined environment is then used in the wrapper functions to execute
-# Python code using basiliskRun.
+#   immLynxEnv      -- stable dependencies used by the majority of the
+#                      package: OLGA, tcrdist3, metaclonotypist,
+#                      transformers/torch (ESM-2 embeddings), etc.
+#
+#   immLynxExtraEnv -- packages that have historically had installation
+#                      issues: soNNia and clusTCR.  Used only by
+#                      calculate.sonia() and calculate.clustcr().
 #
 # Note: Version checking is disabled because clusTCR is installed directly
 # from its GitHub repository via a git+https:// URL in the `pip` vector,
@@ -17,6 +22,9 @@
 
 basilisk::setBasiliskCheckVersions(FALSE)
 
+# ---------------------------------------------------------------------------
+# Core environment -- stable packages
+# ---------------------------------------------------------------------------
 immLynxEnv <- basilisk::BasiliskEnvironment(
     envname = "immLynxEnv",
     pkgname = "immLynx",
@@ -29,17 +37,35 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
         "scikit-learn=1.1.3",
         "statsmodels=0.13.2",
         "seaborn=0.12.1",
-        "markov-clustering=0.0.6.dev0",
         "faiss-cpu=1.7.4"
     ),
     pip = c(
         "tcrdist3==0.2.2",
         "olga==1.2.4",
-        "sonnia==0.2.5",
         "metaclonotypist==0.2.0",
         "pyrepseq==1.5.1",
         "torch==2.1.2",
-        "transformers==4.36.2",
+        "transformers==4.36.2"
+    )
+)
+
+# ---------------------------------------------------------------------------
+# Extra environment -- soNNia + clusTCR (may fail to install)
+# ---------------------------------------------------------------------------
+immLynxExtraEnv <- basilisk::BasiliskEnvironment(
+    envname = "immLynxExtraEnv",
+    pkgname = "immLynx",
+    packages = c(
+        "python=3.9",
+        "numpy=1.23.4",
+        "scipy=1.8.0",
+        "pandas=1.4.4",
+        "scikit-learn=1.1.3",
+        "markov-clustering=0.0.6.dev0"
+    ),
+    pip = c(
+        "olga==1.2.4",
+        "sonnia==0.2.5",
         "git+https://github.com/svalkiers/clusTCR.git@1.0.3"
     )
 )

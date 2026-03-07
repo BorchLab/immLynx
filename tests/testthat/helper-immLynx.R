@@ -130,7 +130,7 @@ olga_available <- function() {
 clustcr_available <- function() {
   if (is.null(.module_cache$clustcr)) {
     .module_cache$clustcr <- tryCatch({
-      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      proc <- basilisk::basiliskStart(immLynx:::immLynxExtraEnv)
       on.exit(basilisk::basiliskStop(proc))
       basilisk::basiliskRun(proc, function() {
         reticulate::import("clustcr")
@@ -145,7 +145,7 @@ clustcr_available <- function() {
 sonnia_available <- function() {
   if (is.null(.module_cache$sonnia)) {
     .module_cache$sonnia <- tryCatch({
-      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      proc <- basilisk::basiliskStart(immLynx:::immLynxExtraEnv)
       on.exit(basilisk::basiliskStop(proc))
       basilisk::basiliskRun(proc, function() {
         reticulate::import("sonnia.sonnia")

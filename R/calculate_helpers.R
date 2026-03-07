@@ -89,7 +89,7 @@ calculate.clustcr <- function(sequences,
                               eps = 0.5,
                               min_samples = 2) {
 
-  proc <- basilisk::basiliskStart(immLynxEnv)
+  proc <- basilisk::basiliskStart(immLynxExtraEnv)
   on.exit(basilisk::basiliskStop(proc))
 
   cluster_df <- basilisk::basiliskRun(proc, function(sequences,
@@ -258,7 +258,7 @@ calculate.sonia <- function(data_folder,
                             n_epochs = 100,
                             save_folder = "sonia_output") {
 
-  proc <- basilisk::basiliskStart(immLynxEnv)
+  proc <- basilisk::basiliskStart(immLynxExtraEnv)
   on.exit(basilisk::basiliskStop(proc))
 
   # Read and prepare data as lists of lists: [[cdr3, v_gene, j_gene], ...]
