@@ -12,9 +12,11 @@ permissions: read-all
 jobs:
   test-coverage:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      # Tell basilisk to store environments in a shared, cacheable directory
+      BASILISK_USE_SYSTEM_DIR: 1
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +30,7 @@ jobs:
           extra-packages: any::covr, any::xml2
           needs: coverage
 
-      - name: Cache basilisk Python environment
+      - name: Cache basilisk Python environments
         uses: actions/cache@v4
         with:
           path: |
@@ -37,6 +39,36 @@ jobs:
           key: basilisk-${{ runner.os }}-${{ hashFiles('R/basilisk.R') }}
           restore-keys: |
             basilisk-${{ runner.os }}-
+
+      - name: Pre-build basilisk environments
+        run: |
+          cat("--- Pre-building immLynxEnv (core) ---\n")
+          tryCatch({
+            proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+            basilisk::basiliskStop(proc)
+            cat("immLynxEnv: OK\n")
+          }, error = function(e) {
+            cat("immLynxEnv FAILED:", conditionMessage(e), "\n")
+          })
+
+          cat("\n--- Pre-building immLynxTorchEnv (torch/transformers) ---\n")
+          tryCatch({
+            proc <- basilisk::basiliskStart(immLynx:::immLynxTorchEnv)
+            basilisk::basiliskStop(proc)
+            cat("immLynxTorchEnv: OK\n")
+          }, error = function(e) {
+            cat("immLynxTorchEnv FAILED:", conditionMessage(e), "\n")
+          })
+
+          cat("\n--- Pre-building immLynxExtraEnv (sonnia/clustcr) ---\n")
+          tryCatch({
+            proc <- basilisk::basiliskStart(immLynx:::immLynxExtraEnv)
+            basilisk::basiliskStop(proc)
+            cat("immLynxExtraEnv: OK\n")
+          }, error = function(e) {
+            cat("immLynxExtraEnv FAILED:", conditionMessage(e), "\n")
+          })
+        shell: Rscript {0}
 
       - name: Test coverage
         run: |

@@ -2,17 +2,22 @@
 #
 # This script defines basilisk environments for immLynx.
 #
-# Two separate environments are used so that installation failures in
-# problematic packages (soNNia and clusTCR) do not prevent the rest of
-# the Python tooling from working.
+# Three separate environments are used so that installation failures in
+# heavy or problematic packages do not prevent the rest of the Python
+# tooling from working:
 #
-#   immLynxEnv      -- stable dependencies used by the majority of the
-#                      package: OLGA, tcrdist3, metaclonotypist,
-#                      transformers/torch (ESM-2 embeddings), etc.
+#   immLynxEnv       -- lightweight, stable dependencies: OLGA, tcrdist3,
+#                       metaclonotypist, pyrepseq.  Used by the majority
+#                       of the package functions.
 #
-#   immLynxExtraEnv -- packages that have historically had installation
-#                      issues: soNNia and clusTCR.  Used only by
-#                      calculate.sonia() and calculate.clustcr().
+#   immLynxTorchEnv  -- torch + transformers for ESM-2 embeddings.
+#                       Separated because torch is a very large download
+#                       (~850 MB) and can cause timeouts or disk pressure
+#                       in CI environments.
+#
+#   immLynxExtraEnv  -- packages that have historically had installation
+#                       issues: soNNia and clusTCR.  Used only by
+#                       calculate.sonia() and calculate.clustcr().
 #
 # Note: Version checking is disabled because clusTCR is installed directly
 # from its GitHub repository via a git+https:// URL in the `pip` vector,
@@ -23,7 +28,7 @@
 basilisk::setBasiliskCheckVersions(FALSE)
 
 # ---------------------------------------------------------------------------
-# Core environment -- stable packages
+# Core environment -- lightweight, stable packages
 # ---------------------------------------------------------------------------
 immLynxEnv <- basilisk::BasiliskEnvironment(
     envname = "immLynxEnv",
@@ -33,17 +38,27 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
         "numpy=1.23.4",
         "scipy=1.8.0",
         "pandas=1.4.4",
-        "matplotlib=3.5.3",
-        "scikit-learn=1.1.3",
-        "statsmodels=0.13.2",
-        "seaborn=0.12.1",
-        "faiss-cpu=1.7.4"
+        "scikit-learn=1.1.3"
     ),
     pip = c(
         "tcrdist3==0.2.2",
         "olga==1.2.4",
         "metaclonotypist==0.2.0",
-        "pyrepseq==1.5.1",
+        "pyrepseq==1.5.1"
+    )
+)
+
+# ---------------------------------------------------------------------------
+# Torch environment -- torch + transformers for ESM-2 embeddings
+# ---------------------------------------------------------------------------
+immLynxTorchEnv <- basilisk::BasiliskEnvironment(
+    envname = "immLynxTorchEnv",
+    pkgname = "immLynx",
+    packages = c(
+        "python=3.9",
+        "numpy=1.23.4"
+    ),
+    pip = c(
         "torch==2.1.2",
         "transformers==4.36.2"
     )
