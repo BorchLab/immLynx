@@ -85,7 +85,7 @@ test_that("runOLGA accepts valid chain values", {
 test_that("runOLGA adds pgen columns to Seurat object", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_olga()
 
   data("immLynx_example", package = "immLynx")
 
@@ -99,7 +99,7 @@ test_that("runOLGA adds pgen columns to Seurat object", {
 test_that("runOLGA returns data.frame when return_object=FALSE", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_olga()
 
   data("immLynx_example", package = "immLynx")
 
@@ -117,7 +117,7 @@ test_that("runOLGA returns data.frame when return_object=FALSE", {
 test_that("runOLGA handles custom column name", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_olga()
 
   data("immLynx_example", package = "immLynx")
 
@@ -131,7 +131,7 @@ test_that("runOLGA handles custom column name", {
 test_that("runOLGA pgen values are valid probabilities", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_olga()
 
   data("immLynx_example", package = "immLynx")
 
@@ -147,7 +147,7 @@ test_that("runOLGA pgen values are valid probabilities", {
 test_that("runOLGA produces messages during execution", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_olga()
 
   data("immLynx_example", package = "immLynx")
 
@@ -170,7 +170,7 @@ test_that("generateOLGA function signature has correct defaults", {
 })
 
 test_that("generateOLGA produces a message about generation", {
-  skip_if_no_python()
+  skip_if_no_olga()
 
   expect_message(
     generateOLGA(n = 5, model = "humanTRB"),
@@ -179,7 +179,7 @@ test_that("generateOLGA produces a message about generation", {
 })
 
 test_that("generateOLGA returns correct number of sequences", {
-  skip_if_no_python()
+  skip_if_no_olga()
 
   result <- generateOLGA(n = 10, model = "humanTRB")
 
@@ -192,7 +192,7 @@ test_that("generateOLGA returns correct number of sequences", {
 })
 
 test_that("generateOLGA works with different models", {
-  skip_if_no_python()
+  skip_if_no_olga()
 
   result_trb <- generateOLGA(n = 5, model = "humanTRB")
   result_tra <- generateOLGA(n = 5, model = "humanTRA")

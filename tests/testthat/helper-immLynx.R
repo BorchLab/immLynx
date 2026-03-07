@@ -111,6 +111,51 @@ metaclonotypist_available <- function() {
   .module_cache$metaclonotypist
 }
 
+# Check if olga module is importable
+olga_available <- function() {
+  if (is.null(.module_cache$olga)) {
+    .module_cache$olga <- tryCatch({
+      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      on.exit(basilisk::basiliskStop(proc))
+      basilisk::basiliskRun(proc, function() {
+        reticulate::import("olga")
+        TRUE
+      })
+    }, error = function(e) FALSE)
+  }
+  .module_cache$olga
+}
+
+# Check if clustcr module is importable
+clustcr_available <- function() {
+  if (is.null(.module_cache$clustcr)) {
+    .module_cache$clustcr <- tryCatch({
+      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      on.exit(basilisk::basiliskStop(proc))
+      basilisk::basiliskRun(proc, function() {
+        reticulate::import("clustcr")
+        TRUE
+      })
+    }, error = function(e) FALSE)
+  }
+  .module_cache$clustcr
+}
+
+# Check if sonnia module is importable
+sonnia_available <- function() {
+  if (is.null(.module_cache$sonnia)) {
+    .module_cache$sonnia <- tryCatch({
+      proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+      on.exit(basilisk::basiliskStop(proc))
+      basilisk::basiliskRun(proc, function() {
+        reticulate::import("sonnia.sonnia")
+        TRUE
+      })
+    }, error = function(e) FALSE)
+  }
+  .module_cache$sonnia
+}
+
 # ---------------------------------------------------------------------------
 # Skip helpers
 # ---------------------------------------------------------------------------
@@ -143,5 +188,29 @@ skip_if_no_metaclonotypist <- function() {
   skip_if_no_python()
   if (!metaclonotypist_available()) {
     testthat::skip("metaclonotypist module not available (possible shared library issue)")
+  }
+}
+
+# Skip test if olga is not importable
+skip_if_no_olga <- function() {
+  skip_if_no_python()
+  if (!olga_available()) {
+    testthat::skip("olga module not available in Python environment")
+  }
+}
+
+# Skip test if clustcr is not importable
+skip_if_no_clustcr <- function() {
+  skip_if_no_python()
+  if (!clustcr_available()) {
+    testthat::skip("clustcr module not available in Python environment")
+  }
+}
+
+# Skip test if sonnia is not importable
+skip_if_no_sonnia <- function() {
+  skip_if_no_python()
+  if (!sonnia_available()) {
+    testthat::skip("sonnia module not available in Python environment")
   }
 }

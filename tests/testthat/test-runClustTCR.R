@@ -66,7 +66,7 @@ test_that("runClustTCR function signature has correct defaults", {
 test_that("runClustTCR adds cluster column to Seurat object", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_clustcr()
 
   data("immLynx_example", package = "immLynx")
 
@@ -79,7 +79,7 @@ test_that("runClustTCR adds cluster column to Seurat object", {
 test_that("runClustTCR returns data.frame when return_object=FALSE", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_clustcr()
 
   data("immLynx_example", package = "immLynx")
 
@@ -96,7 +96,7 @@ test_that("runClustTCR returns data.frame when return_object=FALSE", {
 test_that("runClustTCR handles custom column prefix", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_clustcr()
 
   data("immLynx_example", package = "immLynx")
 
@@ -109,7 +109,7 @@ test_that("runClustTCR handles custom column prefix", {
 test_that("runClustTCR handles both chains separately", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_clustcr()
 
   data("immLynx_example", package = "immLynx")
 
@@ -123,7 +123,7 @@ test_that("runClustTCR handles both chains separately", {
 test_that("runClustTCR handles combined chains", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_clustcr()
 
   data("immLynx_example", package = "immLynx")
 
@@ -136,7 +136,7 @@ test_that("runClustTCR handles combined chains", {
 test_that("runClustTCR combined chain result df has combined_sequence", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_clustcr()
 
   data("immLynx_example", package = "immLynx")
 
@@ -153,7 +153,7 @@ test_that("runClustTCR combined chain result df has combined_sequence", {
 test_that("runClustTCR produces messages during execution", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_clustcr()
 
   data("immLynx_example", package = "immLynx")
 
@@ -166,7 +166,7 @@ test_that("runClustTCR produces messages during execution", {
 test_that("runClustTCR return_object=FALSE for both chains returns combined df", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_clustcr()
 
   data("immLynx_example", package = "immLynx")
 

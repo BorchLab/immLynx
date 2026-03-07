@@ -84,7 +84,7 @@ test_that("runSoNNia checks background file path with special characters", {
 test_that("runSoNNia creates output directory", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_sonnia()
 
   data("immLynx_example", package = "immLynx")
 
@@ -108,7 +108,7 @@ test_that("runSoNNia creates output directory", {
 test_that("runSoNNia adds results to Seurat object", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_sonnia()
 
   data("immLynx_example", package = "immLynx")
 
@@ -127,7 +127,7 @@ test_that("runSoNNia adds results to Seurat object", {
 test_that("runSoNNia returns results when return_object=FALSE", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_sonnia()
 
   data("immLynx_example", package = "immLynx")
 
@@ -146,7 +146,7 @@ test_that("runSoNNia returns results when return_object=FALSE", {
 test_that("runSoNNia produces messages during execution", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_python()
+  skip_if_no_sonnia()
 
   data("immLynx_example", package = "immLynx")
 
