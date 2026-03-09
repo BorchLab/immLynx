@@ -40,7 +40,7 @@ This function extracts TCR sequences from a Seurat or
 }
 \examples{
 data(immLynx_example)
-\donttest{
+\dontrun{
   # Calculate TCR distances for beta chain
   dist_results <- runTCRdist(immLynx_example,
                              chains = "beta")

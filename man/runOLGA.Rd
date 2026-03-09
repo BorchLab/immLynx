@@ -41,7 +41,7 @@ Extracts TCR sequences from a Seurat or SingleCellExperiment object
 }
 \examples{
 data(immLynx_example)
-\donttest{
+\dontrun{
   # Calculate Pgen for TRB chain
   seurat_obj <- runOLGA(immLynx_example, chains = "TRB")
 

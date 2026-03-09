@@ -99,7 +99,7 @@ test_that("runTCRdist .add_allele handles vector input", {
 test_that("runTCRdist returns correct structure", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_tcrdist()
+  skip_if_no_python()
 
   data("immLynx_example", package = "immLynx")
 
@@ -114,7 +114,7 @@ test_that("runTCRdist returns correct structure", {
 test_that("runTCRdist returns distance matrix of correct dimensions", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_tcrdist()
+  skip_if_no_python()
 
   data("immLynx_example", package = "immLynx")
 
@@ -128,7 +128,7 @@ test_that("runTCRdist returns distance matrix of correct dimensions", {
 test_that("runTCRdist handles add_to_object parameter for Seurat", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_tcrdist()
+  skip_if_no_python()
 
   data("immLynx_example", package = "immLynx")
 
@@ -142,7 +142,7 @@ test_that("runTCRdist handles add_to_object parameter for Seurat", {
 test_that("runTCRdist handles both chains", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_tcrdist()
+  skip_if_no_python()
 
   data("immLynx_example", package = "immLynx")
 
@@ -155,7 +155,7 @@ test_that("runTCRdist handles both chains", {
 test_that("runTCRdist tcr_data has correct format", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_tcrdist()
+  skip_if_no_python()
 
   data("immLynx_example", package = "immLynx")
 
@@ -174,7 +174,7 @@ test_that("runTCRdist tcr_data has correct format", {
 test_that("runTCRdist produces messages during execution", {
   skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
-  skip_if_no_tcrdist()
+  skip_if_no_python()
 
   data("immLynx_example", package = "immLynx")
 

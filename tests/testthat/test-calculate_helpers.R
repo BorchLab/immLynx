@@ -27,7 +27,7 @@ test_that("calculate.olga function has correct default parameters", {
 })
 
 test_that("calculate.olga pgen action generates probabilities", {
-  skip_if_no_olga()
+  skip_if_no_python()
 
   result <- immLynx:::calculate.olga(
     action = "pgen",
@@ -42,7 +42,7 @@ test_that("calculate.olga pgen action generates probabilities", {
 })
 
 test_that("calculate.olga generate action returns data.frame", {
-  skip_if_no_olga()
+  skip_if_no_python()
 
   result <- immLynx:::calculate.olga(
     action = "generate",
@@ -59,7 +59,7 @@ test_that("calculate.olga generate action returns data.frame", {
 })
 
 test_that("calculate.olga pgen with V/J genes", {
-  skip_if_no_olga()
+  skip_if_no_python()
 
   result <- immLynx:::calculate.olga(
     action = "pgen",
@@ -74,7 +74,7 @@ test_that("calculate.olga pgen with V/J genes", {
 })
 
 test_that("calculate.olga works with humanTRA model", {
-  skip_if_no_olga()
+  skip_if_no_python()
 
   result <- immLynx:::calculate.olga(
     action = "generate",
@@ -101,7 +101,7 @@ test_that("calculate.clustcr function has correct default parameters", {
 })
 
 test_that("calculate.clustcr returns cluster assignments", {
-  skip_if_no_clustcr()
+  skip_if_no_python()
 
   sequences <- c(
     "CASSLAPGATNEKLFF", "CASSLGQAYEQYF", "CASRLAGQETQYF",
@@ -131,7 +131,7 @@ test_that("calculate.tcrDist function has correct default parameters", {
 })
 
 test_that("calculate.tcrDist returns distance results for beta chain", {
-  skip_if_no_tcrdist()
+  skip_if_no_python()
 
   df <- data.frame(
     count = rep(1L, 5),
