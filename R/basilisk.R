@@ -1,23 +1,13 @@
 # Bioconductor-compliant management of Python environments
 #
-# This script defines basilisk environments for immLynx.
+# This script defines a basilisk environment for immlynx.
 #
-# Three separate environments are used so that installation failures in
-# heavy or problematic packages do not prevent the rest of the Python
-# tooling from working:
+# The environment is defined using the BasiliskEnvironment function, which
+# specifies the name of the environment, the package name, and the list of
+# required Python packages.
 #
-#   immLynxEnv       -- lightweight, stable dependencies: OLGA, tcrdist3,
-#                       metaclonotypist, pyrepseq.  Used by the majority
-#                       of the package functions.
-#
-#   immLynxTorchEnv  -- torch + transformers for ESM-2 embeddings.
-#                       Separated because torch is a very large download
-#                       (~850 MB) and can cause timeouts or disk pressure
-#                       in CI environments.
-#
-#   immLynxExtraEnv  -- packages that have historically had installation
-#                       issues: soNNia and clusTCR.  Used only by
-#                       calculate.sonia() and calculate.clustcr().
+# The defined environment is then used in the wrapper functions to execute
+# Python code using basiliskRun.
 #
 # Note: Version checking is disabled because clusTCR is installed directly
 # from its GitHub repository via a git+https:// URL in the `pip` vector,
@@ -27,9 +17,6 @@
 
 basilisk::setBasiliskCheckVersions(FALSE)
 
-# ---------------------------------------------------------------------------
-# Core environment -- lightweight, stable packages
-# ---------------------------------------------------------------------------
 immLynxEnv <- basilisk::BasiliskEnvironment(
     envname = "immLynxEnv",
     pkgname = "immLynx",
@@ -38,49 +25,21 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
         "numpy=1.23.4",
         "scipy=1.8.0",
         "pandas=1.4.4",
-        "scikit-learn=1.1.3"
+        "matplotlib=3.5.3",
+        "scikit-learn=1.1.3",
+        "statsmodels=0.13.2",
+        "seaborn=0.12.1",
+        "markov-clustering=0.0.6.dev0",
+        "faiss-cpu=1.7.4"
     ),
     pip = c(
         "tcrdist3==0.2.2",
         "olga==1.2.4",
+        "sonnia==0.1.0",
         "metaclonotypist==0.2.0",
-        "pyrepseq==1.5.1"
-    )
-)
-
-# ---------------------------------------------------------------------------
-# Torch environment -- torch + transformers for ESM-2 embeddings
-# ---------------------------------------------------------------------------
-immLynxTorchEnv <- basilisk::BasiliskEnvironment(
-    envname = "immLynxTorchEnv",
-    pkgname = "immLynx",
-    packages = c(
-        "python=3.9",
-        "numpy=1.23.4"
-    ),
-    pip = c(
+        "pyrepseq==1.5.1",
         "torch==2.1.2",
-        "transformers==4.36.2"
-    )
-)
-
-# ---------------------------------------------------------------------------
-# Extra environment -- soNNia + clusTCR (may fail to install)
-# ---------------------------------------------------------------------------
-immLynxExtraEnv <- basilisk::BasiliskEnvironment(
-    envname = "immLynxExtraEnv",
-    pkgname = "immLynx",
-    packages = c(
-        "python=3.9",
-        "numpy=1.23.4",
-        "scipy=1.8.0",
-        "pandas=1.4.4",
-        "scikit-learn=1.1.3",
-        "markov-clustering=0.0.6.dev0"
-    ),
-    pip = c(
-        "olga==1.2.4",
-        "sonnia==0.2.5",
+        "transformers==4.36.2",
         "git+https://github.com/svalkiers/clusTCR.git@1.0.3"
     )
 )

@@ -29,7 +29,7 @@
 #'
 #' @examples
 #' sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
-#' \donttest{
+#' \dontrun{
 #'   # Full workflow: load model, tokenize, embed
 #'   hf_components <- huggingModel()
 #'   tokenized <- tokenizeSequences(hf_components$tokenizer,

@@ -22,7 +22,7 @@
 #'
 #' @examples
 #' data(immLynx_example)
-#' \donttest{
+#' \dontrun{
 #'   # Calculate Pgen for TRB chain
 #'   seurat_obj <- runOLGA(immLynx_example, chains = "TRB")
 #'
@@ -158,7 +158,7 @@ runOLGA <- function(input,
 #' @examples
 #' # Available models
 #' models <- c("humanTRB", "humanTRA", "humanIGH", "mouseTRB")
-#' \donttest{
+#' \dontrun{
 #'   # Generate 100 random human TRB sequences
 #'   random_seqs <- generateOLGA(n = 100, model = "humanTRB")
 #'   head(random_seqs)
