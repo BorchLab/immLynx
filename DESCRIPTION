@@ -43,4 +43,5 @@ VignetteBuilder: knitr
 Language: en-US
 URL: https://github.com/BorchLab/immLynx/
 BugReports: https://github.com/BorchLab/immLynx/issues
+StagedInstall: no
 Config/testthat/edition: 3

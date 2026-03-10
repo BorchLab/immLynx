@@ -29,8 +29,6 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-      # Tell basilisk to store environments in a shared, cacheable directory
-      BASILISK_USE_SYSTEM_DIR: 1
       # Disable \donttest example execution: basilisk Python env + model
       # downloads are too expensive for CI. Tests cover all functionality.
       _R_CHECK_DONTTEST_EXAMPLES_: false
@@ -55,17 +53,6 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - name: Cache basilisk Python environment
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/R/basilisk
-            ~/.local/share/R/basilisk
-            ~/Library/Caches/org.R-project.R/R/basilisk
-          key: basilisk-${{ runner.os }}-${{ hashFiles('R/basilisk.R') }}
-          restore-keys: |
-            basilisk-${{ runner.os }}-
-
       - name: Create basilisk configure scripts
         run: |
           writeLines(c(
@@ -78,9 +65,6 @@ jobs:
             '"%R_HOME%/bin/Rscript" -e "basilisk::configureBasiliskEnv()"'
           ), "configure.win")
         shell: Rscript {0}
-
-      - name: Install package (triggers basilisk env creation)
-        run: R CMD INSTALL .
 
       - uses: r-lib/actions/check-r-package@v2
         with:

@@ -15,8 +15,6 @@ jobs:
     timeout-minutes: 90
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
-      # Tell basilisk to store environments in a shared, cacheable directory
-      BASILISK_USE_SYSTEM_DIR: 1
 
     steps:
       - uses: actions/checkout@v4
@@ -30,16 +28,6 @@ jobs:
           extra-packages: any::covr, any::xml2
           needs: coverage
 
-      - name: Cache basilisk Python environments
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cache/R/basilisk
-            ~/.local/share/R/basilisk
-          key: basilisk-${{ runner.os }}-${{ hashFiles('R/basilisk.R') }}
-          restore-keys: |
-            basilisk-${{ runner.os }}-
-
       - name: Create basilisk configure script
         run: |
           writeLines(c(
@@ -48,9 +36,6 @@ jobs:
           ), "configure")
           Sys.chmod("configure", mode = "0755")
         shell: Rscript {0}
-
-      - name: Install package (triggers basilisk env creation)
-        run: R CMD INSTALL .
 
       - name: Test coverage
         run: |
