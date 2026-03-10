@@ -40,12 +40,14 @@ jobs:
           restore-keys: |
             basilisk-${{ runner.os }}-
 
+      - name: Install package
+        run: R CMD INSTALL .
+
       - name: Pre-build basilisk environment
         run: |
           cat("--- Pre-building immLynxEnv ---\n")
-          source("R/basilisk.R")
           tryCatch({
-            proc <- basilisk::basiliskStart(immLynxEnv)
+            proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
             basilisk::basiliskStop(proc)
             cat("immLynxEnv: OK\n")
           }, error = function(e) {
