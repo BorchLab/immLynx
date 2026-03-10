@@ -68,3 +68,37 @@ skip_if_no_python <- function() {
 skip_if_no_transformers <- function() {
   skip_if_no_python()
 }
+
+# Cache for module import checks (avoids repeated basiliskRun calls)
+.module_check_cache <- new.env(parent = emptyenv())
+
+# Check if a Python module can actually be imported (catches shared lib issues)
+can_import_module <- function(module_name) {
+  if (!is.null(.module_check_cache[[module_name]])) {
+    return(.module_check_cache[[module_name]])
+  }
+  result <- tryCatch({
+    basilisk::basiliskRun(env = immLynx:::immLynxEnv, fun = function(mod) {
+      reticulate::import(mod)
+      TRUE
+    }, mod = module_name)
+  }, error = function(e) FALSE)
+  .module_check_cache[[module_name]] <- result
+  result
+}
+
+# Skip if tcrdist (parasail shared library) can't be loaded
+skip_if_no_tcrdist <- function() {
+  skip_if_no_python()
+  if (!can_import_module("tcrdist.repertoire")) {
+    testthat::skip("tcrdist/parasail shared library not loadable")
+  }
+}
+
+# Skip if metaclonotypist can't be loaded
+skip_if_no_metaclonotypist <- function() {
+  skip_if_no_python()
+  if (!can_import_module("metaclonotypist")) {
+    testthat::skip("metaclonotypist shared library not loadable")
+  }
+}

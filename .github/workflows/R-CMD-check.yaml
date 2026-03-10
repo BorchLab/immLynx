@@ -61,8 +61,8 @@ jobs:
           ), "configure")
           Sys.chmod("configure", mode = "0755")
           writeLines(c(
-            '@echo off',
-            '"%R_HOME%/bin/Rscript" -e "basilisk::configureBasiliskEnv()"'
+            '#!/bin/sh',
+            '"${R_HOME}/bin${R_ARCH_BIN}/Rscript.exe" -e "basilisk::configureBasiliskEnv()"'
           ), "configure.win")
         shell: Rscript {0}
 

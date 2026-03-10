@@ -131,7 +131,7 @@ test_that("calculate.tcrDist function has correct default parameters", {
 })
 
 test_that("calculate.tcrDist returns distance results for beta chain", {
-  skip_if_no_python()
+  skip_if_no_tcrdist()
 
   df <- data.frame(
     count = rep(1L, 5),
