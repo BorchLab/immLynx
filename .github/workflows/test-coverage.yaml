@@ -40,21 +40,10 @@ jobs:
           restore-keys: |
             basilisk-${{ runner.os }}-
 
-      - name: Install package
-        run: R CMD INSTALL .
-
-      - name: Pre-build basilisk environment
+      - name: Install package and provision basilisk environment
         run: |
-          cat("--- Pre-building immLynxEnv ---\n")
-          tryCatch({
-            proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
-            basilisk::basiliskStop(proc)
-            cat("immLynxEnv: OK\n")
-          }, error = function(e) {
-            warning("immLynxEnv FAILED: ", conditionMessage(e),
-                    "\nPython-dependent tests will be SKIPPED!")
-          })
-        shell: Rscript {0}
+          R CMD INSTALL .
+          Rscript -e 'basilisk::configureBasiliskEnv("immLynx")'
 
       - name: Test coverage
         run: |
