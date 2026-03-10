@@ -69,8 +69,9 @@ jobs:
       - name: Pre-build basilisk environment
         run: |
           cat("--- Pre-building immLynxEnv ---\n")
+          source("R/basilisk.R")
           tryCatch({
-            proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
+            proc <- basilisk::basiliskStart(immLynxEnv)
             basilisk::basiliskStop(proc)
             cat("immLynxEnv: OK\n")
           }, error = function(e) {
