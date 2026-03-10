@@ -66,10 +66,21 @@ jobs:
           restore-keys: |
             basilisk-${{ runner.os }}-
 
-      - name: Install package and provision basilisk environment
+      - name: Create basilisk configure scripts
         run: |
-          R CMD INSTALL .
-          Rscript -e 'basilisk::configureBasiliskEnv(".")'
+          writeLines(c(
+            '#!/bin/sh',
+            '${R_HOME}/bin/Rscript -e "basilisk::configureBasiliskEnv()"'
+          ), "configure")
+          Sys.chmod("configure", mode = "0755")
+          writeLines(c(
+            '@echo off',
+            '"%R_HOME%/bin/Rscript" -e "basilisk::configureBasiliskEnv()"'
+          ), "configure.win")
+        shell: Rscript {0}
+
+      - name: Install package (triggers basilisk env creation)
+        run: R CMD INSTALL .
 
       - uses: r-lib/actions/check-r-package@v2
         with:
