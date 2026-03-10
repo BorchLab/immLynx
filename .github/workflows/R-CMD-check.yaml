@@ -69,7 +69,7 @@ jobs:
       - name: Install package and provision basilisk environment
         run: |
           R CMD INSTALL .
-          Rscript -e 'basilisk::configureBasiliskEnv("immLynx")'
+          Rscript -e 'basilisk::configureBasiliskEnv(".")'
 
       - uses: r-lib/actions/check-r-package@v2
         with:

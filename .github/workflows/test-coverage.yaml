@@ -43,7 +43,7 @@ jobs:
       - name: Install package and provision basilisk environment
         run: |
           R CMD INSTALL .
-          Rscript -e 'basilisk::configureBasiliskEnv("immLynx")'
+          Rscript -e 'basilisk::configureBasiliskEnv(".")'
 
       - name: Test coverage
         run: |
