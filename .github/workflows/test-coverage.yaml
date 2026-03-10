@@ -40,33 +40,16 @@ jobs:
           restore-keys: |
             basilisk-${{ runner.os }}-
 
-      - name: Pre-build basilisk environments
+      - name: Pre-build basilisk environment
         run: |
-          cat("--- Pre-building immLynxEnv (core) ---\n")
+          cat("--- Pre-building immLynxEnv ---\n")
           tryCatch({
             proc <- basilisk::basiliskStart(immLynx:::immLynxEnv)
             basilisk::basiliskStop(proc)
             cat("immLynxEnv: OK\n")
           }, error = function(e) {
-            cat("immLynxEnv FAILED:", conditionMessage(e), "\n")
-          })
-
-          cat("\n--- Pre-building immLynxTorchEnv (torch/transformers) ---\n")
-          tryCatch({
-            proc <- basilisk::basiliskStart(immLynx:::immLynxTorchEnv)
-            basilisk::basiliskStop(proc)
-            cat("immLynxTorchEnv: OK\n")
-          }, error = function(e) {
-            cat("immLynxTorchEnv FAILED:", conditionMessage(e), "\n")
-          })
-
-          cat("\n--- Pre-building immLynxExtraEnv (sonnia/clustcr) ---\n")
-          tryCatch({
-            proc <- basilisk::basiliskStart(immLynx:::immLynxExtraEnv)
-            basilisk::basiliskStop(proc)
-            cat("immLynxExtraEnv: OK\n")
-          }, error = function(e) {
-            cat("immLynxExtraEnv FAILED:", conditionMessage(e), "\n")
+            warning("immLynxEnv FAILED: ", conditionMessage(e),
+                    "\nPython-dependent tests will be SKIPPED!")
           })
         shell: Rscript {0}
 
