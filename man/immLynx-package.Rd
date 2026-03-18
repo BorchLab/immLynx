@@ -42,7 +42,7 @@ several popular Python-based tools and makes them accessible within R workflows.
 
 **Utility Functions:**
 \itemize{
-  \item \code{\link{extractTCRdata}}: Extract TCR data from Seurat objects
+  \item \code{\link{extractTCRdata}}: Extract TCR data from SingleCellExperiment objects
   \item \code{\link{validateTCRdata}}: Validate TCR data format
   \item \code{\link{convertToTcrdist}}: Convert to tcrdist3 format
   \item \code{\link{summarizeTCRrepertoire}}: Generate repertoire statistics
@@ -51,7 +51,7 @@ several popular Python-based tools and makes them accessible within R workflows.
 
 \section{Data Format}{
 
-All functions expect Seurat objects with scRepertoire TCR data stored in the metadata.
+All functions expect SingleCellExperiment objects with scRepertoire TCR data stored in the metadata.
 The functions use \code{immApex::getIR()} to extract TCR sequences in the format:
 \itemize{
   \item \code{barcode}: Cell barcode

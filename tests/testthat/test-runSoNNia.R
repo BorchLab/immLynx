@@ -5,7 +5,6 @@
 # ===========================================================================
 
 test_that("runSoNNia validates chain argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -15,7 +14,6 @@ test_that("runSoNNia validates chain argument", {
 })
 
 test_that("runSoNNia checks for background file existence", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -25,7 +23,7 @@ test_that("runSoNNia checks for background file existence", {
                "Background file not found")
 })
 
-test_that("runSoNNia rejects non-Seurat/SCE input", {
+test_that("runSoNNia rejects non-SCE input", {
   tcr_data <- create_mock_tcr_data(10)
   temp_bg <- tempfile(fileext = ".csv")
   write.csv(data.frame(aa_seq = "CASSAAA"), temp_bg, row.names = FALSE)
@@ -33,7 +31,7 @@ test_that("runSoNNia rejects non-Seurat/SCE input", {
 
   expect_error(
     runSoNNia(tcr_data, chains = "TRB", background_file = temp_bg),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -52,7 +50,6 @@ test_that("runSoNNia accepts valid chain values", {
 })
 
 test_that("runSoNNia checks background file path with special characters", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -70,7 +67,6 @@ test_that("runSoNNia checks background file path with special characters", {
 # ===========================================================================
 
 test_that("runSoNNia creates output directory", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
   skip("soNNia ValueError with inhomogeneous array shapes - source code issue")
@@ -98,8 +94,7 @@ test_that("runSoNNia creates output directory", {
   expect_true(dir.exists(temp_dir))
 })
 
-test_that("runSoNNia adds results to Seurat object", {
-  skip_if_not_installed("Seurat")
+test_that("runSoNNia adds results to SingleCellExperiment object", {
   skip_if_not_installed("immApex")
   skip_if_no_python()
   skip("soNNia ValueError with inhomogeneous array shapes - source code issue")
@@ -119,11 +114,10 @@ test_that("runSoNNia adds results to Seurat object", {
                       background_file = temp_bg,
                       return_object = TRUE)
 
-  expect_s4_class(result, "Seurat")
+  expect_s4_class(result, "SingleCellExperiment")
 })
 
 test_that("runSoNNia returns results when return_object=FALSE", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
   skip("soNNia ValueError with inhomogeneous array shapes - source code issue")
@@ -147,7 +141,6 @@ test_that("runSoNNia returns results when return_object=FALSE", {
 })
 
 test_that("runSoNNia produces messages during execution", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
   skip("soNNia ValueError with inhomogeneous array shapes - source code issue")

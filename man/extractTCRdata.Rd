@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{extractTCRdata}
 \alias{extractTCRdata}
-\title{Extract TCR Data from Seurat Object}
+\title{Extract TCR Data from SingleCellExperiment Object}
 \usage{
 extractTCRdata(
   input,
@@ -12,8 +12,7 @@ extractTCRdata(
 )
 }
 \arguments{
-\item{input}{A Seurat object containing scRepertoire TCR data in metadata,
-or a SingleCellExperiment object.}
+\item{input}{A SingleCellExperiment object containing scRepertoire TCR data in metadata.}
 
 \item{chains}{Which chains to extract: "TRA", "TRB", "TRG", "TRD",
 "IGH", "IGL", "IGK", or "both" (for TRA and TRB). Default is "TRB".}
@@ -38,7 +37,7 @@ A data.frame containing:
   }
 }
 \description{
-Extracts T-cell receptor data from a Seurat object that has been
+Extracts T-cell receptor data from a SingleCellExperiment object that has been
   processed with scRepertoire. This is a convenience wrapper around
   \code{immApex::getIR()} that provides additional formatting options.
 }

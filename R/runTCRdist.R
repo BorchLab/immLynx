@@ -1,16 +1,16 @@
 #' Calculate TCR Distances on scRepertoire Data
 #'
-#' @description This function extracts TCR sequences from a Seurat or
+#' @description This function extracts TCR sequences from a
 #'   SingleCellExperiment object with scRepertoire data and calculates pairwise
 #'   TCR distances using tcrdist3.
 #'
-#' @param input A Seurat or SingleCellExperiment object containing scRepertoire TCR data.
+#' @param input A SingleCellExperiment object containing scRepertoire TCR data.
 #' @param chains Character vector specifying chains: "alpha", "beta", or c("alpha", "beta").
 #'   Default is "beta".
 #' @param organism Organism: "human" or "mouse". Default is "human".
 #' @param compute_distances Logical. Whether to compute full distance matrix. Default TRUE.
 #' @param add_to_object Logical. If TRUE, attempts to add distance matrix to object
-#'   (stored in misc slot for Seurat or metadata for SCE). Default is FALSE due to large
+#'   (stored in metadata for SCE). Default is FALSE due to large
 #'   matrix size.
 #'
 #' @return A list containing:
@@ -38,8 +38,8 @@
 #'   dist_both <- runTCRdist(immLynx_example,
 #'                           chains = c("alpha", "beta"))
 #'
-#'   # Add distances directly to the Seurat object
-#'   seurat_obj <- runTCRdist(immLynx_example,
+#'   # Add distances directly to the object
+#'   sce <- runTCRdist(immLynx_example,
 #'                            chains = "beta",
 #'                            add_to_object = TRUE)
 #' }
@@ -51,10 +51,9 @@ runTCRdist <- function(input,
 
   # Determine input type
   .is_sce <- methods::is(input, "SingleCellExperiment")
-  .is_seurat <- methods::is(input, "Seurat")
 
-  if (!.is_sce && !.is_seurat) {
-    stop("Input must be a Seurat or SingleCellExperiment object")
+  if (!.is_sce) {
+    stop("Input must be a SingleCellExperiment object")
   }
 
   message("Extracting TCR sequences from object...")
@@ -168,14 +167,8 @@ runTCRdist <- function(input,
   )
 
   if (add_to_object) {
-    if (.is_seurat) {
-      Seurat::Misc(input, slot = "tcrdist") <- output
-      message("TCR distances added to object misc slot")
-    } else {
-      # For SCE, store in metadata
       S4Vectors::metadata(input)$tcrdist <- output
       message("TCR distances added to object at metadata(obj)$tcrdist")
-    }
     return(input)
   } else {
     return(output)

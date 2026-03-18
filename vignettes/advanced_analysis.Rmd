@@ -45,7 +45,8 @@ immLynx, including:
 
 ```{r load}
 library(immLynx)
-library(Seurat)
+library(scran)
+library(scater)
 library(ggplot2)
 
 data("immLynx_example")
@@ -59,17 +60,19 @@ immLynx provides multiple approaches for grouping TCRs. Let's compare them:
 
 ```{r clustcr-compare, eval=python_available}
 # MCL clustering with different inflation parameters
-seurat_mcl_2 <- runClustTCR(immLynx_example, inflation = 2.0,
+sce_mcl_2 <- runClustTCR(immLynx_example,
+                            inflation = 2.0,
                             column_prefix = "mcl_2")
-seurat_mcl_3 <- runClustTCR(seurat_mcl_2, inflation = 3.0,
+sce_mcl_3 <- runClustTCR(sce_mcl_2,
+                            inflation = 3.0,
                             column_prefix = "mcl_3")
 
 # Compare number of clusters
 cat("MCL (inflation=2):",
-    length(unique(na.omit(seurat_mcl_3$mcl_2_TRB))),
+    length(unique(na.omit(sce_mcl_3$mcl_2_TRB))),
     "clusters\n")
 cat("MCL (inflation=3):",
-    length(unique(na.omit(seurat_mcl_3$mcl_3_TRB))),
+    length(unique(na.omit(sce_mcl_3$mcl_3_TRB))),
     "clusters\n")
 ```
 
@@ -82,27 +85,33 @@ but require more computational resources:
 
 ```{r esm-models, eval=FALSE}
 # Small model (35M parameters) - fast, lower quality
-seurat_small <- runEmbeddings(
+sce_small <- runEmbeddings(
   immLynx_example,
   model_name = "facebook/esm2_t12_35M_UR50D",
   reduction_name = "esm_small"
 )
 
 # Medium model (650M parameters) - balanced
-seurat_med <- runEmbeddings(
-  seurat_small,
+sce_med <- runEmbeddings(
+  sce_small,
   model_name = "facebook/esm2_t33_650M_UR50D",
   reduction_name = "esm_medium"
 )
 
 # Compare embeddings
-seurat_med <- RunUMAP(seurat_med, reduction = "esm_small", dims = 1:30,
-                      reduction.name = "umap_small")
-seurat_med <- RunUMAP(seurat_med, reduction = "esm_medium", dims = 1:30,
-                      reduction.name = "umap_medium")
+sce_med <- scater::runUMAP(sce_med,
+                      dimred = "esm_small",
+                      name = "umap_small")
+sce_med <- scater::runUMAP(sce_med,
+                      dimred = "esm_medium",
+                      name = "umap_medium")
 
-p1 <- DimPlot(seurat_med, reduction = "umap_small") + ggtitle("ESM-2 35M")
-p2 <- DimPlot(seurat_med, reduction = "umap_medium") + ggtitle("ESM-2 650M")
+p1 <- scater::plotReducedDim(sce_med,
+              dimred = "umap_small") +
+  ggtitle("ESM-2 35M")
+p2 <- scater::plotReducedDim(sce_med,
+              dimred = "umap_medium") +
+  ggtitle("ESM-2 650M")
 p1 + p2
 ```
 
@@ -112,15 +121,16 @@ For paired alpha-beta TCRs:
 
 ```{r both-chains, eval=FALSE}
 # Embed both chains concatenated
-seurat_paired <- runEmbeddings(
+sce_paired <- runEmbeddings(
   immLynx_example,
   chains = "both",
   reduction_name = "tcr_paired"
 )
 
 # Visualize
-seurat_paired <- RunUMAP(seurat_paired, reduction = "tcr_paired", dims = 1:30)
-DimPlot(seurat_paired)
+sce_paired <- scater::runUMAP(sce_paired,
+                         dimred = "tcr_paired")
+scater::plotReducedDim(sce_paired, dimred = "UMAP")
 ```
 
 # Integration with scRepertoire Clonotypes
@@ -132,12 +142,13 @@ immLynx is designed to work seamlessly with scRepertoire data:
 # Let's compare TCR clusters to clonotypes
 
 # Get cluster assignments
-seurat_clust <- runClustTCR(immLynx_example, chains = "TRB")
+sce_clust <- runClustTCR(immLynx_example,
+                            chains = "TRB")
 
 # Compare with scRepertoire's CTstrict clonotypes
 comparison <- table(
-  clustcr = seurat_clust$clustcr_TRB,
-  clonotype = seurat_clust$CTstrict
+  clustcr = sce_clust$clustcr_TRB,
+  clonotype = sce_clust$CTstrict
 )
 
 # Calculate overlap
@@ -152,10 +163,12 @@ Use OLGA Pgen and soNNia to understand selection:
 
 ```{r selection, eval=python_available}
 # Calculate generation probability
-seurat_pgen <- runOLGA(immLynx_example, chains = "TRB")
+sce_pgen <- runOLGA(immLynx_example,
+                       chains = "TRB")
 
 # Compare Pgen across sample types
-ggplot(seurat_pgen[[]], aes(x = Type, y = olga_pgen_log10_TRB)) +
+ggplot(as.data.frame(colData(sce_pgen)), aes(x = Type,
+                            y = olga_pgen_log10_TRB)) +
   geom_boxplot() +
   labs(title = "TCR Generation Probability by Sample Type",
        x = "Sample Type",
@@ -163,7 +176,7 @@ ggplot(seurat_pgen[[]], aes(x = Type, y = olga_pgen_log10_TRB)) +
 
 # Cells with low Pgen may be under stronger selection
 # because they are rare in the naive repertoire
-low_pgen_cells <- which(seurat_pgen$olga_pgen_log10_TRB < -15)
+low_pgen_cells <- which(colData(sce_pgen)$olga_pgen_log10_TRB < -15)
 cat("Cells with Pgen < 10^-15:", length(low_pgen_cells), "\n")
 ```
 
@@ -196,22 +209,22 @@ For large datasets, consider these strategies:
 
 ```{r large-data, eval=FALSE}
 # 1. Use chunked processing for embeddings
-seurat_large <- runEmbeddings(
-  large_seurat_obj,
+sce_large <- runEmbeddings(
+  large_sce,
   chunk_size = 16,  # Smaller chunks for memory
   pool = "mean"     # Pooling reduces dimensionality
 )
 
 # 2. Cluster with MCL
-seurat_large <- runClustTCR(
-  large_seurat_obj,
+sce_large <- runClustTCR(
+  large_sce,
   inflation = 2.0
 )
 
 # 3. Sample for distance calculations
 # For very large datasets, calculate distances on a subset
-sample_cells <- sample(colnames(large_seurat_obj), 5000)
-subset_obj <- subset(large_seurat_obj, cells = sample_cells)
+sample_cells <- sample(colnames(large_sce), 5000)
+subset_obj <- large_sce[, sample_cells]
 dist_results <- runTCRdist(subset_obj)
 ```
 
@@ -221,18 +234,26 @@ If HLA typing data is available:
 
 ```{r hla, eval=python_available}
 # Run metaclonotypist
-metaclones <- runMetaclonotypist(immLynx_example, return_seurat = FALSE)
+metaclones <- runMetaclonotypist(immLynx_example, 
+                                 return_input = FALSE)
 
 # Create mock HLA data (replace with real data)
 hla_data <- data.frame(
   barcode = metaclones$barcode,
-  HLA_A_01_01 = sample(c(TRUE, FALSE), nrow(metaclones), replace = TRUE),
-  HLA_A_02_01 = sample(c(TRUE, FALSE), nrow(metaclones), replace = TRUE),
-  HLA_B_07_02 = sample(c(TRUE, FALSE), nrow(metaclones), replace = TRUE)
+  HLA_A_01_01 = sample(c(TRUE, FALSE), 
+                       nrow(metaclones), 
+                       replace = TRUE),
+  HLA_A_02_01 = sample(c(TRUE, FALSE), 
+                       nrow(metaclones), 
+                       replace = TRUE),
+  HLA_B_07_02 = sample(c(TRUE, FALSE), 
+                       nrow(metaclones), 
+                       replace = TRUE)
 )
 
 # Test associations
-hla_results <- runHLAassociation(metaclones, hla_data)
+hla_results <- runHLAassociation(metaclones, 
+                                 hla_data)
 head(hla_results)
 ```
 
@@ -242,46 +263,48 @@ Export results for external tools or further analysis:
 
 ```{r export, eval=FALSE}
 # Export TCR data in tcrdist3 format
-tcr_data <- extractTCRdata(immLynx_example, chains = "both", format = "wide")
-tcrdist_format <- convertToTcrdist(tcr_data, chains = "both")
+tcr_data <- extractTCRdata(immLynx_example, 
+                           chains = "both", 
+                           format = "wide")
+tcrdist_format <- convertToTcrdist(tcr_data, 
+                                   chains = "both")
 write.csv(tcrdist_format, "tcr_for_tcrdist.csv", row.names = FALSE)
 
 # Export cluster assignments
 clusters <- data.frame(
-  barcode = colnames(seurat_clust),
-  clustcr = seurat_clust$clustcr_TRB
+  barcode = colnames(sce_clust),
+  clustcr = sce_clust$clustcr_TRB
 )
 write.csv(clusters, "cluster_assignments.csv", row.names = FALSE)
 
 # Export embeddings
-embeddings <- Embeddings(seurat_small, "esm_small")
+embeddings <- reducedDim(sce_small, "esm_small")
 write.csv(embeddings, "tcr_embeddings.csv")
 ```
 
 # Best Practices
 
 1. **Data Quality**: Always validate your TCR data before analysis
+   
    ```{r validate, eval=FALSE}
    validation <- validateTCRdata(tcr_data, check_sequences = TRUE)
    if (!validation$valid) {
      warning(validation$errors)
    }
    ```
-
-2. **Memory Management**: For large datasets, use smaller chunk sizes and
-   consider sampling strategies
+   
+2. **Memory Management**: For large datasets, use smaller chunk sizes and consider sampling strategies
 
 3. **Reproducibility**: Set random seeds before running stochastic algorithms
+   
    ```{r seed, eval=FALSE}
    set.seed(42)
-   seurat_obj <- runClustTCR(seurat_obj)
+   sce <- runClustTCR(sce)
    ```
 
-4. **Multiple Methods**: Use multiple clustering/grouping methods and look for
-   consensus
+4. **Multiple Methods**: Use multiple clustering/grouping methods and look for consensus
 
-5. **Biological Validation**: Always validate computational clusters with
-   biological knowledge (antigen specificity, phenotype, etc.)
+5. **Biological Validation**: Always validate computational clusters with biological knowledge (antigen specificity, phenotype, etc.)
 
 # Session Info
 

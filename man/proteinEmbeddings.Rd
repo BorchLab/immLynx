@@ -79,5 +79,5 @@ sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
 }
 \seealso{
 \code{\link{runEmbeddings}} for a higher-level wrapper that works
-  directly with Seurat/SingleCellExperiment objects.
+  directly with SingleCellExperiment objects.
 }

@@ -5,7 +5,6 @@
 # ===========================================================================
 
 test_that("runClustTCR validates chain argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -13,12 +12,12 @@ test_that("runClustTCR validates chain argument", {
   expect_error(runClustTCR(immLynx_example, chains = "invalid"))
 })
 
-test_that("runClustTCR rejects non-Seurat/SCE input", {
+test_that("runClustTCR rejects non-SCE input", {
   tcr_data <- create_mock_tcr_data(10)
 
   expect_error(
     runClustTCR(tcr_data, chains = "TRB"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -27,7 +26,7 @@ test_that("runClustTCR rejects matrix input", {
 
   expect_error(
     runClustTCR(mat, chains = "TRB"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -36,13 +35,11 @@ test_that("runClustTCR rejects list input", {
 
   expect_error(
     runClustTCR(lst, chains = "TRB"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
 test_that("runClustTCR accepts all valid chain values", {
-  skip_if_not_installed("Seurat")
-
   # Just test that match.arg accepts these
   expect_no_error(match.arg("TRB", c("TRB", "TRA", "both")))
   expect_no_error(match.arg("TRA", c("TRB", "TRA", "both")))
@@ -63,8 +60,7 @@ test_that("runClustTCR function signature has correct defaults", {
 # Python-dependent tests (skipped without Python)
 # ===========================================================================
 
-test_that("runClustTCR adds cluster column to Seurat object", {
-  skip_if_not_installed("Seurat")
+test_that("runClustTCR adds cluster column to SingleCellExperiment object", {
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -72,12 +68,11 @@ test_that("runClustTCR adds cluster column to Seurat object", {
 
   result <- runClustTCR(immLynx_example, chains = "TRB", method = "mcl")
 
-  expect_s4_class(result, "Seurat")
-  expect_true("clustcr_TRB" %in% names(result@meta.data))
+  expect_s4_class(result, "SingleCellExperiment")
+  expect_true("clustcr_TRB" %in% names(SummarizedExperiment::colData(result)))
 })
 
 test_that("runClustTCR returns data.frame when return_object=FALSE", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -94,7 +89,6 @@ test_that("runClustTCR returns data.frame when return_object=FALSE", {
 })
 
 test_that("runClustTCR handles custom column prefix", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -103,11 +97,10 @@ test_that("runClustTCR handles custom column prefix", {
   result <- runClustTCR(immLynx_example, chains = "TRB",
                         column_prefix = "custom")
 
-  expect_true("custom_TRB" %in% names(result@meta.data))
+  expect_true("custom_TRB" %in% names(SummarizedExperiment::colData(result)))
 })
 
 test_that("runClustTCR handles both chains separately", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -116,12 +109,11 @@ test_that("runClustTCR handles both chains separately", {
   result <- runClustTCR(immLynx_example, chains = "both",
                         combine_chains = FALSE)
 
-  expect_true("clustcr_TRA" %in% names(result@meta.data) ||
-              "clustcr_TRB" %in% names(result@meta.data))
+  expect_true("clustcr_TRA" %in% names(SummarizedExperiment::colData(result)) ||
+              "clustcr_TRB" %in% names(SummarizedExperiment::colData(result)))
 })
 
 test_that("runClustTCR handles combined chains", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -130,11 +122,10 @@ test_that("runClustTCR handles combined chains", {
   result <- runClustTCR(immLynx_example, chains = "both",
                         combine_chains = TRUE)
 
-  expect_true("clustcr_combined" %in% names(result@meta.data))
+  expect_true("clustcr_combined" %in% names(SummarizedExperiment::colData(result)))
 })
 
 test_that("runClustTCR combined chain result df has combined_sequence", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -151,7 +142,6 @@ test_that("runClustTCR combined chain result df has combined_sequence", {
 })
 
 test_that("runClustTCR produces messages during execution", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -164,7 +154,6 @@ test_that("runClustTCR produces messages during execution", {
 })
 
 test_that("runClustTCR return_object=FALSE for both chains returns combined df", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 

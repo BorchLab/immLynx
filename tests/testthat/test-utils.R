@@ -5,7 +5,6 @@
 # ===========================================================================
 
 test_that("extractTCRdata returns correct structure for single chain", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -20,7 +19,6 @@ test_that("extractTCRdata returns correct structure for single chain", {
 })
 
 test_that("extractTCRdata returns wide format correctly", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -33,7 +31,6 @@ test_that("extractTCRdata returns wide format correctly", {
 })
 
 test_that("extractTCRdata removes NA sequences when requested", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -46,7 +43,6 @@ test_that("extractTCRdata removes NA sequences when requested", {
 })
 
 test_that("extractTCRdata validates chains argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -55,7 +51,6 @@ test_that("extractTCRdata validates chains argument", {
 })
 
 test_that("extractTCRdata validates format argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -64,7 +59,6 @@ test_that("extractTCRdata validates format argument", {
 })
 
 test_that("extractTCRdata long format for both chains stacks data", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -78,7 +72,6 @@ test_that("extractTCRdata long format for both chains stacks data", {
 })
 
 test_that("extractTCRdata single chain adds chain column", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -90,7 +83,6 @@ test_that("extractTCRdata single chain adds chain column", {
 })
 
 test_that("extractTCRdata accepts default chains parameter", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -477,8 +469,7 @@ test_that("convertToTcrdist resets rownames", {
 # summarizeTCRrepertoire
 # ===========================================================================
 
-test_that("summarizeTCRrepertoire returns correct structure from Seurat", {
-  skip_if_not_installed("Seurat")
+test_that("summarizeTCRrepertoire returns correct structure from SingleCellExperiment", {
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -493,7 +484,6 @@ test_that("summarizeTCRrepertoire returns correct structure from Seurat", {
 })
 
 test_that("summarizeTCRrepertoire calculates diversity metrics", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")

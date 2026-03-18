@@ -5,7 +5,6 @@
 # ===========================================================================
 
 test_that("runTCRdist validates chain argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -14,12 +13,12 @@ test_that("runTCRdist validates chain argument", {
                "Invalid chain")
 })
 
-test_that("runTCRdist rejects non-Seurat/SCE input", {
+test_that("runTCRdist rejects non-SCE input", {
   tcr_data <- create_mock_tcr_data(10)
 
   expect_error(
     runTCRdist(tcr_data, chains = "beta"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -28,7 +27,7 @@ test_that("runTCRdist rejects data.frame input", {
 
   expect_error(
     runTCRdist(df, chains = "beta"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -97,7 +96,6 @@ test_that("runTCRdist .add_allele handles vector input", {
 # ===========================================================================
 
 test_that("runTCRdist returns correct structure", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_tcrdist()
 
@@ -112,7 +110,6 @@ test_that("runTCRdist returns correct structure", {
 })
 
 test_that("runTCRdist returns distance matrix of correct dimensions", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_tcrdist()
 
@@ -125,8 +122,7 @@ test_that("runTCRdist returns distance matrix of correct dimensions", {
   expect_equal(nrow(result$tcr_data), n_cells)
 })
 
-test_that("runTCRdist handles add_to_object parameter for Seurat", {
-  skip_if_not_installed("Seurat")
+test_that("runTCRdist handles add_to_object parameter for SingleCellExperiment", {
   skip_if_not_installed("immApex")
   skip_if_no_tcrdist()
 
@@ -135,12 +131,11 @@ test_that("runTCRdist handles add_to_object parameter for Seurat", {
   result <- runTCRdist(immLynx_example, chains = "beta",
                        add_to_object = TRUE)
 
-  expect_s4_class(result, "Seurat")
-  expect_true(!is.null(result@misc$tcrdist))
+  expect_s4_class(result, "SingleCellExperiment")
+  expect_true(!is.null(S4Vectors::metadata(result)$tcrdist))
 })
 
 test_that("runTCRdist handles both chains", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_tcrdist()
 
@@ -153,7 +148,6 @@ test_that("runTCRdist handles both chains", {
 })
 
 test_that("runTCRdist tcr_data has correct format", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_tcrdist()
 
@@ -172,7 +166,6 @@ test_that("runTCRdist tcr_data has correct format", {
 })
 
 test_that("runTCRdist produces messages during execution", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_tcrdist()
 

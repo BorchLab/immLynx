@@ -5,7 +5,7 @@
 \alias{immLynx_example}
 \title{Example Single-Cell RNA-seq Data with TCR Information}
 \format{
-A Seurat object with the following components:
+An SCE object with the following components:
 \describe{
   \item{Assays}{RNA expression data}
   \item{Metadata}{Cell-level metadata including:}
@@ -13,7 +13,6 @@ A Seurat object with the following components:
     \item \code{orig.ident}: Original sample identifier (e.g., "P17B", "P17L")
     \item \code{nCount_RNA}: Total RNA counts per cell
     \item \code{nFeature_RNA}: Number of detected genes per cell
-    \item \code{seurat_clusters}: Cell cluster assignments
     \item \code{CTgene}: TCR gene information (V/J genes)
     \item \code{CTnt}: TCR CDR3 nucleotide sequences
     \item \code{CTaa}: TCR CDR3 amino acid sequences
@@ -23,6 +22,7 @@ A Seurat object with the following components:
     \item \code{cloneSize}: Categorical clone size (Small, Medium, Large, Hyperexpanded)
     \item \code{Patient}: Patient identifier (P17, P18, P19, P20)
     \item \code{Type}: Sample type (B = Blood, L = Lymph node)
+    \item \code{clusters}: Cell cluster assignments
   }
 }
 }
@@ -30,7 +30,7 @@ A Seurat object with the following components:
 data(immLynx_example)
 }
 \description{
-A Seurat object containing single-cell RNA-seq data from multiple patients
+An SCE object containing single-cell RNA-seq data from multiple patients
 with integrated T-cell receptor (TCR) repertoire data from scRepertoire.
 This dataset is useful for demonstrating the functionality of immLynx
 analysis functions.

@@ -11,7 +11,7 @@ Linking advanced TCR python pipelines and Hugging Face models in R
 
 immLynx provides a unified R interface for running multiple state-of-the-art TCR analysis
 pipelines on single-cell TCR sequencing data. The package seamlessly integrates
-with Seurat and scRepertoire workflows, wrapping popular Python-based tools to enable:
+with SingleCellExperiment and scRepertoire workflows, wrapping popular Python-based tools to enable:
 
 *   **tcrdist3**: Calculate pairwise distances between T-cell receptors using `runTCRdist`
 *   **OLGA**: Compute the generation probability of CDR3 sequences or generate new sequences with `runOLGA`
@@ -45,7 +45,7 @@ packages in an isolated environment via basilisk. This may take several minutes.
 
 ```r
 library(immLynx)
-library(Seurat)
+library(scater)
 
 # Load example data
 data("immLynx_example")
@@ -55,17 +55,17 @@ summary <- summarizeTCRrepertoire(immLynx_example)
 print(summary)
 
 # Cluster TCRs
-seurat_obj <- runClustTCR(immLynx_example, chains = "TRB", method = "mcl")
+sce <- runClustTCR(immLynx_example, chains = "TRB", method = "mcl")
 
 # Calculate generation probability
-seurat_obj <- runOLGA(seurat_obj, chains = "TRB")
+sce <- runOLGA(sce, chains = "TRB")
 
 # Generate protein embeddings
-seurat_obj <- runEmbeddings(seurat_obj, chains = "TRB")
+sce <- runEmbeddings(sce, chains = "TRB")
 
 # Visualize embeddings
-seurat_obj <- RunUMAP(seurat_obj, reduction = "tcr_esm", dims = 1:30)
-DimPlot(seurat_obj, reduction = "umap")
+sce <- scater::runUMAP(sce, dimred = "tcr_esm")
+scater::plotReducedDim(sce, dimred = "UMAP")
 ```
 
 ## Main Functions
@@ -76,7 +76,7 @@ Extract and validate TCR data:
 
 ```r
 # Extract TCR data
-tcr_data <- extractTCRdata(seurat_obj, chains = "TRB")
+tcr_data <- extractTCRdata(sce, chains = "TRB")
 
 # Validate data format
 validation <- validateTCRdata(tcr_data)
@@ -85,7 +85,7 @@ validation <- validateTCRdata(tcr_data)
 tcrdist_format <- convertToTcrdist(tcr_data)
 
 # Generate repertoire summary
-summary <- summarizeTCRrepertoire(seurat_obj)
+summary <- summarizeTCRrepertoire(sce)
 ```
 
 ### TCR Clustering
@@ -94,13 +94,13 @@ Cluster TCRs based on sequence similarity using clusTCR:
 
 ```r
 # MCL clustering (default)
-seurat_obj <- runClustTCR(seurat_obj,
+sce <- runClustTCR(sce,
                           chains = "TRB",
                           method = "mcl",
                           inflation = 2.0)
 
 # DBSCAN clustering
-seurat_obj <- runClustTCR(seurat_obj,
+sce <- runClustTCR(sce,
                           chains = "TRB",
                           method = "dbscan",
                           eps = 0.5)
@@ -112,14 +112,14 @@ Identify metaclones using metaclonotypist:
 
 ```r
 # Run metaclonotypist with TCRdist
-seurat_obj <- runMetaclonotypist(seurat_obj,
+sce <- runMetaclonotypist(sce,
                                   chains = "beta",
                                   method = "tcrdist",
                                   max_edits = 2,
                                   max_dist = 20)
 
 # Use SCEPTR distance metric
-seurat_obj <- runMetaclonotypist(seurat_obj,
+sce <- runMetaclonotypist(sce,
                                   method = "sceptr",
                                   max_dist = 1.0)
 ```
@@ -130,7 +130,7 @@ Calculate how likely each TCR sequence is to be generated naturally:
 
 ```r
 # Calculate Pgen for TRB sequences
-seurat_obj <- runOLGA(seurat_obj,
+sce <- runOLGA(sce,
                       chains = "TRB",
                       model = "humanTRB")
 
@@ -144,17 +144,17 @@ Generate dense vector representations using ESM-2:
 
 ```r
 # Default: ESM-2 35M model
-seurat_obj <- runEmbeddings(seurat_obj,
+sce <- runEmbeddings(sce,
                             chains = "TRB",
                             pool = "mean")
 
 # Use larger model for better embeddings
-seurat_obj <- runEmbeddings(seurat_obj,
+sce <- runEmbeddings(sce,
                             model_name = "facebook/esm2_t33_650M_UR50D")
 
 # Visualize in UMAP space
-seurat_obj <- RunUMAP(seurat_obj, reduction = "tcr_esm", dims = 1:30)
-DimPlot(seurat_obj, reduction = "umap")
+sce <- scater::runUMAP(sce, dimred = "tcr_esm")
+scater::plotReducedDim(sce, dimred = "UMAP")
 ```
 
 ### TCR Distance Calculation
@@ -163,7 +163,7 @@ Compute pairwise distances between TCRs:
 
 ```r
 # Calculate TRB distances
-dist_results <- runTCRdist(seurat_obj,
+dist_results <- runTCRdist(sce,
                            chains = "beta",
                            organism = "human")
 
@@ -180,13 +180,13 @@ background <- generateOLGA(n = 10000, model = "humanTRB")
 write.csv(background, "background.csv", row.names = FALSE)
 
 # 2. Run soNNia
-seurat_obj <- runSoNNia(seurat_obj,
+sce <- runSoNNia(sce,
                         background_file = "background.csv")
 ```
 
 ## Data Format
 
-immLynx expects Seurat objects with scRepertoire TCR data in the metadata.
+immLynx expects SingleCellExperiment objects with scRepertoire TCR data in the metadata.
 The data should include columns like:
 
 - `CTgene`: Gene information (V/J genes)

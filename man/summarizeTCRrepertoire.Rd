@@ -12,13 +12,13 @@ summarizeTCRrepertoire(
 )
 }
 \arguments{
-\item{input}{A Seurat object with scRepertoire data, or a data.frame from
+\item{input}{A SingleCellExperiment object with scRepertoire data, or a data.frame from
 extractTCRdata().}
 
 \item{chains}{Which chains to summarize: "TRB", "TRA", or "both".
 Default is "TRB".}
 
-\item{group.by}{Optional metadata column for grouping (Seurat objects only).}
+\item{group.by}{Optional metadata column for grouping (SingleCellExperiment objects only).}
 
 \item{calculate_diversity}{Logical. If TRUE, calculates diversity indices.
 Default is TRUE.}

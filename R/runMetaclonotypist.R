@@ -4,7 +4,7 @@
 #'   using the metaclonotypist pipeline. Metaclonotypist uses a two-stage approach:
 #'   fast edit-distance-based screening followed by TCRdist or SCEPTR refinement.
 #'
-#' @param input A Seurat object with scRepertoire data, or a data.frame with TCR data.
+#' @param input A SingleCellExperiment object with scRepertoire data, or a data.frame with TCR data.
 #' @param chains Which chain to analyze: "alpha" or "beta". Default is "beta".
 #' @param method Distance metric for refinement: "tcrdist" (default) or "sceptr".
 #' @param max_edits Maximum CDR3 edit distance for initial screening. Default is 2.
@@ -13,11 +13,11 @@
 #' @param clustering Clustering algorithm: "cc" (connected components, default),
 #'   "leiden", "louvain", or "mcl".
 #' @param resolution Resolution parameter for leiden/louvain clustering. Default is 1.0.
-#' @param return_seurat Logical. If TRUE and input is Seurat object, adds metaclone
+#' @param return_input Logical. If TRUE and input is a SingleCellExperiment object, adds metaclone
 #'   assignments to metadata. Default is TRUE.
 #' @param column_name Name for the metadata column. Default is "metaclone".
 #'
-#' @return If return_seurat=TRUE and input is Seurat, returns the object with
+#' @return If return_input=TRUE and input is a SingleCellExperiment, returns the object with
 #'   metaclone assignments added to metadata. Otherwise returns a data.frame with:
 #'   \describe{
 #'     \item{barcode}{Cell barcode}
@@ -45,14 +45,14 @@
 #' data(immLynx_example)
 #' \dontrun{
 #'   # Run metaclonotypist on beta chain
-#'   seurat_obj <- runMetaclonotypist(immLynx_example, chains = "beta")
+#'   sce <- runMetaclonotypist(immLynx_example, chains = "beta")
 #'
 #'   # Get results as data.frame instead of adding to object
 #'   metaclones <- runMetaclonotypist(immLynx_example,
-#'                                    return_seurat = FALSE)
+#'                                    return_input = FALSE)
 #'
 #'   # Adjust edit distance threshold
-#'   seurat_obj <- runMetaclonotypist(immLynx_example,
+#'   sce <- runMetaclonotypist(immLynx_example,
 #'                                    max_edits = 3,
 #'                                    max_dist = 50)
 #' }
@@ -63,7 +63,7 @@ runMetaclonotypist <- function(input,
                                max_dist = NULL,
                                clustering = c("cc", "leiden", "louvain", "mcl"),
                                resolution = 1.0,
-                               return_seurat = TRUE,
+                               return_input = TRUE,
                                column_name = "metaclone") {
 
   chains <- match.arg(chains)
@@ -77,9 +77,9 @@ if (is.null(max_dist)) {
   }
 
   # Extract TCR data
-  is_seurat <- methods::is(input, "Seurat") || methods::is(input, "SingleCellExperiment")
+  is_sc_object <- methods::is(input, "SingleCellExperiment")
 
-  if (is_seurat) {
+  if (is_sc_object) {
     chain_code <- if (chains == "alpha") "TRA" else "TRB"
     tcr_data <- immApex::getIR(input, chains = chain_code)
     tcr_data <- tcr_data[!is.na(tcr_data$cdr3_aa), ]
@@ -146,8 +146,8 @@ if (is.null(max_dist)) {
   message("Identified ", n_metaclones, " metaclones covering ", n_clustered,
           " of ", nrow(tcr_data), " sequences")
 
-  if (return_seurat && is_seurat) {
-    # Add to Seurat metadata
+  if (return_input && is_sc_object) {
+    # Add to object metadata
     metaclone_col <- rep(NA_character_, ncol(input))
     names(metaclone_col) <- colnames(input)
     metaclone_col[result_df$barcode] <- as.character(result_df$metaclone)
@@ -267,7 +267,7 @@ calculate.metaclonotypist <- function(cdr3_sequences,
 #'   using Fisher's exact test with FDR correction.
 #'
 #' @param metaclone_data A data.frame with metaclone assignments, typically from
-#'   runMetaclonotypist() with return_seurat=FALSE.
+#'   runMetaclonotypist() with return_input=FALSE.
 #' @param hla_data A data.frame with HLA typing information. Must have a 'barcode'
 #'   or 'sample' column for matching and columns for each HLA allele.
 #' @param by Column name to use for matching between datasets. Default is "barcode".

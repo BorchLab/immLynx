@@ -1,10 +1,10 @@
 #' Run clusTCR Clustering on scRepertoire Data
 #'
-#' @description This function extracts TCR sequences from a Seurat or
+#' @description This function extracts TCR sequences from a
 #'   SingleCellExperiment object with scRepertoire data and performs clustering
 #'   using the clusTCR algorithm.
 #'
-#' @param input A Seurat or SingleCellExperiment object containing scRepertoire
+#' @param input A SingleCellExperiment object containing scRepertoire
 #'   TCR data in the metadata.
 #' @param chains Character string specifying which chains to use: "TRA", "TRB", or "both".
 #'   Default is "TRB".
@@ -29,20 +29,20 @@
 #' data(immLynx_example)
 #' \dontrun{
 #'   # Cluster TRB chain using MCL algorithm
-#'   seurat_obj <- runClustTCR(immLynx_example,
+#'   sce <- runClustTCR(immLynx_example,
 #'                             chains = "TRB")
 #'
 #'   # Adjust MCL inflation parameter
-#'   seurat_obj <- runClustTCR(immLynx_example,
+#'   sce <- runClustTCR(immLynx_example,
 #'                             chains = "TRB",
 #'                             inflation = 3.0)
 #'
 #'   # Cluster both chains separately
-#'   seurat_obj <- runClustTCR(immLynx_example,
+#'   sce <- runClustTCR(immLynx_example,
 #'                             chains = "both")
 #'
 #'   # Combine alpha and beta chains before clustering
-#'   seurat_obj <- runClustTCR(immLynx_example,
+#'   sce <- runClustTCR(immLynx_example,
 #'                             chains = "both",
 #'                             combine_chains = TRUE)
 #'
@@ -62,11 +62,10 @@ runClustTCR <- function(input,
   chains <- match.arg(chains)
 
   # Determine input type
-.is_sce <- methods::is(input, "SingleCellExperiment")
-  .is_seurat <- methods::is(input, "Seurat")
+  .is_sce <- methods::is(input, "SingleCellExperiment")
 
-  if (!.is_sce && !.is_seurat) {
-    stop("Input must be a Seurat or SingleCellExperiment object")
+  if (!.is_sce) {
+    stop("Input must be a SingleCellExperiment object")
   }
 
   # Get cell names based on object type
