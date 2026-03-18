@@ -5,14 +5,13 @@
 NULL
 
 
-#' Extract TCR Data from Seurat Object
+#' Extract TCR Data from SingleCellExperiment Object
 #'
-#' @description Extracts T-cell receptor data from a Seurat object that has been
+#' @description Extracts T-cell receptor data from a SingleCellExperiment object that has been
 #'   processed with scRepertoire. This is a convenience wrapper around
 #'   \code{immApex::getIR()} that provides additional formatting options.
 #'
-#' @param input A Seurat object containing scRepertoire TCR data in metadata,
-#'   or a SingleCellExperiment object.
+#' @param input A SingleCellExperiment object containing scRepertoire TCR data in metadata.
 #' @param chains Which chains to extract: "TRA", "TRB", "TRG", "TRD",
 #'   "IGH", "IGL", "IGK", or "both" (for TRA and TRB). Default is "TRB".
 #' @param format Output format: "long" (one row per chain) or "wide" (one row
@@ -350,11 +349,11 @@ convertToTcrdist <- function(tcr_data,
 #' @description Generates summary statistics for TCR repertoire data including
 #'   diversity metrics, clonality measures, and sequence characteristics.
 #'
-#' @param input A Seurat object with scRepertoire data, or a data.frame from
+#' @param input A SingleCellExperiment object with scRepertoire data, or a data.frame from
 #'   extractTCRdata().
 #' @param chains Which chains to summarize: "TRB", "TRA", or "both".
 #'   Default is "TRB".
-#' @param group.by Optional metadata column for grouping (Seurat objects only).
+#' @param group.by Optional metadata column for grouping (SingleCellExperiment objects only).
 #' @param calculate_diversity Logical. If TRUE, calculates diversity indices.
 #'   Default is TRUE.
 #'
@@ -396,8 +395,8 @@ summarizeTCRrepertoire <- function(input,
 
   chains <- match.arg(chains)
 
-  # Extract data if Seurat object
-  if (methods::is(input, "Seurat") || methods::is(input, "SingleCellExperiment")) {
+  # Extract data if SingleCellExperiment object
+  if (methods::is(input, "SingleCellExperiment")) {
     tcr_data <- extractTCRdata(input, chains = if (chains == "both") "both" else chains,
                                format = "long", remove_na = TRUE)
   } else {

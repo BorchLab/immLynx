@@ -25,7 +25,7 @@
 #' @importFrom reticulate py_to_r array_reshape
 #'
 #' @seealso \code{\link{runEmbeddings}} for a higher-level wrapper that works
-#'   directly with Seurat/SingleCellExperiment objects.
+#'   directly with SingleCellExperiment objects.
 #'
 #' @examples
 #' sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")

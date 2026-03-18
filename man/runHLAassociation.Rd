@@ -13,7 +13,7 @@ runHLAassociation(
 }
 \arguments{
 \item{metaclone_data}{A data.frame with metaclone assignments, typically from
-runMetaclonotypist() with return_seurat=FALSE.}
+runMetaclonotypist() with return_input=FALSE.}
 
 \item{hla_data}{A data.frame with HLA typing information. Must have a 'barcode'
 or 'sample' column for matching and columns for each HLA allele.}

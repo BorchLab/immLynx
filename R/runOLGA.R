@@ -1,9 +1,9 @@
 #' Calculate Generation Probability (Pgen) for TCRs in scRepertoire Data
 #'
-#' @description Extracts TCR sequences from a Seurat or SingleCellExperiment object
+#' @description Extracts TCR sequences from a SingleCellExperiment object
 #'   and calculates their generation probability using OLGA.
 #'
-#' @param input A Seurat or SingleCellExperiment object containing scRepertoire TCR data.
+#' @param input A SingleCellExperiment object containing scRepertoire TCR data.
 #' @param chains Which chain to analyze: "TRA" or "TRB". Default is "TRB".
 #' @param model OLGA model to use. Options: "humanTRB", "humanTRA", "humanIGH", "mouseTRB".
 #'   If NULL, will be inferred from organism and chains parameters.
@@ -24,13 +24,13 @@
 #' data(immLynx_example)
 #' \dontrun{
 #'   # Calculate Pgen for TRB chain
-#'   seurat_obj <- runOLGA(immLynx_example, chains = "TRB")
+#'   sce <- runOLGA(immLynx_example, chains = "TRB")
 #'
 #'   # Calculate Pgen for TRA chain
-#'   seurat_obj <- runOLGA(immLynx_example, chains = "TRA")
+#'   sce <- runOLGA(immLynx_example, chains = "TRA")
 #'
 #'   # Include V and J gene information
-#'   seurat_obj <- runOLGA(immLynx_example,
+#'   sce <- runOLGA(immLynx_example,
 #'                         chains = "TRB",
 #'                         use_vj_genes = TRUE)
 #'
@@ -40,7 +40,7 @@
 #'                      return_object = FALSE)
 #'
 #'   # Specify model explicitly for mouse data
-#'   seurat_obj <- runOLGA(immLynx_example,
+#'   sce <- runOLGA(immLynx_example,
 #'                         model = "mouseTRB")
 #' }
 runOLGA <- function(input,
@@ -55,10 +55,9 @@ runOLGA <- function(input,
 
   # Determine input type
   .is_sce <- methods::is(input, "SingleCellExperiment")
-  .is_seurat <- methods::is(input, "Seurat")
 
-  if (!.is_sce && !.is_seurat) {
-    stop("Input must be a Seurat or SingleCellExperiment object")
+  if (!.is_sce) {
+    stop("Input must be a SingleCellExperiment object")
   }
 
   # Helper to add metadata

@@ -15,7 +15,7 @@ runSoNNia(
 )
 }
 \arguments{
-\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
+\item{input}{A SingleCellExperiment object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain to analyze: "TRB" or "TRA". Default is "TRB".}
 
@@ -51,7 +51,7 @@ data(immLynx_example)
   utils::write.csv(background, bg_file, row.names = FALSE)
 
   # Step 2: Run soNNia selection analysis
-  seurat_obj <- runSoNNia(immLynx_example,
+  sce <- runSoNNia(immLynx_example,
                           chains = "TRB",
                           background_file = bg_file)
 

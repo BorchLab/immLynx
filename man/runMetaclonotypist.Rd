@@ -12,12 +12,12 @@ runMetaclonotypist(
   max_dist = NULL,
   clustering = c("cc", "leiden", "louvain", "mcl"),
   resolution = 1,
-  return_seurat = TRUE,
+  return_input = TRUE,
   column_name = "metaclone"
 )
 }
 \arguments{
-\item{input}{A Seurat object with scRepertoire data, or a data.frame with TCR data.}
+\item{input}{A SingleCellExperiment object with scRepertoire data, or a data.frame with TCR data.}
 
 \item{chains}{Which chain to analyze: "alpha" or "beta". Default is "beta".}
 
@@ -33,13 +33,13 @@ tcrdist, 1.5 for sceptr.}
 
 \item{resolution}{Resolution parameter for leiden/louvain clustering. Default is 1.0.}
 
-\item{return_seurat}{Logical. If TRUE and input is Seurat object, adds metaclone
+\item{return_input}{Logical. If TRUE and input is a SingleCellExperiment object, adds metaclone
 assignments to metadata. Default is TRUE.}
 
 \item{column_name}{Name for the metadata column. Default is "metaclone".}
 }
 \value{
-If return_seurat=TRUE and input is Seurat, returns the object with
+If return_input=TRUE and input is a SingleCellExperiment, returns the object with
   metaclone assignments added to metadata. Otherwise returns a data.frame with:
   \describe{
     \item{barcode}{Cell barcode}
@@ -64,14 +64,14 @@ antigens. The algorithm:
 data(immLynx_example)
 \dontrun{
   # Run metaclonotypist on beta chain
-  seurat_obj <- runMetaclonotypist(immLynx_example, chains = "beta")
+  sce <- runMetaclonotypist(immLynx_example, chains = "beta")
 
   # Get results as data.frame instead of adding to object
   metaclones <- runMetaclonotypist(immLynx_example,
-                                   return_seurat = FALSE)
+                                   return_input = FALSE)
 
   # Adjust edit distance threshold
-  seurat_obj <- runMetaclonotypist(immLynx_example,
+  sce <- runMetaclonotypist(immLynx_example,
                                    max_edits = 3,
                                    max_dist = 50)
 }

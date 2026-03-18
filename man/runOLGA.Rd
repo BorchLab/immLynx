@@ -15,7 +15,7 @@ runOLGA(
 )
 }
 \arguments{
-\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
+\item{input}{A SingleCellExperiment object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain to analyze: "TRA" or "TRB". Default is "TRB".}
 
@@ -36,20 +36,20 @@ If return_object=TRUE, returns input object with Pgen added to metadata.
   If FALSE, returns data.frame with barcodes, sequences, and Pgen values.
 }
 \description{
-Extracts TCR sequences from a Seurat or SingleCellExperiment object
+Extracts TCR sequences from a SingleCellExperiment object
   and calculates their generation probability using OLGA.
 }
 \examples{
 data(immLynx_example)
 \dontrun{
   # Calculate Pgen for TRB chain
-  seurat_obj <- runOLGA(immLynx_example, chains = "TRB")
+  sce <- runOLGA(immLynx_example, chains = "TRB")
 
   # Calculate Pgen for TRA chain
-  seurat_obj <- runOLGA(immLynx_example, chains = "TRA")
+  sce <- runOLGA(immLynx_example, chains = "TRA")
 
   # Include V and J gene information
-  seurat_obj <- runOLGA(immLynx_example,
+  sce <- runOLGA(immLynx_example,
                         chains = "TRB",
                         use_vj_genes = TRUE)
 
@@ -59,7 +59,7 @@ data(immLynx_example)
                      return_object = FALSE)
 
   # Specify model explicitly for mouse data
-  seurat_obj <- runOLGA(immLynx_example,
+  sce <- runOLGA(immLynx_example,
                         model = "mouseTRB")
 }
 }

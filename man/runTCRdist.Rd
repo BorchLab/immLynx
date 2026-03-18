@@ -13,7 +13,7 @@ runTCRdist(
 )
 }
 \arguments{
-\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
+\item{input}{A SingleCellExperiment object containing scRepertoire TCR data.}
 
 \item{chains}{Character vector specifying chains: "alpha", "beta", or c("alpha", "beta").
 Default is "beta".}
@@ -23,7 +23,7 @@ Default is "beta".}
 \item{compute_distances}{Logical. Whether to compute full distance matrix. Default TRUE.}
 
 \item{add_to_object}{Logical. If TRUE, attempts to add distance matrix to object
-(stored in misc slot for Seurat or metadata for SCE). Default is FALSE due to large
+(stored in metadata for SCE). Default is FALSE due to large
 matrix size.}
 }
 \value{
@@ -34,7 +34,7 @@ A list containing:
   If add_to_object=TRUE, returns the input object with distances stored.
 }
 \description{
-This function extracts TCR sequences from a Seurat or
+This function extracts TCR sequences from a
   SingleCellExperiment object with scRepertoire data and calculates pairwise
   TCR distances using tcrdist3.
 }
@@ -53,8 +53,8 @@ data(immLynx_example)
   dist_both <- runTCRdist(immLynx_example,
                           chains = c("alpha", "beta"))
 
-  # Add distances directly to the Seurat object
-  seurat_obj <- runTCRdist(immLynx_example,
+  # Add distances directly to the object
+  sce <- runTCRdist(immLynx_example,
                            chains = "beta",
                            add_to_object = TRUE)
 }

@@ -17,7 +17,7 @@ runEmbeddings(
 )
 }
 \arguments{
-\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire TCR data.}
+\item{input}{A SingleCellExperiment object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain(s) to embed: "TRB", "TRA", or "both". Default is "TRB".}
 
@@ -42,7 +42,7 @@ If return_object=TRUE, returns input object with embeddings added as a
   dimensional reduction. If FALSE, returns list with embeddings matrix and metadata.
 }
 \description{
-Extracts TCR CDR3 sequences from a Seurat or SingleCellExperiment object
+Extracts TCR CDR3 sequences from a SingleCellExperiment object
   and generates embeddings using a protein language model (e.g., ESM-2).
 }
 \details{
@@ -56,20 +56,20 @@ This function uses protein language models to generate dense vector
 data(immLynx_example)
 \dontrun{
   # Generate ESM-2 embeddings for TRB chain
-  seurat_obj <- runEmbeddings(immLynx_example,
+  sce <- runEmbeddings(immLynx_example,
                               chains = "TRB")
 
   # Use a larger ESM-2 model
-  seurat_obj <- runEmbeddings(immLynx_example,
+  sce <- runEmbeddings(immLynx_example,
                               chains = "TRB",
                               model_name = "facebook/esm2_t33_650M_UR50D")
 
   # Embed both chains together
-  seurat_obj <- runEmbeddings(immLynx_example,
+  sce <- runEmbeddings(immLynx_example,
                               chains = "both")
 
   # Use CLS pooling instead of mean pooling
-  seurat_obj <- runEmbeddings(immLynx_example,
+  sce <- runEmbeddings(immLynx_example,
                               chains = "TRB",
                               pool = "cls")
 

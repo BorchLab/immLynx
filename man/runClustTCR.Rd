@@ -15,7 +15,7 @@ runClustTCR(
 )
 }
 \arguments{
-\item{input}{A Seurat or SingleCellExperiment object containing scRepertoire
+\item{input}{A SingleCellExperiment object containing scRepertoire
 TCR data in the metadata.}
 
 \item{chains}{Character string specifying which chains to use: "TRA", "TRB", or "both".
@@ -40,7 +40,7 @@ If return_object=TRUE, returns the input object with cluster assignments added
   assignments.
 }
 \description{
-This function extracts TCR sequences from a Seurat or
+This function extracts TCR sequences from a
   SingleCellExperiment object with scRepertoire data and performs clustering
   using the clusTCR algorithm.
 }
@@ -48,20 +48,20 @@ This function extracts TCR sequences from a Seurat or
 data(immLynx_example)
 \dontrun{
   # Cluster TRB chain using MCL algorithm
-  seurat_obj <- runClustTCR(immLynx_example,
+  sce <- runClustTCR(immLynx_example,
                             chains = "TRB")
 
   # Adjust MCL inflation parameter
-  seurat_obj <- runClustTCR(immLynx_example,
+  sce <- runClustTCR(immLynx_example,
                             chains = "TRB",
                             inflation = 3.0)
 
   # Cluster both chains separately
-  seurat_obj <- runClustTCR(immLynx_example,
+  sce <- runClustTCR(immLynx_example,
                             chains = "both")
 
   # Combine alpha and beta chains before clustering
-  seurat_obj <- runClustTCR(immLynx_example,
+  sce <- runClustTCR(immLynx_example,
                             chains = "both",
                             combine_chains = TRUE)
 

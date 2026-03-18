@@ -1,9 +1,9 @@
 #' Generate Protein Language Model Embeddings for TCR Sequences
 #'
-#' @description Extracts TCR CDR3 sequences from a Seurat or SingleCellExperiment object
+#' @description Extracts TCR CDR3 sequences from a SingleCellExperiment object
 #'   and generates embeddings using a protein language model (e.g., ESM-2).
 #'
-#' @param input A Seurat or SingleCellExperiment object containing scRepertoire TCR data.
+#' @param input A SingleCellExperiment object containing scRepertoire TCR data.
 #' @param chains Which chain(s) to embed: "TRB", "TRA", or "both". Default is "TRB".
 #' @param model_name Hugging Face model name. Default is "facebook/esm2_t12_35M_UR50D".
 #'   Other options: "facebook/esm2_t33_650M_UR50D", "facebook/esm2_t36_3B_UR50D"
@@ -32,20 +32,20 @@
 #' data(immLynx_example)
 #' \dontrun{
 #'   # Generate ESM-2 embeddings for TRB chain
-#'   seurat_obj <- runEmbeddings(immLynx_example,
+#'   sce <- runEmbeddings(immLynx_example,
 #'                               chains = "TRB")
 #'
 #'   # Use a larger ESM-2 model
-#'   seurat_obj <- runEmbeddings(immLynx_example,
+#'   sce <- runEmbeddings(immLynx_example,
 #'                               chains = "TRB",
 #'                               model_name = "facebook/esm2_t33_650M_UR50D")
 #'
 #'   # Embed both chains together
-#'   seurat_obj <- runEmbeddings(immLynx_example,
+#'   sce <- runEmbeddings(immLynx_example,
 #'                               chains = "both")
 #'
 #'   # Use CLS pooling instead of mean pooling
-#'   seurat_obj <- runEmbeddings(immLynx_example,
+#'   sce <- runEmbeddings(immLynx_example,
 #'                               chains = "TRB",
 #'                               pool = "cls")
 #'
@@ -69,10 +69,9 @@ runEmbeddings <- function(input,
 
   # Determine input type
   .is_sce <- methods::is(input, "SingleCellExperiment")
-  .is_seurat <- methods::is(input, "Seurat")
 
-  if (!.is_sce && !.is_seurat) {
-    stop("Input must be a Seurat or SingleCellExperiment object")
+  if (!.is_sce) {
+    stop("Input must be a SingleCellExperiment object")
   }
 
   message("Loading Hugging Face model: ", model_name)
@@ -156,45 +155,6 @@ runEmbeddings <- function(input,
   )
 
   if (return_object) {
-    if (.is_seurat) {
-      # Check if Seurat is available
-      if (!requireNamespace("Seurat", quietly = TRUE)) {
-        stop("Package 'Seurat' is required to add embeddings to Seurat object.")
-      }
-
-      # Create dimensional reduction object
-      # Only include cells that have embeddings
-      cell_embeddings <- matrix(NA,
-                                nrow = ncol(input),
-                                ncol = ncol(embeddings),
-                                dimnames = list(colnames(input),
-                                              paste0(reduction_key, seq_len(ncol(embeddings)))))
-
-      # Fill in embeddings for cells with TCR data
-      cell_embeddings[barcodes, ] <- embeddings
-
-      # Create DimReduc object
-      tcr_reduction <- Seurat::CreateDimReducObject(
-        embeddings = cell_embeddings,
-        key = reduction_key,
-        assay = Seurat::DefaultAssay(input)
-      )
-
-      # Add to Seurat object
-      input[[reduction_name]] <- tcr_reduction
-
-      # Also add chain info to metadata
-      chain_meta <- rep(NA_character_, ncol(input))
-      names(chain_meta) <- colnames(input)
-      chain_meta[barcodes] <- chain_info
-      input[[paste0(reduction_name, "_chain")]] <- chain_meta
-
-    } else {
-      # SingleCellExperiment
-      if (!requireNamespace("SingleCellExperiment", quietly = TRUE)) {
-        stop("Package 'SingleCellExperiment' is required.")
-      }
-
       # Create matrix with all cells
       cell_embeddings <- matrix(NA,
                                 nrow = ncol(input),
@@ -211,7 +171,6 @@ runEmbeddings <- function(input,
       names(chain_meta) <- colnames(input)
       chain_meta[barcodes] <- chain_info
       SummarizedExperiment::colData(input)[[paste0(reduction_name, "_chain")]] <- chain_meta
-    }
 
     message("Embeddings added as '", reduction_name, "' reduction")
     message("Use RunUMAP(obj, reduction='", reduction_name, "') to visualize")
