@@ -5,7 +5,6 @@
 # ===========================================================================
 
 test_that("runOLGA validates chain argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -13,17 +12,16 @@ test_that("runOLGA validates chain argument", {
   expect_error(runOLGA(immLynx_example, chains = "invalid"))
 })
 
-test_that("runOLGA rejects non-Seurat/SCE input", {
+test_that("runOLGA rejects non-SCE input", {
   tcr_data <- create_mock_tcr_data(10)
 
   expect_error(
     runOLGA(tcr_data, chains = "TRB"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
 test_that("runOLGA stops for invalid organism/chain combination", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -82,8 +80,7 @@ test_that("runOLGA accepts valid chain values", {
 # runOLGA - Python-dependent tests
 # ===========================================================================
 
-test_that("runOLGA adds pgen columns to Seurat object", {
-  skip_if_not_installed("Seurat")
+test_that("runOLGA adds pgen columns to SingleCellExperiment object", {
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -91,13 +88,12 @@ test_that("runOLGA adds pgen columns to Seurat object", {
 
   result <- runOLGA(immLynx_example, chains = "TRB")
 
-  expect_s4_class(result, "Seurat")
-  expect_true("olga_pgen_TRB" %in% names(result@meta.data))
-  expect_true("olga_pgen_log10_TRB" %in% names(result@meta.data))
+  expect_s4_class(result, "SingleCellExperiment")
+  expect_true("olga_pgen_TRB" %in% names(SummarizedExperiment::colData(result)))
+  expect_true("olga_pgen_log10_TRB" %in% names(SummarizedExperiment::colData(result)))
 })
 
 test_that("runOLGA returns data.frame when return_object=FALSE", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -115,7 +111,6 @@ test_that("runOLGA returns data.frame when return_object=FALSE", {
 })
 
 test_that("runOLGA handles custom column name", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -124,12 +119,11 @@ test_that("runOLGA handles custom column name", {
   result <- runOLGA(immLynx_example, chains = "TRB",
                     column_name = "custom_pgen")
 
-  expect_true("custom_pgen_TRB" %in% names(result@meta.data))
-  expect_true("custom_pgen_log10_TRB" %in% names(result@meta.data))
+  expect_true("custom_pgen_TRB" %in% names(SummarizedExperiment::colData(result)))
+  expect_true("custom_pgen_log10_TRB" %in% names(SummarizedExperiment::colData(result)))
 })
 
 test_that("runOLGA pgen values are valid probabilities", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -145,7 +139,6 @@ test_that("runOLGA pgen values are valid probabilities", {
 })
 
 test_that("runOLGA produces messages during execution", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 

@@ -5,7 +5,6 @@
 # ===========================================================================
 
 test_that("runMetaclonotypist validates chain argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -14,7 +13,6 @@ test_that("runMetaclonotypist validates chain argument", {
 })
 
 test_that("runMetaclonotypist validates method argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -23,7 +21,6 @@ test_that("runMetaclonotypist validates method argument", {
 })
 
 test_that("runMetaclonotypist validates clustering argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -37,7 +34,7 @@ test_that("runMetaclonotypist function signature has correct defaults", {
   expect_equal(f$max_edits, 2)
   expect_null(f$max_dist)
   expect_equal(f$resolution, 1.0)
-  expect_equal(f$return_seurat, TRUE)
+  expect_equal(f$return_input, TRUE)
   expect_equal(f$column_name, "metaclone")
 })
 
@@ -62,7 +59,7 @@ test_that("runMetaclonotypist rejects data.frame without required columns", {
   bad_df <- data.frame(x = 1:5, y = 6:10)
 
   expect_error(
-    runMetaclonotypist(bad_df, chains = "beta", return_seurat = FALSE),
+    runMetaclonotypist(bad_df, chains = "beta", return_input = FALSE),
     "barcode.*cdr3_aa"
   )
 })
@@ -71,7 +68,7 @@ test_that("runMetaclonotypist rejects data.frame with only barcode column", {
   bad_df <- data.frame(barcode = paste0("cell_", 1:5))
 
   expect_error(
-    runMetaclonotypist(bad_df, chains = "beta", return_seurat = FALSE),
+    runMetaclonotypist(bad_df, chains = "beta", return_input = FALSE),
     "cdr3_aa"
   )
 })
@@ -83,7 +80,7 @@ test_that("runMetaclonotypist rejects data.frame with all NA sequences", {
   )
 
   expect_error(
-    runMetaclonotypist(na_df, chains = "beta", return_seurat = FALSE),
+    runMetaclonotypist(na_df, chains = "beta", return_input = FALSE),
     "No valid TCR sequences found"
   )
 })
@@ -93,8 +90,7 @@ test_that("runMetaclonotypist rejects data.frame with all NA sequences", {
 # runMetaclonotypist - Python-dependent tests
 # ===========================================================================
 
-test_that("runMetaclonotypist adds metaclone column to Seurat object", {
-  skip_if_not_installed("Seurat")
+test_that("runMetaclonotypist adds metaclone column to SingleCellExperiment object", {
   skip_if_not_installed("immApex")
   skip_if_no_metaclonotypist()
 
@@ -102,20 +98,19 @@ test_that("runMetaclonotypist adds metaclone column to Seurat object", {
 
   result <- runMetaclonotypist(immLynx_example, chains = "beta")
 
-  expect_s4_class(result, "Seurat")
-  expect_true("metaclone" %in% names(result@meta.data))
-  expect_true("metaclone_size" %in% names(result@meta.data))
+  expect_s4_class(result, "SingleCellExperiment")
+  expect_true("metaclone" %in% names(SummarizedExperiment::colData(result)))
+  expect_true("metaclone_size" %in% names(SummarizedExperiment::colData(result)))
 })
 
-test_that("runMetaclonotypist returns data.frame when return_seurat=FALSE", {
-  skip_if_not_installed("Seurat")
+test_that("runMetaclonotypist returns data.frame when return_input=FALSE", {
   skip_if_not_installed("immApex")
   skip_if_no_metaclonotypist()
 
   data("immLynx_example", package = "immLynx")
 
   result <- runMetaclonotypist(immLynx_example, chains = "beta",
-                               return_seurat = FALSE)
+                               return_input = FALSE)
 
   expect_s3_class(result, "data.frame")
   expect_true("barcode" %in% names(result))
@@ -125,7 +120,6 @@ test_that("runMetaclonotypist returns data.frame when return_seurat=FALSE", {
 })
 
 test_that("runMetaclonotypist handles custom column name", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_metaclonotypist()
 
@@ -134,8 +128,8 @@ test_that("runMetaclonotypist handles custom column name", {
   result <- runMetaclonotypist(immLynx_example, chains = "beta",
                                column_name = "custom_meta")
 
-  expect_true("custom_meta" %in% names(result@meta.data))
-  expect_true("custom_meta_size" %in% names(result@meta.data))
+  expect_true("custom_meta" %in% names(SummarizedExperiment::colData(result)))
+  expect_true("custom_meta_size" %in% names(SummarizedExperiment::colData(result)))
 })
 
 test_that("runMetaclonotypist accepts data.frame input", {
@@ -151,13 +145,12 @@ test_that("runMetaclonotypist accepts data.frame input", {
   )
 
   result <- runMetaclonotypist(tcr_data, chains = "beta",
-                               return_seurat = FALSE)
+                               return_input = FALSE)
 
   expect_s3_class(result, "data.frame")
 })
 
 test_that("runMetaclonotypist produces messages during execution", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_metaclonotypist()
 
@@ -165,7 +158,7 @@ test_that("runMetaclonotypist produces messages during execution", {
 
   expect_message(
     runMetaclonotypist(immLynx_example, chains = "beta",
-                       return_seurat = FALSE),
+                       return_input = FALSE),
     "Running metaclonotypist"
   )
 })

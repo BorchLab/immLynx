@@ -9,7 +9,6 @@ test_that("runEmbeddings function exists and is exported", {
 })
 
 test_that("runEmbeddings validates chain argument", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
 
   data("immLynx_example", package = "immLynx")
@@ -17,12 +16,12 @@ test_that("runEmbeddings validates chain argument", {
   expect_error(runEmbeddings(immLynx_example, chains = "invalid"))
 })
 
-test_that("runEmbeddings rejects non-Seurat/SCE input", {
+test_that("runEmbeddings rejects non-SCE input", {
   tcr_data <- create_mock_tcr_data(10)
 
   expect_error(
     runEmbeddings(tcr_data, chains = "TRB"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -31,7 +30,7 @@ test_that("runEmbeddings rejects data.frame input", {
 
   expect_error(
     runEmbeddings(df, chains = "TRB"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -40,7 +39,7 @@ test_that("runEmbeddings rejects matrix input", {
 
   expect_error(
     runEmbeddings(mat, chains = "TRB"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -49,7 +48,7 @@ test_that("runEmbeddings rejects list input", {
 
   expect_error(
     runEmbeddings(lst, chains = "TRB"),
-    "Input must be a Seurat or SingleCellExperiment object"
+    "Input must be a SingleCellExperiment object"
   )
 })
 
@@ -86,8 +85,7 @@ test_that("runEmbeddings has all expected parameters", {
 # Python-dependent tests (require basilisk env with transformers + torch)
 # ===========================================================================
 
-test_that("runEmbeddings adds dimensional reduction to Seurat object", {
-  skip_if_not_installed("Seurat")
+test_that("runEmbeddings adds dimensional reduction to SingleCellExperiment object", {
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -96,12 +94,11 @@ test_that("runEmbeddings adds dimensional reduction to Seurat object", {
   result <- runEmbeddings(immLynx_example, chains = "TRB",
                           prefer_device = "cpu")
 
-  expect_s4_class(result, "Seurat")
-  expect_true("tcr_esm" %in% Seurat::Reductions(result))
+  expect_s4_class(result, "SingleCellExperiment")
+  expect_true("tcr_esm" %in% names(SingleCellExperiment::reducedDims(result)))
 })
 
 test_that("runEmbeddings returns list when return_object=FALSE", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -121,7 +118,6 @@ test_that("runEmbeddings returns list when return_object=FALSE", {
 })
 
 test_that("runEmbeddings list output has correct model_name", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -136,7 +132,6 @@ test_that("runEmbeddings list output has correct model_name", {
 })
 
 test_that("runEmbeddings handles custom reduction name", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -146,11 +141,10 @@ test_that("runEmbeddings handles custom reduction name", {
                           reduction_name = "custom_embed",
                           prefer_device = "cpu")
 
-  expect_true("custom_embed" %in% Seurat::Reductions(result))
+  expect_true("custom_embed" %in% names(SingleCellExperiment::reducedDims(result)))
 })
 
 test_that("runEmbeddings handles both chains", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -163,8 +157,7 @@ test_that("runEmbeddings handles both chains", {
   expect_true(all(result$metadata$chain %in% c("TRA", "TRB", "TRA+TRB")))
 })
 
-test_that("runEmbeddings adds chain metadata to Seurat object", {
-  skip_if_not_installed("Seurat")
+test_that("runEmbeddings adds chain metadata to SingleCellExperiment object", {
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -173,11 +166,10 @@ test_that("runEmbeddings adds chain metadata to Seurat object", {
   result <- runEmbeddings(immLynx_example, chains = "TRB",
                           prefer_device = "cpu")
 
-  expect_true("tcr_esm_chain" %in% names(result@meta.data))
+  expect_true("tcr_esm_chain" %in% names(SummarizedExperiment::colData(result)))
 })
 
 test_that("runEmbeddings embeddings have barcodes as rownames", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -192,7 +184,6 @@ test_that("runEmbeddings embeddings have barcodes as rownames", {
 })
 
 test_that("runEmbeddings produces loading model message", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -206,7 +197,6 @@ test_that("runEmbeddings produces loading model message", {
 })
 
 test_that("runEmbeddings produces sequence extraction message", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -220,7 +210,6 @@ test_that("runEmbeddings produces sequence extraction message", {
 })
 
 test_that("runEmbeddings embedding matrix has correct dimensions", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -237,7 +226,6 @@ test_that("runEmbeddings embedding matrix has correct dimensions", {
 })
 
 test_that("runEmbeddings metadata has expected columns", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -253,7 +241,6 @@ test_that("runEmbeddings metadata has expected columns", {
 })
 
 test_that("runEmbeddings TRB-only chain info is correct", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -267,7 +254,6 @@ test_that("runEmbeddings TRB-only chain info is correct", {
 })
 
 test_that("runEmbeddings with cls pooling works", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -283,7 +269,6 @@ test_that("runEmbeddings with cls pooling works", {
 })
 
 test_that("runEmbeddings with custom chunk_size works", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -299,7 +284,6 @@ test_that("runEmbeddings with custom chunk_size works", {
 })
 
 test_that("runEmbeddings embedding values are finite", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -312,8 +296,7 @@ test_that("runEmbeddings embedding values are finite", {
   expect_true(all(is.finite(result$embeddings)))
 })
 
-test_that("runEmbeddings Seurat object retains original cells", {
-  skip_if_not_installed("Seurat")
+test_that("runEmbeddings SingleCellExperiment object retains original cells", {
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -328,7 +311,6 @@ test_that("runEmbeddings Seurat object retains original cells", {
 })
 
 test_that("runEmbeddings custom reduction key works", {
-  skip_if_not_installed("Seurat")
   skip_if_not_installed("immApex")
   skip_if_no_python()
 
@@ -339,5 +321,5 @@ test_that("runEmbeddings custom reduction key works", {
                           reduction_key = "MYESM_",
                           prefer_device = "cpu")
 
-  expect_true("my_esm" %in% Seurat::Reductions(result))
+  expect_true("my_esm" %in% names(SingleCellExperiment::reducedDims(result)))
 })
