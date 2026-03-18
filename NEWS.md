@@ -1,3 +1,10 @@
+# immLynx 0.99.1
+
+* Switched example data from Seurat to SingleCellExperiment object
+* Replaced Seurat with scran/scater in vignettes
+* Removed Seurat dependency; functions now use SingleCellExperiment exclusively
+* Renamed `return_seurat` parameter to `return_input` in `runMetaclonotypist()`
+
 # immLynx 0.99.0
 
 * Initial Bioconductor submission
