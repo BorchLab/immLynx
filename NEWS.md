@@ -1,3 +1,8 @@
+# immLynx 0.99.2
+
+* Removed the umbrella roxygen block from `R/utils.R`
+* Added `skip_on_bioc_build()` check directly inside `skip_if_no_python()` in `tests/testthat/helper-immLynx.R`
+
 # immLynx 0.99.1
 
 * Switched example data from Seurat to SingleCellExperiment object
