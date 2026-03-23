@@ -1,10 +1,3 @@
-#' @title Utility Functions for TCR Data Handling
-#' @name utils
-#' @description Helper functions for extracting, validating, and converting
-#'   TCR data from various sources.
-NULL
-
-
 #' Extract TCR Data from SingleCellExperiment Object
 #'
 #' @description Extracts T-cell receptor data from a SingleCellExperiment object that has been

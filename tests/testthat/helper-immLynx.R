@@ -56,8 +56,17 @@ python_available <- function() {
   }, error = function(e) FALSE)
 }
 
-# Skip test if Python not available
+# Skip on Bioconductor build machines (15-min timeout too tight for Python tests)
+skip_on_bioc_build <- function() {
+  if (nzchar(Sys.getenv("IS_BIOC_BUILD_MACHINE")) ||
+      nzchar(Sys.getenv("BBS_HOME"))) {
+    testthat::skip("Skipping Python tests on Bioconductor build machine")
+  }
+}
+
+# Skip test if Python not available or on Bioc build machine
 skip_if_no_python <- function() {
+  skip_on_bioc_build()
   if (!python_available()) {
     testthat::skip("Python environment not available")
   }
