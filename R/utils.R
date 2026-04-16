@@ -337,6 +337,70 @@ convertToTcrdist <- function(tcr_data,
 }
 
 
+#' S4 Class for TCR Repertoire Summary
+#'
+#' @description Formal S4 class to store summary statistics for a TCR repertoire,
+#'   including diversity metrics, clonality measures, and sequence characteristics.
+#'
+#' @slot total_cells Integer. Total number of cells with TCR data.
+#' @slot unique_clonotypes Integer. Number of unique clonotypes.
+#' @slot clonotype_ratio Numeric. Ratio of unique clonotypes to total cells.
+#' @slot diversity List of diversity indices (Shannon, Simpson, etc.), or NULL.
+#' @slot top_clones Data.frame of the top 10 most frequent clonotypes.
+#' @slot cdr3_length List with CDR3 length distribution statistics.
+#' @slot gene_usage List of V and J gene usage data.frames.
+#' @slot chains Character. Chain(s) summarized.
+#'
+#' @exportClass TCR_summary
+#' @importFrom methods new setClass setMethod show
+#' @name TCR_summary-class
+#' @rdname TCR_summary-class
+setClass("TCR_summary",
+  slots = list(
+    total_cells = "integer",
+    unique_clonotypes = "integer",
+    clonotype_ratio = "numeric",
+    diversity = "ANY",
+    top_clones = "data.frame",
+    cdr3_length = "list",
+    gene_usage = "list",
+    chains = "character"
+  )
+)
+
+#' Show Method for TCR_summary Objects
+#'
+#' @param object A \code{TCR_summary} object.
+#' @rdname TCR_summary-class
+#' @importFrom utils head
+#' @export
+setMethod("show", "TCR_summary", function(object) {
+  cat("=== TCR Repertoire Summary ===\n")
+  cat("Chain(s):", object@chains, "\n\n")
+
+  cat("--- Basic Statistics ---\n")
+  cat("Total cells with TCR:", object@total_cells, "\n")
+  cat("Unique clonotypes:", object@unique_clonotypes, "\n")
+  cat("Clonotype ratio:", round(object@clonotype_ratio, 4), "\n\n")
+
+  if (!is.null(object@diversity)) {
+    cat("--- Diversity Metrics ---\n")
+    cat("Shannon entropy:", round(object@diversity$shannon, 4), "\n")
+    cat("Clonality:", round(object@diversity$clonality, 4), "\n")
+    cat("Simpson index:", round(object@diversity$simpson, 4), "\n")
+    cat("Inverse Simpson:", round(object@diversity$inverse_simpson, 2), "\n\n")
+  }
+
+  cat("--- Top Clonotypes ---\n")
+  print(head(object@top_clones, 5), row.names = FALSE)
+  cat("\n")
+
+  cat("--- CDR3 Length Distribution ---\n")
+  cat("Mean:", round(object@cdr3_length$mean, 1), "\n")
+  cat("Median:", object@cdr3_length$median, "\n")
+  cat("Range:", object@cdr3_length$min, "-", object@cdr3_length$max, "\n")
+})
+
 #' Summarize TCR Repertoire Statistics
 #'
 #' @description Generates summary statistics for TCR repertoire data including
@@ -350,19 +414,11 @@ convertToTcrdist <- function(tcr_data,
 #' @param calculate_diversity Logical. If TRUE, calculates diversity indices.
 #'   Default is TRUE.
 #'
-#' @return An object of class "TCR_summary" containing:
-#'   \describe{
-#'     \item{total_cells}{Total number of cells with TCR data}
-#'     \item{unique_clonotypes}{Number of unique clonotypes}
-#'     \item{clonality}{1 - normalized Shannon entropy}
-#'     \item{diversity}{List of diversity indices (Shannon, Simpson, etc.)}
-#'     \item{top_clones}{Top 10 most frequent clonotypes}
-#'     \item{cdr3_length}{Summary of CDR3 sequence lengths}
-#'     \item{gene_usage}{V and J gene usage frequencies}
-#'   }
+#' @return An object of class \code{\linkS4class{TCR_summary}} containing
+#'   summary statistics for the TCR repertoire.
 #'
 #' @export
-#' @importFrom methods is
+#' @importFrom methods is new
 #' @importFrom stats median sd
 #'
 #' @examples
@@ -483,9 +539,9 @@ summarizeTCRrepertoire <- function(input,
   }
 
   # Build result object
-  result <- list(
-    total_cells = total_cells,
-    unique_clonotypes = unique_clonotypes,
+  result <- methods::new("TCR_summary",
+    total_cells = as.integer(total_cells),
+    unique_clonotypes = as.integer(unique_clonotypes),
     clonotype_ratio = unique_clonotypes / total_cells,
     diversity = diversity,
     top_clones = top_clones,
@@ -494,64 +550,7 @@ summarizeTCRrepertoire <- function(input,
     chains = chains
   )
 
-  class(result) <- c("TCR_summary", "list")
-
   return(result)
 }
 
 
-#' Print Method for TCR_summary Objects
-#'
-#' @description Custom print method for TCR repertoire summary objects.
-#'
-#' @param x An object of class "TCR_summary"
-#' @param ... Additional arguments (ignored)
-#'
-#' @return Invisibly returns the input object
-#' @export
-#' @method print TCR_summary
-#' @importFrom utils head
-#'
-#' @examples
-#' tcr_data <- data.frame(
-#'   barcode = paste0("cell_", 1:10),
-#'   cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
-#'               "CASSYSTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
-#'               "CASNQGLNEKLFF", "CASSYSTGELFF", "CASSLGTGELFF",
-#'               "CASSIRSSYEQYF"),
-#'   v = rep("TRBV7-2", 10),
-#'   j = rep("TRBJ2-2", 10),
-#'   chain = rep("TRB", 10),
-#'   stringsAsFactors = FALSE
-#' )
-#' summary_obj <- summarizeTCRrepertoire(tcr_data)
-#' print(summary_obj)
-#'
-print.TCR_summary <- function(x, ...) {
-  cat("=== TCR Repertoire Summary ===\n")
-  cat("Chain(s):", x$chains, "\n\n")
-
-  cat("--- Basic Statistics ---\n")
-  cat("Total cells with TCR:", x$total_cells, "\n")
-  cat("Unique clonotypes:", x$unique_clonotypes, "\n")
-  cat("Clonotype ratio:", round(x$clonotype_ratio, 4), "\n\n")
-
-  if (!is.null(x$diversity)) {
-    cat("--- Diversity Metrics ---\n")
-    cat("Shannon entropy:", round(x$diversity$shannon, 4), "\n")
-    cat("Clonality:", round(x$diversity$clonality, 4), "\n")
-    cat("Simpson index:", round(x$diversity$simpson, 4), "\n")
-    cat("Inverse Simpson:", round(x$diversity$inverse_simpson, 2), "\n\n")
-  }
-
-  cat("--- Top Clonotypes ---\n")
-  print(head(x$top_clones, 5), row.names = FALSE)
-  cat("\n")
-
-  cat("--- CDR3 Length Distribution ---\n")
-  cat("Mean:", round(x$cdr3_length$mean, 1), "\n")
-  cat("Median:", x$cdr3_length$median, "\n")
-  cat("Range:", x$cdr3_length$min, "-", x$cdr3_length$max, "\n")
-
-  invisible(x)
-}

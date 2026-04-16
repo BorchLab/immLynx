@@ -41,7 +41,7 @@ Extracts TCR sequences from a SingleCellExperiment object
 }
 \examples{
 data(immLynx_example)
-\dontrun{
+\donttest{
   # Calculate Pgen for TRB chain
   sce <- runOLGA(immLynx_example, chains = "TRB")
 

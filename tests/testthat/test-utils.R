@@ -476,11 +476,11 @@ test_that("summarizeTCRrepertoire returns correct structure from SingleCellExper
 
   result <- summarizeTCRrepertoire(immLynx_example, chains = "TRB")
 
-  expect_s3_class(result, "TCR_summary")
-  expect_true("total_cells" %in% names(result))
-  expect_true("unique_clonotypes" %in% names(result))
-  expect_true("diversity" %in% names(result))
-  expect_true("top_clones" %in% names(result))
+  expect_s4_class(result, "TCR_summary")
+  expect_true(methods::is(result, "TCR_summary"))
+  expect_true(is.integer(result@total_cells))
+  expect_true(is.integer(result@unique_clonotypes))
+  expect_true(is.data.frame(result@top_clones))
 })
 
 test_that("summarizeTCRrepertoire calculates diversity metrics", {
@@ -491,12 +491,12 @@ test_that("summarizeTCRrepertoire calculates diversity metrics", {
   result <- summarizeTCRrepertoire(immLynx_example, chains = "TRB",
                                    calculate_diversity = TRUE)
 
-  expect_true(!is.null(result$diversity))
-  expect_true("shannon" %in% names(result$diversity))
-  expect_true("simpson" %in% names(result$diversity))
-  expect_true("clonality" %in% names(result$diversity))
-  expect_gte(result$diversity$clonality, 0)
-  expect_lte(result$diversity$clonality, 1)
+  expect_true(!is.null(result@diversity))
+  expect_true("shannon" %in% names(result@diversity))
+  expect_true("simpson" %in% names(result@diversity))
+  expect_true("clonality" %in% names(result@diversity))
+  expect_gte(result@diversity$clonality, 0)
+  expect_lte(result@diversity$clonality, 1)
 })
 
 test_that("summarizeTCRrepertoire works with data.frame input", {
@@ -510,8 +510,8 @@ test_that("summarizeTCRrepertoire works with data.frame input", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_s3_class(result, "TCR_summary")
-  expect_equal(result$total_cells, 100)
+  expect_s4_class(result, "TCR_summary")
+  expect_equal(result@total_cells, 100)
 })
 
 test_that("summarizeTCRrepertoire validates chains argument", {
@@ -526,7 +526,7 @@ test_that("summarizeTCRrepertoire calculate_diversity=FALSE returns NULL diversi
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB",
                                    calculate_diversity = FALSE)
 
-  expect_null(result$diversity)
+  expect_null(result@diversity)
 })
 
 test_that("summarizeTCRrepertoire top_clones has correct structure", {
@@ -539,12 +539,12 @@ test_that("summarizeTCRrepertoire top_clones has correct structure", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_s3_class(result$top_clones, "data.frame")
-  expect_true("cdr3_aa" %in% names(result$top_clones))
-  expect_true("count" %in% names(result$top_clones))
-  expect_true("proportion" %in% names(result$top_clones))
-  expect_equal(result$top_clones$cdr3_aa[1], "CASSAAA")
-  expect_equal(result$top_clones$count[1], 10L)
+  expect_s3_class(result@top_clones, "data.frame")
+  expect_true("cdr3_aa" %in% names(result@top_clones))
+  expect_true("count" %in% names(result@top_clones))
+  expect_true("proportion" %in% names(result@top_clones))
+  expect_equal(result@top_clones$cdr3_aa[1], "CASSAAA")
+  expect_equal(result@top_clones$count[1], 10L)
 })
 
 test_that("summarizeTCRrepertoire computes clonotype_ratio correctly", {
@@ -556,7 +556,7 @@ test_that("summarizeTCRrepertoire computes clonotype_ratio correctly", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_equal(result$clonotype_ratio, 2 / 10)
+  expect_equal(result@clonotype_ratio, 2 / 10)
 })
 
 test_that("summarizeTCRrepertoire computes CDR3 length stats", {
@@ -568,9 +568,9 @@ test_that("summarizeTCRrepertoire computes CDR3 length stats", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_equal(result$cdr3_length$min, 4)
-  expect_equal(result$cdr3_length$max, 16)
-  expect_equal(result$cdr3_length$median, 7)
+  expect_equal(result@cdr3_length$min, 4)
+  expect_equal(result@cdr3_length$max, 16)
+  expect_equal(result@cdr3_length$median, 7)
 })
 
 test_that("summarizeTCRrepertoire gene_usage has v_genes and j_genes", {
@@ -584,12 +584,12 @@ test_that("summarizeTCRrepertoire gene_usage has v_genes and j_genes", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_true("v_genes" %in% names(result$gene_usage))
-  expect_true("j_genes" %in% names(result$gene_usage))
-  expect_s3_class(result$gene_usage$v_genes, "data.frame")
-  expect_true("gene" %in% names(result$gene_usage$v_genes))
-  expect_true("count" %in% names(result$gene_usage$v_genes))
-  expect_true("proportion" %in% names(result$gene_usage$v_genes))
+  expect_true("v_genes" %in% names(result@gene_usage))
+  expect_true("j_genes" %in% names(result@gene_usage))
+  expect_s3_class(result@gene_usage$v_genes, "data.frame")
+  expect_true("gene" %in% names(result@gene_usage$v_genes))
+  expect_true("count" %in% names(result@gene_usage$v_genes))
+  expect_true("proportion" %in% names(result@gene_usage$v_genes))
 })
 
 test_that("summarizeTCRrepertoire handles data without v/j columns", {
@@ -601,7 +601,7 @@ test_that("summarizeTCRrepertoire handles data without v/j columns", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_length(result$gene_usage, 0)
+  expect_length(result@gene_usage, 0)
 })
 
 test_that("summarizeTCRrepertoire diversity metrics are mathematically correct", {
@@ -613,10 +613,10 @@ test_that("summarizeTCRrepertoire diversity metrics are mathematically correct",
 
   result <- summarizeTCRrepertoire(single_clone, chains = "TRB")
 
-  expect_equal(result$diversity$shannon, 0)
-  expect_equal(result$diversity$shannon_normalized, 0)
-  expect_equal(result$diversity$clonality, 1)
-  expect_equal(result$diversity$simpson, 1)
+  expect_equal(result@diversity$shannon, 0)
+  expect_equal(result@diversity$shannon_normalized, 0)
+  expect_equal(result@diversity$clonality, 1)
+  expect_equal(result@diversity$simpson, 1)
 })
 
 test_that("summarizeTCRrepertoire diversity for even distribution", {
@@ -628,9 +628,9 @@ test_that("summarizeTCRrepertoire diversity for even distribution", {
 
   result <- summarizeTCRrepertoire(even_data, chains = "TRB")
 
-  expect_equal(result$diversity$shannon_normalized, 1, tolerance = 1e-10)
-  expect_equal(result$diversity$clonality, 0, tolerance = 1e-10)
-  expect_equal(result$diversity$simpson, 0.5, tolerance = 1e-10)
+  expect_equal(result@diversity$shannon_normalized, 1, tolerance = 1e-10)
+  expect_equal(result@diversity$clonality, 0, tolerance = 1e-10)
+  expect_equal(result@diversity$simpson, 0.5, tolerance = 1e-10)
 })
 
 test_that("summarizeTCRrepertoire chains field is stored", {
@@ -638,7 +638,7 @@ test_that("summarizeTCRrepertoire chains field is stored", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_equal(result$chains, "TRB")
+  expect_equal(result@chains, "TRB")
 })
 
 test_that("summarizeTCRrepertoire top_clones limited to 10", {
@@ -650,7 +650,7 @@ test_that("summarizeTCRrepertoire top_clones limited to 10", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_lte(nrow(result$top_clones), 10)
+  expect_lte(nrow(result@top_clones), 10)
 })
 
 test_that("summarizeTCRrepertoire top_clones with fewer than 10 clones", {
@@ -662,7 +662,7 @@ test_that("summarizeTCRrepertoire top_clones with fewer than 10 clones", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_equal(nrow(result$top_clones), 3)
+  expect_equal(nrow(result@top_clones), 3)
 })
 
 test_that("summarizeTCRrepertoire diversity includes all expected metrics", {
@@ -670,13 +670,13 @@ test_that("summarizeTCRrepertoire diversity includes all expected metrics", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_true("shannon" %in% names(result$diversity))
-  expect_true("shannon_normalized" %in% names(result$diversity))
-  expect_true("simpson" %in% names(result$diversity))
-  expect_true("inverse_simpson" %in% names(result$diversity))
-  expect_true("gini_simpson" %in% names(result$diversity))
-  expect_true("clonality" %in% names(result$diversity))
-  expect_true("richness" %in% names(result$diversity))
+  expect_true("shannon" %in% names(result@diversity))
+  expect_true("shannon_normalized" %in% names(result@diversity))
+  expect_true("simpson" %in% names(result@diversity))
+  expect_true("inverse_simpson" %in% names(result@diversity))
+  expect_true("gini_simpson" %in% names(result@diversity))
+  expect_true("clonality" %in% names(result@diversity))
+  expect_true("richness" %in% names(result@diversity))
 })
 
 test_that("summarizeTCRrepertoire gini_simpson equals 1 - simpson", {
@@ -684,8 +684,8 @@ test_that("summarizeTCRrepertoire gini_simpson equals 1 - simpson", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_equal(result$diversity$gini_simpson,
-               1 - result$diversity$simpson,
+  expect_equal(result@diversity$gini_simpson,
+               1 - result@diversity$simpson,
                tolerance = 1e-10)
 })
 
@@ -694,17 +694,17 @@ test_that("summarizeTCRrepertoire inverse_simpson equals 1/simpson", {
 
   result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
 
-  expect_equal(result$diversity$inverse_simpson,
-               1 / result$diversity$simpson,
+  expect_equal(result@diversity$inverse_simpson,
+               1 / result@diversity$simpson,
                tolerance = 1e-10)
 })
 
 
 # ===========================================================================
-# print.TCR_summary
+# show method for TCR_summary
 # ===========================================================================
 
-test_that("print.TCR_summary works without error", {
+test_that("show method for TCR_summary works without error", {
   tcr_data <- data.frame(
     barcode = paste0("cell_", 1:10),
     cdr3_aa = c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSLGTGELFF",
@@ -727,21 +727,87 @@ test_that("print.TCR_summary works without error", {
   expect_output(print(result), "CDR3 Length Distribution")
 })
 
-test_that("print.TCR_summary returns object invisibly", {
+test_that("show method for TCR_summary displays correctly", {
   tcr_data <- create_mock_tcr_data(10)
   summary_obj <- summarizeTCRrepertoire(tcr_data)
 
-  result <- withVisible(print(summary_obj))
-
-  expect_false(result$visible)
-  expect_s3_class(result$value, "TCR_summary")
+  expect_output(show(summary_obj), "TCR Repertoire Summary")
+  expect_s4_class(summary_obj, "TCR_summary")
 })
 
-test_that("print.TCR_summary works without diversity", {
+test_that("show method for TCR_summary works without diversity", {
   tcr_data <- create_mock_tcr_data(10)
   summary_obj <- summarizeTCRrepertoire(tcr_data, calculate_diversity = FALSE)
 
   expect_output(print(summary_obj), "TCR Repertoire Summary")
   output <- capture.output(print(summary_obj))
   expect_false(any(grepl("Shannon entropy", output)))
+})
+
+
+# ===========================================================================
+# Additional edge case coverage
+# ===========================================================================
+
+test_that("summarizeTCRrepertoire handles data without v or j columns", {
+  tcr_data <- data.frame(
+    barcode = paste0("cell_", 1:10),
+    cdr3_aa = c(rep("CASSAAA", 5), rep("CASSBBB", 5)),
+    chain = "TRB"
+  )
+
+  result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
+
+  expect_s4_class(result, "TCR_summary")
+  expect_length(result@gene_usage, 0)
+})
+
+test_that("summarizeTCRrepertoire handles data with only v column", {
+  tcr_data <- data.frame(
+    barcode = paste0("cell_", 1:10),
+    cdr3_aa = c(rep("CASSAAA", 5), rep("CASSBBB", 5)),
+    v = rep("TRBV7-2", 10),
+    chain = "TRB"
+  )
+
+  result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
+
+  expect_true("v_genes" %in% names(result@gene_usage))
+  expect_false("j_genes" %in% names(result@gene_usage))
+})
+
+test_that("TCR_summary S4 class slots have correct types", {
+  tcr_data <- create_mock_tcr_data(20)
+  result <- summarizeTCRrepertoire(tcr_data, chains = "TRB")
+
+  expect_true(is.integer(result@total_cells))
+  expect_true(is.integer(result@unique_clonotypes))
+  expect_true(is.numeric(result@clonotype_ratio))
+  expect_true(is.list(result@diversity))
+  expect_true(is.data.frame(result@top_clones))
+  expect_true(is.list(result@cdr3_length))
+  expect_true(is.list(result@gene_usage))
+  expect_true(is.character(result@chains))
+})
+
+test_that("extractTCRdata handles remove_na=FALSE", {
+  skip_if_not_installed("immApex")
+
+  data("immLynx_example", package = "immLynx")
+
+  result <- extractTCRdata(immLynx_example,
+                           chains = "TRB",
+                           remove_na = FALSE)
+
+  expect_true(is.data.frame(result))
+})
+
+test_that("validateTCRdata with empty data.frame", {
+  empty_df <- data.frame(
+    barcode = character(0),
+    cdr3_aa = character(0)
+  )
+
+  result <- validateTCRdata(empty_df)
+  expect_false(is.null(result))
 })

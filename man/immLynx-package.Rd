@@ -86,7 +86,7 @@ Useful links:
 }
 }
 \author{
-\strong{Maintainer}: Nick Borcherding \email{ncborch@gmail.com}
+\strong{Maintainer}: Nick Borcherding \email{ncborch@gmail.com} (\href{https://orcid.org/0000-0003-1427-6342}{ORCID})
 
 }
 \keyword{internal}

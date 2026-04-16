@@ -27,10 +27,11 @@
 #' @export
 #' @importFrom immApex getIR
 #' @importFrom methods is
+#' @importFrom SummarizedExperiment colData colData<-
 #'
 #' @examples
 #' data(immLynx_example)
-#' \dontrun{
+#' \donttest{
 #'   # Generate ESM-2 embeddings for TRB chain
 #'   sce <- runEmbeddings(immLynx_example,
 #'                               chains = "TRB")
@@ -170,7 +171,7 @@ runEmbeddings <- function(input,
       chain_meta <- rep(NA_character_, ncol(input))
       names(chain_meta) <- colnames(input)
       chain_meta[barcodes] <- chain_info
-      SummarizedExperiment::colData(input)[[paste0(reduction_name, "_chain")]] <- chain_meta
+      colData(input)[[paste0(reduction_name, "_chain")]] <- chain_meta
 
     message("Embeddings added as '", reduction_name, "' reduction")
     message("Use RunUMAP(obj, reduction='", reduction_name, "') to visualize")

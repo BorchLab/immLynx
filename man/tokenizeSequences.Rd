@@ -38,7 +38,7 @@ Takes a vector of amino acid sequences and uses a Hugging Face
 }
 \examples{
 sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
-\dontrun{
+\donttest{
   # Initialize model and tokenizer
   hf_components <- huggingModel()
 

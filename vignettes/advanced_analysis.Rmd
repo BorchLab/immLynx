@@ -32,16 +32,42 @@ python_available <- tryCatch({
 ```
 
 # Introduction
-This vignette covers advanced topics and workflows for TCR analysis using
-immLynx, including:
 
-- Combining multiple analysis methods
-- Comparing clustering approaches
-- Integration with scRepertoire clonotype data
-- Custom embedding workflows
-- Metaclone analysis
+This vignette builds on the foundations established in
+`vignette("immLynx_vignette", package = "immLynx")` to explore advanced
+analytical workflows for T-cell receptor (TCR) repertoire data. While
+the introductory vignette demonstrates each analysis function
+individually, real-world studies often require combining multiple methods
+to gain complementary views of repertoire biology. For instance,
+sequence clustering identifies groups of structurally related TCRs,
+while generation probability highlights sequences that are unlikely to
+arise from random recombination and may therefore reflect
+antigen-driven selection. Protein language model embeddings offer yet
+another perspective by capturing learned biochemical features that do
+not depend on predefined distance metrics.
+
+This vignette covers the following advanced topics:
+
+- **Method comparison**: Evaluating how different clustering parameters
+  and algorithms partition the same repertoire
+- **Custom embedding workflows**: Comparing ESM-2 model sizes and
+  embedding paired alpha-beta chains
+- **Integration with scRepertoire**: Relating immLynx analysis results
+  to clonotype definitions from `r Biocpkg("scRepertoire")`
+- **Selection pressure analysis**: Combining OLGA generation
+  probabilities with sample metadata to identify selection signatures
+- **Distance-based analysis**: Using tcrdist3 distance matrices for
+  hierarchical clustering and nearest-neighbor analyses
+- **HLA association testing**: Linking metaclone assignments to HLA
+  genotype data
+- **Scalability strategies**: Practical approaches for analyzing large
+  datasets with limited computational resources
 
 # Setup
+
+We begin by loading the required packages and the example dataset. The
+`immLynx_example` object is a `SingleCellExperiment` containing
+scRNA-seq data with TCR annotations from `r Biocpkg("scRepertoire")`.
 
 ```{r load}
 library(immLynx)
@@ -54,12 +80,20 @@ data("immLynx_example")
 
 # Comparing Clustering Methods
 
-immLynx provides multiple approaches for grouping TCRs. Let's compare them:
+The MCL algorithm used by clusTCR has a key parameter, `inflation`, that
+controls the granularity of cluster assignments. Lower inflation values
+(e.g., 2.0) favor larger, more inclusive clusters, while higher values
+(e.g., 3.0) produce tighter, more specific groupings. Choosing the
+appropriate inflation parameter depends on the biological question: broad
+clusters may capture groups of TCRs with shared structural motifs, while
+tight clusters more closely approximate antigen-specificity groups.
 
-## clusTCR Clustering
+Here we run clusTCR with two different inflation parameters on the same
+dataset and compare the resulting cluster counts. By using distinct
+`column_prefix` values, both sets of assignments are stored in the same
+`SingleCellExperiment` object for side-by-side comparison.
 
 ```{r clustcr-compare, eval=python_available}
-# MCL clustering with different inflation parameters
 sce_mcl_2 <- runClustTCR(immLynx_example,
                             inflation = 2.0,
                             column_prefix = "mcl_2")
@@ -67,7 +101,6 @@ sce_mcl_3 <- runClustTCR(sce_mcl_2,
                             inflation = 3.0,
                             column_prefix = "mcl_3")
 
-# Compare number of clusters
 cat("MCL (inflation=2):",
     length(unique(na.omit(sce_mcl_3$mcl_2_TRB))),
     "clusters\n")
@@ -80,25 +113,32 @@ cat("MCL (inflation=3):",
 
 ## Using Different ESM-2 Model Sizes
 
-ESM-2 comes in different sizes. Larger models may provide better embeddings
-but require more computational resources:
+The ESM-2 family of protein language models ranges from 8 million to 15
+billion parameters. Larger models generally produce embeddings that
+better capture structural and functional properties of protein
+sequences, but they require substantially more memory and computation
+time. For TCR CDR3 sequences, which are short (typically 10-20 amino
+acids), smaller models often perform well and may be preferable for
+large-scale analyses.
+
+The following example compares embeddings from the 35M and 650M
+parameter variants. Both sets of embeddings are stored as separate
+dimensionality reductions in the `SingleCellExperiment` and can be
+independently visualized with UMAP.
 
 ```{r esm-models, eval=FALSE}
-# Small model (35M parameters) - fast, lower quality
 sce_small <- runEmbeddings(
   immLynx_example,
   model_name = "facebook/esm2_t12_35M_UR50D",
   reduction_name = "esm_small"
 )
 
-# Medium model (650M parameters) - balanced
 sce_med <- runEmbeddings(
   sce_small,
   model_name = "facebook/esm2_t33_650M_UR50D",
   reduction_name = "esm_medium"
 )
 
-# Compare embeddings
 sce_med <- scater::runUMAP(sce_med,
                       dimred = "esm_small",
                       name = "umap_small")
@@ -117,17 +157,20 @@ p1 + p2
 
 ## Embedding Both Chains
 
-For paired alpha-beta TCRs:
+For paired alpha-beta TCR data, embedding both chains together captures
+the joint receptor structure. The `chains = "both"` option concatenates
+the alpha and beta CDR3 sequences before computing embeddings, producing
+a single representation per cell that reflects the full receptor
+identity. This is particularly useful when alpha chain pairing
+contributes to antigen specificity.
 
 ```{r both-chains, eval=FALSE}
-# Embed both chains concatenated
 sce_paired <- runEmbeddings(
   immLynx_example,
   chains = "both",
   reduction_name = "tcr_paired"
 )
 
-# Visualize
 sce_paired <- scater::runUMAP(sce_paired,
                          dimred = "tcr_paired")
 scater::plotReducedDim(sce_paired, dimred = "UMAP")
@@ -135,38 +178,41 @@ scater::plotReducedDim(sce_paired, dimred = "UMAP")
 
 # Integration with scRepertoire Clonotypes
 
-immLynx is designed to work seamlessly with scRepertoire data:
+immLynx is designed to complement `r Biocpkg("scRepertoire")`, which
+defines clonotypes based on exact CDR3 sequence matching. By comparing
+clusTCR cluster assignments with scRepertoire's clonotype definitions,
+we can assess how sequence-similarity-based clustering relates to strict
+clonotype identity. Ideally, each cluster should contain one or a few
+closely related clonotypes, and cells sharing the same clonotype should
+be assigned to the same cluster.
 
 ```{r screpertoire-integration, eval=python_available}
-# The example data already has scRepertoire clonotype info
-# Let's compare TCR clusters to clonotypes
-
-# Get cluster assignments
 sce_clust <- runClustTCR(immLynx_example,
                             chains = "TRB")
 
-# Compare with scRepertoire's CTstrict clonotypes
 comparison <- table(
   clustcr = sce_clust$clustcr_TRB,
   clonotype = sce_clust$CTstrict
 )
 
-# Calculate overlap
-# A perfect clustering would have one cluster per clonotype
 cat("Number of clustcr clusters:", nrow(comparison), "\n")
 cat("Number of unique clonotypes:", ncol(comparison), "\n")
 ```
 
 # Analyzing Selection Pressure
 
-Use OLGA Pgen and soNNia to understand selection:
+Generation probability (Pgen) from OLGA provides a window into
+selection pressures acting on the TCR repertoire. Sequences with low
+Pgen are rarely produced by V(D)J recombination; their presence in the
+observed repertoire suggests positive selection, potentially driven by
+antigen encounter. By comparing Pgen distributions across experimental
+conditions or sample types, we can identify conditions associated with
+enrichment of rare, potentially antigen-selected sequences.
 
 ```{r selection, eval=python_available}
-# Calculate generation probability
 sce_pgen <- runOLGA(immLynx_example,
                        chains = "TRB")
 
-# Compare Pgen across sample types
 ggplot(as.data.frame(colData(sce_pgen)), aes(x = Type,
                             y = olga_pgen_log10_TRB)) +
   geom_boxplot() +
@@ -174,26 +220,25 @@ ggplot(as.data.frame(colData(sce_pgen)), aes(x = Type,
        x = "Sample Type",
        y = "log10(Pgen)")
 
-# Cells with low Pgen may be under stronger selection
-# because they are rare in the naive repertoire
 low_pgen_cells <- which(colData(sce_pgen)$olga_pgen_log10_TRB < -15)
 cat("Cells with Pgen < 10^-15:", length(low_pgen_cells), "\n")
 ```
 
 # Combining Distance-Based Methods
 
-Use TCRdist together with clustering:
+tcrdist3 distance matrices provide a continuous measure of TCR
+similarity that can serve as input to a variety of unsupervised learning
+methods. Here we demonstrate hierarchical clustering of the distance
+matrix, which complements the MCL-based approach used by clusTCR. The
+`complete` linkage method ensures that all members of a cluster are
+within a maximum distance of each other, producing compact groups. Note
+that because tcrdist3 deduplicates input sequences, the distance matrix
+dimensions correspond to unique TCR sequences rather than individual
+cells.
 
 ```{r combined-distance, eval=python_available}
-# Calculate TCR distances
 dist_results <- runTCRdist(immLynx_example, chains = "beta")
 
-# The distance matrix can be used for hierarchical clustering
-# or other downstream analyses
-
-# Convert to distance object for hierarchical clustering
-# Note: tcrdist3 deduplicates sequences, so the matrix may be
-# smaller than the total number of input cells
 d <- as.dist(dist_results$distances$pw_beta)
 hc <- hclust(d, method = "complete")
 n_unique <- nrow(dist_results$distances$pw_beta)
@@ -205,24 +250,33 @@ cat("Hierarchical clusters:", length(unique(clusters)), "\n")
 
 # Working with Large Datasets
 
-For large datasets, consider these strategies:
+For datasets with thousands or tens of thousands of cells, computational
+resources may become a limiting factor. The following strategies can
+help manage memory and runtime:
+
+- **Chunked embedding**: The `chunk_size` parameter in `runEmbeddings()`
+  controls how many sequences are processed in each batch. Smaller
+  chunks reduce peak memory usage at the cost of slightly longer runtime.
+- **MCL clustering**: clusTCR's MCL algorithm scales efficiently to
+  large sequence sets and is generally preferable to pairwise distance
+  methods for datasets exceeding a few thousand unique sequences.
+- **Subsampling for distances**: tcrdist3 computes all-versus-all
+  distances, which scales quadratically. For very large datasets,
+  computing distances on a representative subset is a practical
+  alternative.
 
 ```{r large-data, eval=FALSE}
-# 1. Use chunked processing for embeddings
 sce_large <- runEmbeddings(
   large_sce,
-  chunk_size = 16,  # Smaller chunks for memory
-  pool = "mean"     # Pooling reduces dimensionality
+  chunk_size = 16,
+  pool = "mean"
 )
 
-# 2. Cluster with MCL
 sce_large <- runClustTCR(
   large_sce,
   inflation = 2.0
 )
 
-# 3. Sample for distance calculations
-# For very large datasets, calculate distances on a subset
 sample_cells <- sample(colnames(large_sce), 5000)
 subset_obj <- large_sce[, sample_cells]
 dist_results <- runTCRdist(subset_obj)
@@ -230,81 +284,96 @@ dist_results <- runTCRdist(subset_obj)
 
 # HLA Association Analysis
 
-If HLA typing data is available:
+When HLA genotyping data is available, immLynx can test for associations
+between metaclone assignments and specific HLA alleles using
+`runHLAassociation()`. This analysis identifies metaclones whose
+frequency differs significantly between HLA-positive and HLA-negative
+individuals, suggesting potential HLA-restricted antigen recognition.
+The function performs Fisher's exact test for each metaclone-HLA
+combination and returns adjusted p-values.
 
 ```{r hla, eval=python_available}
-# Run metaclonotypist
-metaclones <- runMetaclonotypist(immLynx_example, 
+metaclones <- runMetaclonotypist(immLynx_example,
                                  return_input = FALSE)
 
-# Create mock HLA data (replace with real data)
 hla_data <- data.frame(
   barcode = metaclones$barcode,
-  HLA_A_01_01 = sample(c(TRUE, FALSE), 
-                       nrow(metaclones), 
+  HLA_A_01_01 = sample(c(TRUE, FALSE),
+                       nrow(metaclones),
                        replace = TRUE),
-  HLA_A_02_01 = sample(c(TRUE, FALSE), 
-                       nrow(metaclones), 
+  HLA_A_02_01 = sample(c(TRUE, FALSE),
+                       nrow(metaclones),
                        replace = TRUE),
-  HLA_B_07_02 = sample(c(TRUE, FALSE), 
-                       nrow(metaclones), 
+  HLA_B_07_02 = sample(c(TRUE, FALSE),
+                       nrow(metaclones),
                        replace = TRUE)
 )
 
-# Test associations
-hla_results <- runHLAassociation(metaclones, 
+hla_results <- runHLAassociation(metaclones,
                                  hla_data)
 head(hla_results)
 ```
 
 # Exporting Results
 
-Export results for external tools or further analysis:
+All immLynx results can be exported to standard file formats for use
+with external tools or for archiving. The `convertToTcrdist()` function
+reformats TCR data into the tabular format expected by standalone
+tcrdist3, facilitating interoperability with Python-based analysis
+pipelines.
 
 ```{r export, eval=FALSE}
-# Export TCR data in tcrdist3 format
-tcr_data <- extractTCRdata(immLynx_example, 
-                           chains = "both", 
+tcr_data <- extractTCRdata(immLynx_example,
+                           chains = "both",
                            format = "wide")
-tcrdist_format <- convertToTcrdist(tcr_data, 
+tcrdist_format <- convertToTcrdist(tcr_data,
                                    chains = "both")
 write.csv(tcrdist_format, "tcr_for_tcrdist.csv", row.names = FALSE)
 
-# Export cluster assignments
 clusters <- data.frame(
   barcode = colnames(sce_clust),
   clustcr = sce_clust$clustcr_TRB
 )
 write.csv(clusters, "cluster_assignments.csv", row.names = FALSE)
 
-# Export embeddings
 embeddings <- reducedDim(sce_small, "esm_small")
 write.csv(embeddings, "tcr_embeddings.csv")
 ```
 
 # Best Practices
 
-1. **Data Quality**: Always validate your TCR data before analysis
-   
+1. **Data Quality**: Always validate TCR data before analysis using
+   `validateTCRdata()`. This catches common issues such as missing CDR3
+   sequences, non-standard amino acids, and inconsistent chain
+   annotations that can cause downstream errors or misleading results.
+
    ```{r validate, eval=FALSE}
    validation <- validateTCRdata(tcr_data, check_sequences = TRUE)
    if (!validation$valid) {
      warning(validation$errors)
    }
    ```
-   
-2. **Memory Management**: For large datasets, use smaller chunk sizes and consider sampling strategies
 
-3. **Reproducibility**: Set random seeds before running stochastic algorithms
-   
+2. **Memory Management**: For large datasets, use smaller chunk sizes in
+   `runEmbeddings()` and consider subsampling strategies for
+   distance-based methods.
+
+3. **Reproducibility**: Set random seeds before running stochastic
+   algorithms such as MCL clustering to ensure reproducible results.
+
    ```{r seed, eval=FALSE}
    set.seed(42)
    sce <- runClustTCR(sce)
    ```
 
-4. **Multiple Methods**: Use multiple clustering/grouping methods and look for consensus
+4. **Multiple Methods**: Use multiple clustering or grouping methods and
+   look for consensus. Sequences that are consistently co-clustered
+   across methods are more likely to represent biologically meaningful
+   groups.
 
-5. **Biological Validation**: Always validate computational clusters with biological knowledge (antigen specificity, phenotype, etc.)
+5. **Biological Validation**: Computational clusters should be validated
+   against biological evidence such as antigen specificity, phenotypic
+   markers, or clinical outcomes whenever possible.
 
 # Session Info
 
