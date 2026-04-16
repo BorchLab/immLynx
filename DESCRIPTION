@@ -18,7 +18,7 @@ RoxygenNote: 7.3.3
 biocViews: Software, ImmunoOncology, SingleCell, Classification, Annotation,
     Sequencing, MotifAnnotation, Clustering, DimensionReduction
 Depends:
-    R (>= 4.6.0)
+    R (>= 4.5.0)
 Imports:
     basilisk (>= 1.8.0),
     reticulate (>= 1.24),
