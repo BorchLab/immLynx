@@ -46,7 +46,7 @@ This function extracts TCR sequences from a
 }
 \examples{
 data(immLynx_example)
-\dontrun{
+\donttest{
   # Cluster TRB chain using MCL algorithm
   sce <- runClustTCR(immLynx_example,
                             chains = "TRB")

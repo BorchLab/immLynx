@@ -24,16 +24,8 @@ Default is "TRB".}
 Default is TRUE.}
 }
 \value{
-An object of class "TCR_summary" containing:
-  \describe{
-    \item{total_cells}{Total number of cells with TCR data}
-    \item{unique_clonotypes}{Number of unique clonotypes}
-    \item{clonality}{1 - normalized Shannon entropy}
-    \item{diversity}{List of diversity indices (Shannon, Simpson, etc.)}
-    \item{top_clones}{Top 10 most frequent clonotypes}
-    \item{cdr3_length}{Summary of CDR3 sequence lengths}
-    \item{gene_usage}{V and J gene usage frequencies}
-  }
+An object of class \code{\linkS4class{TCR_summary}} containing
+  summary statistics for the TCR repertoire.
 }
 \description{
 Generates summary statistics for TCR repertoire data including

@@ -44,7 +44,7 @@ Applies a pre-trained model to a batch of tokenized sequences
 }
 \examples{
 sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
-\dontrun{
+\donttest{
   # Full workflow: load model, tokenize, embed
   hf_components <- huggingModel()
   tokenized <- tokenizeSequences(hf_components$tokenizer,
