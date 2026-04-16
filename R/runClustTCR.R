@@ -24,10 +24,11 @@
 #' @export
 #' @importFrom immApex getIR
 #' @importFrom methods is
+#' @importFrom SummarizedExperiment colData colData<-
 #'
 #' @examples
 #' data(immLynx_example)
-#' \dontrun{
+#' \donttest{
 #'   # Cluster TRB chain using MCL algorithm
 #'   sce <- runClustTCR(immLynx_example,
 #'                             chains = "TRB")
@@ -83,7 +84,7 @@ runClustTCR <- function(input,
       col_vec <- rep(NA, ncol(obj))
       names(col_vec) <- colnames(obj)
       col_vec[cell_names] <- values
-      SummarizedExperiment::colData(obj)[[col_name]] <- col_vec
+      colData(obj)[[col_name]] <- col_vec
     } else {
       col_vec <- rep(NA, ncol(obj))
       names(col_vec) <- colnames(obj)

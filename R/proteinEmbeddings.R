@@ -29,7 +29,7 @@
 #'
 #' @examples
 #' sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
-#' \dontrun{
+#' \donttest{
 #'   # Full workflow: load model, tokenize, embed
 #'   hf_components <- huggingModel()
 #'   tokenized <- tokenizeSequences(hf_components$tokenizer,
@@ -177,6 +177,7 @@ proteinEmbeddings <- function(
     # ---- Key change: get batch size via py_len (size of dim 0) ----
     n <- as.integer(reticulate::py_len(tb$input_ids))
     
+    if (n == 0L) return(list())
     starts <- seq.int(0L, n - 1L, by = as.integer(chunk_size))
     
     lapply(starts, function(s) {

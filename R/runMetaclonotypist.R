@@ -43,7 +43,7 @@
 #'
 #' @examples
 #' data(immLynx_example)
-#' \dontrun{
+#' \donttest{
 #'   # Run metaclonotypist on beta chain
 #'   sce <- runMetaclonotypist(immLynx_example, chains = "beta")
 #'
@@ -190,10 +190,7 @@ calculate.metaclonotypist <- function(cdr3_sequences,
                                       clustering = "leiden",
                                       resolution = 1.0) {
 
-  proc <- basilisk::basiliskStart(immLynxEnv)
-  on.exit(basilisk::basiliskStop(proc))
-
-  results <- basilisk::basiliskRun(proc, function(cdr3_sequences, v_genes, j_genes, chain,
+  results <- .run_in_basilisk(function(cdr3_sequences, v_genes, j_genes, chain,
                                                    method, max_edits, max_dist,
                                                    clustering, resolution) {
     pd <- reticulate::import("pandas")

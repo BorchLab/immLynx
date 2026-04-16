@@ -24,7 +24,7 @@
 #'
 #' @examples
 #' sequences <- c("CASSLGTGELFF", "CASSIRSSYEQYF", "CASSYSTGELFF")
-#' \dontrun{
+#' \donttest{
 #'   # Initialize model and tokenizer
 #'   hf_components <- huggingModel()
 #'

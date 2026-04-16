@@ -19,10 +19,11 @@
 #' @export
 #' @importFrom immApex getIR
 #' @importFrom methods is
+#' @importFrom SummarizedExperiment colData colData<-
 #'
 #' @examples
 #' data(immLynx_example)
-#' \dontrun{
+#' \donttest{
 #'   # Calculate Pgen for TRB chain
 #'   sce <- runOLGA(immLynx_example, chains = "TRB")
 #'
@@ -66,7 +67,7 @@ runOLGA <- function(input,
       col_vec <- rep(NA_real_, ncol(obj))
       names(col_vec) <- colnames(obj)
       col_vec[cell_names] <- values
-      SummarizedExperiment::colData(obj)[[col_name]] <- col_vec
+      colData(obj)[[col_name]] <- col_vec
     } else {
       col_vec <- rep(NA_real_, ncol(obj))
       names(col_vec) <- colnames(obj)
@@ -157,7 +158,7 @@ runOLGA <- function(input,
 #' @examples
 #' # Available models
 #' models <- c("humanTRB", "humanTRA", "humanIGH", "mouseTRB")
-#' \dontrun{
+#' \donttest{
 #'   # Generate 100 random human TRB sequences
 #'   random_seqs <- generateOLGA(n = 100, model = "humanTRB")
 #'   head(random_seqs)
