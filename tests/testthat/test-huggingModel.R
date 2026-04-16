@@ -100,8 +100,7 @@ test_that("huggingModel errors with invalid model name", {
   skip_if_no_python()
 
   expect_error(
-    huggingModel("completely/nonexistent-model-xyz-12345"),
-    "Could not initialize Hugging Face"
+    huggingModel("completely/nonexistent-model-xyz-12345")
   )
 })
 

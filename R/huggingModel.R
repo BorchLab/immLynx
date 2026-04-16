@@ -21,7 +21,7 @@
 #' @examples
 #' # Default model is ESM-2 35M
 #' model_name <- "facebook/esm2_t12_35M_UR50D"
-#' \dontrun{
+#' \donttest{
 #'   # Load the default ESM-2 35M model
 #'   hf_components <- huggingModel(model_name)
 #'   names(hf_components)  # "model", "tokenizer", "proc"
@@ -45,39 +45,28 @@ huggingModel <- function(model_name = "facebook/esm2_t12_35M_UR50D") {
   message("This may take a while if the model needs to be downloaded...")
 
   proc <- basilisk::basiliskStart(immLynxEnv)
+  success <- FALSE
+  on.exit(if (!success) basilisk::basiliskStop(proc))
 
-  tryCatch({
-    result <- basilisk::basiliskRun(proc, function(model_name) {
-      # Import the 'transformers' Python library
-      transformers <- reticulate::import("transformers", convert = FALSE)
+  result <- basilisk::basiliskRun(proc, function(model_name) {
+    transformers <- reticulate::import("transformers", convert = FALSE)
 
-      # Load the pre-trained tokenizer
-      message("Loading tokenizer...")
-      tokenizer <- transformers$AutoTokenizer$from_pretrained(model_name)
+    message("Loading tokenizer...")
+    tokenizer <- transformers$AutoTokenizer$from_pretrained(model_name)
 
-      # Load the pre-trained model
-      message("Loading model...")
-      model <- transformers$AutoModel$from_pretrained(model_name)
+    message("Loading model...")
+    model <- transformers$AutoModel$from_pretrained(model_name)
 
-      message("Initialization successful.")
+    message("Initialization successful.")
 
-      # Return the components as a list
-      list(
-        model = model,
-        tokenizer = tokenizer
-      )
-    }, model_name = model_name)
-
-    # Attach the process handle so the caller can stop it later
-    result$proc <- proc
-
-    return(result)
-
-  }, error = function(e) {
-    basilisk::basiliskStop(proc)
-    stop(
-      "Could not initialize Hugging Face components. ",
-      "Original error: ", e$message
+    list(
+      model = model,
+      tokenizer = tokenizer
     )
-  })
+  }, model_name = model_name)
+
+  result$proc <- proc
+  success <- TRUE
+
+  return(result)
 }
