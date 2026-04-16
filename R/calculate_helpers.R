@@ -5,6 +5,14 @@
 #' @keywords internal
 NULL
 
+# Shared basilisk helper: starts the environment, runs a function, and
+# ensures cleanup on exit. All calculate.* functions delegate to this.
+.run_in_basilisk <- function(FUN, ...) {
+  proc <- basilisk::basiliskStart(immLynxEnv)
+  on.exit(basilisk::basiliskStop(proc))
+  basilisk::basiliskRun(proc, FUN, ...)
+}
+
 #' Calculate TCR Distances using tcrdist3
 #' @description Internal function that calls tcrdist3 via basilisk.
 #' @param df A data.frame with TCR sequences in tcrdist3 format
@@ -18,10 +26,7 @@ calculate.tcrDist <- function(df,
                               chains = "beta",
                               compute_distances = TRUE) {
 
-  proc <- basilisk::basiliskStart(immLynxEnv)
-  on.exit(basilisk::basiliskStop(proc))
-
-  results <- basilisk::basiliskRun(proc, function(df, organism, chains, compute_distances) {
+  results <- .run_in_basilisk(function(df, organism, chains, compute_distances) {
     pd <- reticulate::import("pandas")
     tc <- reticulate::import("tcrdist.repertoire")
 
@@ -89,10 +94,7 @@ calculate.clustcr <- function(sequences,
                               eps = 0.5,
                               min_samples = 2) {
 
-  proc <- basilisk::basiliskStart(immLynxEnv)
-  on.exit(basilisk::basiliskStop(proc))
-
-  cluster_df <- basilisk::basiliskRun(proc, function(sequences,
+  cluster_df <- .run_in_basilisk(function(sequences,
       method, inflation, eps, min_samples) {
     pd <- reticulate::import("pandas")
     clustcr <- reticulate::import("clustcr")
@@ -146,10 +148,7 @@ calculate.olga <- function(action = c("pgen", "generate"),
 
   action <- match.arg(action)
 
-  proc <- basilisk::basiliskStart(immLynxEnv)
-  on.exit(basilisk::basiliskStop(proc))
-
-  result <- basilisk::basiliskRun(proc, function(action, model, sequences, v_genes, j_genes, n) {
+  result <- .run_in_basilisk(function(action, model, sequences, v_genes, j_genes, n) {
     olga <- reticulate::import("olga")
     os <- reticulate::import("os")
 
@@ -258,9 +257,6 @@ calculate.sonia <- function(data_folder,
                             n_epochs = 100,
                             save_folder = "sonia_output") {
 
-  proc <- basilisk::basiliskStart(immLynxEnv)
-  on.exit(basilisk::basiliskStop(proc))
-
   # Read and prepare data as lists of lists: [[cdr3, v_gene, j_gene], ...]
   data_path <- file.path(data_folder, data_filename)
   pgen_path <- file.path(data_folder, pgen_filename)
@@ -288,7 +284,7 @@ calculate.sonia <- function(data_folder,
     c(background_csv[[aa_col]][i], "", "")
   })
 
-  results <- basilisk::basiliskRun(proc, function(data_seqs, gen_seqs,
+  results <- .run_in_basilisk(function(data_seqs, gen_seqs,
                                                    dataset_type, n_epochs, save_folder) {
     sonnia <- reticulate::import("sonnia.sonnia")
 
