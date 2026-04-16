@@ -1,9 +1,10 @@
 Package: immLynx
 Title: Linking Advanced TCR Python Pipelines and Hugging Face Models in R
-Version: 0.99.2
+Version: 0.99.3
 Authors@R: c(
     person(given = "Nick", family = "Borcherding", role = c("aut", "cre"),
-           email = "ncborch@gmail.com"))
+           email = "ncborch@gmail.com",
+           comment = c(ORCID = "0000-0003-1427-6342")))
 Description: A comprehensive toolkit that bridges popular Python-based immune
     repertoire analysis tools and Hugging Face protein language models into the
     R environment. Provides unified interfaces for TCR distance calculations
@@ -17,7 +18,7 @@ RoxygenNote: 7.3.3
 biocViews: Software, ImmunoOncology, SingleCell, Classification, Annotation,
     Sequencing, MotifAnnotation, Clustering, DimensionReduction
 Depends:
-    R (>= 4.3.0)
+    R (>= 4.6.0)
 Imports:
     basilisk (>= 1.8.0),
     reticulate (>= 1.24),
