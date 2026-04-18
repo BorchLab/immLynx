@@ -351,6 +351,10 @@ convertToTcrdist <- function(tcr_data,
 #' @slot gene_usage List of V and J gene usage data.frames.
 #' @slot chains Character. Chain(s) summarized.
 #'
+#' @return An S4 object of class \code{TCR_summary} containing the summary
+#'   statistics described in the slots. The \code{show} method prints a
+#'   formatted summary to the console and returns \code{invisible(NULL)}.
+#'
 #' @exportClass TCR_summary
 #' @importFrom methods new setClass setMethod show
 #' @name TCR_summary-class

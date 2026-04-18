@@ -11,6 +11,11 @@
 \arguments{
 \item{object}{A \code{TCR_summary} object.}
 }
+\value{
+An S4 object of class \code{TCR_summary} containing the summary
+  statistics described in the slots. The \code{show} method prints a
+  formatted summary to the console and returns \code{invisible(NULL)}.
+}
 \description{
 Formal S4 class to store summary statistics for a TCR repertoire,
   including diversity metrics, clonality measures, and sequence characteristics.

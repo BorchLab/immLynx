@@ -1,3 +1,8 @@
+# immLynx 0.99.4
+
+* Added `\value` section to `TCR_summary-class` documentation to resolve
+  R CMD check warning about empty/missing `\value` sections
+
 # immLynx 0.99.3
 
 * Addressed Bioconductor reviewer feedback

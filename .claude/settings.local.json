@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(R -e \"roxygen2::roxygenise\\(\\)\")"
+    ]
+  }
+}
