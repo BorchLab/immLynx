@@ -10,7 +10,7 @@ Linking advanced TCR python pipelines and Hugging Face models in R
 <!-- badges: end -->
 
 
-<img align="right" src="https://github.com/BorchLab/immLynx/blob/main/www/immlynx_hex.png" width="305" height="352">
+<img align="right" src="https://github.com/BorchLab/immLynx/blob/devel/www/immlynx_hex.png" width="305" height="352">
 
 immLynx provides a unified R interface for running multiple state-of-the-art TCR analysis
 pipelines on single-cell TCR sequencing data. The package seamlessly integrates
