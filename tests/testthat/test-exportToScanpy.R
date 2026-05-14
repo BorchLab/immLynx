@@ -473,7 +473,10 @@ test_that("exportToScanpy writes a parseable AIRR TSV sidecar", {
                        verbose = FALSE)
 
   expect_true(file.exists(res$airr))
-  airr <- data.table::fread(res$airr)
+  airr <- data.table::as.data.table(
+    read.delim(gzfile(res$airr), sep = "\t", check.names = FALSE,
+               stringsAsFactors = FALSE)
+  )
   required <- c("cell_id", "sequence_id", "locus", "productive",
                 "v_call", "j_call", "junction_aa", "junction")
   expect_true(all(required %in% colnames(airr)))
@@ -510,7 +513,10 @@ test_that("exportToScanpy AIRR row count matches .buildAIRR output", {
                        format = "h5ad", write_airr = TRUE,
                        chains = "TRB", verbose = FALSE)
 
-  written <- data.table::fread(res$airr)
+  written <- data.table::as.data.table(
+    read.delim(gzfile(res$airr), sep = "\t", check.names = FALSE,
+               stringsAsFactors = FALSE)
+  )
   internal <- immLynx:::.buildAIRR(immLynx_example, chains = "TRB")
   expect_equal(nrow(written), nrow(internal))
   expect_equal(sort(unique(written$locus)),
