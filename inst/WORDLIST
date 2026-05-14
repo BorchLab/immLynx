@@ -1,5 +1,8 @@
+AIRR
 AutoModel
 BCR
+BioC
+Bioc
 CDR
 CMD
 Clonotypes
@@ -7,6 +10,7 @@ Codecov
 DBSCAN
 ESM
 Embeddings
+GEX
 GLIPH
 HLA
 Hyperexpanded
@@ -19,6 +23,7 @@ MCL
 Metaclone
 Metaclones
 Metaclonotypist
+MuData
 OLGA's
 ORCID
 Pgen
@@ -35,6 +40,7 @@ TRA
 TRB
 TRD
 TRG
+TSV
 Tokenize
 Tokenizer
 UMAP
@@ -61,7 +67,9 @@ cpu
 cuda
 dbscan
 deduplicates
+disambiguated
 embeddings
+erroring
 esm
 et
 extractTCRdata
@@ -84,10 +92,12 @@ metaclonotypist
 minibatched
 mouseTRB
 mps
+muon
 ncbi
 nih
 nlm
 nt
+numpy
 olga
 pgen
 pre
@@ -102,8 +112,11 @@ runMetaclonotypist
 scRNA
 scRepertoire
 scRepertoire's
+scanpy
 scater
 sceptr
+scirpy
+scirpy's
 scran
 soNNia
 sonia

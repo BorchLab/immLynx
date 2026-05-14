@@ -55,10 +55,10 @@ scanpyExportEnv <- basilisk::BasiliskEnvironment(
         "numpy",
         "pandas",
         "scipy",
-        "h5py",
-        "anndata>=0.8"
+        "h5py"
     ),
     pip = c(
+        "anndata>=0.8",
         "scanpy",
         "muon",
         "scirpy"
