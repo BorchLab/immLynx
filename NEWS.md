@@ -1,4 +1,4 @@
-# immLynx 1.1.1
+# immLynx 1.1.2
 
 * Added `exportToScanpy()` to write a `SingleCellExperiment` or `Seurat`
   object (with optional scRepertoire immune-receptor metadata) to
@@ -8,6 +8,10 @@
   basilisk environment. BCR loci (`IGH`, `IGK`, `IGL`) are mapped to
   `immApex::getIR()`'s `Heavy`/`Light` chains and disambiguated by
   V-gene prefix.
+
+# immLynx 1.0.0
+
+* Official Bioconductor release in 3.23
 
 # immLynx 0.99.4
 

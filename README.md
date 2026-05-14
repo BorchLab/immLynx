@@ -99,15 +99,15 @@ Cluster TCRs based on sequence similarity using clusTCR:
 ```r
 # MCL clustering (default)
 sce <- runClustTCR(sce,
-                          chains = "TRB",
-                          method = "mcl",
-                          inflation = 2.0)
+                   chains = "TRB",
+                   method = "mcl",
+                   inflation = 2.0)
 
 # DBSCAN clustering
 sce <- runClustTCR(sce,
-                          chains = "TRB",
-                          method = "dbscan",
-                          eps = 0.5)
+                   chains = "TRB",
+                   method = "dbscan",
+                   eps = 0.5)
 ```
 
 ### Metaclone Discovery
@@ -117,15 +117,15 @@ Identify metaclones using metaclonotypist:
 ```r
 # Run metaclonotypist with TCRdist
 sce <- runMetaclonotypist(sce,
-                                  chains = "beta",
-                                  method = "tcrdist",
-                                  max_edits = 2,
-                                  max_dist = 20)
+                          chains = "beta",
+                          method = "tcrdist",
+                          max_edits = 2,
+                          max_dist = 20)
 
 # Use SCEPTR distance metric
 sce <- runMetaclonotypist(sce,
-                                  method = "sceptr",
-                                  max_dist = 1.0)
+                          method = "sceptr",
+                          max_dist = 1.0)
 ```
 
 ### Generation Probability
@@ -135,8 +135,8 @@ Calculate how likely each TCR sequence is to be generated naturally:
 ```r
 # Calculate Pgen for TRB sequences
 sce <- runOLGA(sce,
-                      chains = "TRB",
-                      model = "humanTRB")
+               chains = "TRB",
+               model = "humanTRB")
 
 # Generate random TCR sequences
 random_tcrs <- generateOLGA(n = 1000, model = "humanTRB")
@@ -149,12 +149,12 @@ Generate dense vector representations using ESM-2:
 ```r
 # Default: ESM-2 35M model
 sce <- runEmbeddings(sce,
-                            chains = "TRB",
-                            pool = "mean")
+                     chains = "TRB",
+                     pool = "mean")
 
 # Use larger model for better embeddings
 sce <- runEmbeddings(sce,
-                            model_name = "facebook/esm2_t33_650M_UR50D")
+                     model_name = "facebook/esm2_t33_650M_UR50D")
 
 # Visualize in UMAP space
 sce <- scater::runUMAP(sce, dimred = "tcr_esm")
@@ -185,7 +185,7 @@ write.csv(background, "background.csv", row.names = FALSE)
 
 # 2. Run soNNia
 sce <- runSoNNia(sce,
-                        background_file = "background.csv")
+                 background_file = "background.csv")
 ```
 
 ### Export to scanpy / scirpy
