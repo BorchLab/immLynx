@@ -1,0 +1,148 @@
+on:
+  push:
+    branches: [devel]
+
+name: Release
+
+jobs:
+  detect-version-bump:
+    runs-on: ubuntu-latest
+    outputs:
+      released: ${{ steps.check.outputs.released }}
+      version:  ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need the parent commit so we can diff DESCRIPTION.
+          fetch-depth: 2
+
+      - name: Check whether DESCRIPTION Version changed
+        id: check
+        run: |
+          set -euo pipefail
+          NEW_VERSION=$(grep '^Version:' DESCRIPTION | sed 's/Version:[[:space:]]*//')
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            OLD_VERSION=$(git show HEAD~1:DESCRIPTION 2>/dev/null \
+              | grep '^Version:' | sed 's/Version:[[:space:]]*//' || true)
+          else
+            OLD_VERSION=""
+          fi
+
+          echo "Old version: ${OLD_VERSION:-<none>}"
+          echo "New version: $NEW_VERSION"
+
+          if [ -z "$NEW_VERSION" ]; then
+            echo "::error::DESCRIPTION has no Version field"
+            exit 1
+          fi
+
+          if [ "$NEW_VERSION" = "$OLD_VERSION" ]; then
+            echo "Version unchanged; nothing to release."
+            echo "released=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # Refuse to overwrite an existing tag.
+          git fetch --tags --quiet
+          if git rev-parse --verify --quiet "refs/tags/v$NEW_VERSION" >/dev/null; then
+            echo "::warning::Tag v$NEW_VERSION already exists; skipping release."
+            echo "released=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "released=true" >> "$GITHUB_OUTPUT"
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+  R-CMD-check:
+    needs: detect-version-bump
+    if: needs.detect-version-bump.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+
+  release:
+    needs: [detect-version-bump, R-CMD-check]
+    if: needs.detect-version-bump.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      VERSION:    ${{ needs.detect-version-bump.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Extract release notes from NEWS.md
+        run: |
+          set -euo pipefail
+          # Pull the section under "# immLynx X.Y.Z" up to the next
+          # "# immLynx " header. Header match is exact on the version
+          # token to avoid grabbing 1.1.10 when looking for 1.1.1.
+          awk -v ver="$VERSION" '
+            /^# immLynx / {
+              if (found) exit
+              # Match "# immLynx <ver>" with end-of-line or whitespace
+              # after the version, so 1.1.1 does not match 1.1.10.
+              if ($0 == "# immLynx " ver || $0 ~ "^# immLynx " ver "[[:space:]]") {
+                found=1; next
+              }
+            }
+            found { print }
+          ' NEWS.md > release_notes.md
+
+          # Trim leading/trailing blank lines.
+          sed -i -e '/./,$!d' -e :a -e '/^\n*$/{$d;N;ba' -e '}' release_notes.md
+
+          if [ ! -s release_notes.md ]; then
+            echo "::error::No NEWS.md section found for version $VERSION."
+            echo "::error::Add a '# immLynx $VERSION' section before tagging."
+            exit 1
+          fi
+
+          echo "Release notes:"
+          echo "----"
+          cat release_notes.md
+          echo "----"
+
+      - name: Build source tarball
+        run: R CMD build .
+
+      - name: Create and push tag
+        run: |
+          set -euo pipefail
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v$VERSION" -m "immLynx $VERSION"
+          git push origin "v$VERSION"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "v$VERSION" \
+            --title "immLynx $VERSION" \
+            --notes-file release_notes.md \
+            immLynx_*.tar.gz
