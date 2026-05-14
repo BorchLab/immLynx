@@ -2,8 +2,11 @@
 Linking advanced TCR python pipelines and Hugging Face models in R
 
 <!-- badges: start -->
-  [![R-CMD-check](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml)
-  [![Codecov test coverage](https://codecov.io/gh/BorchLab/immLynx/graph/badge.svg)](https://app.codecov.io/gh/BorchLab/immLynx)
+[![BioC status](http://www.bioconductor.org/shields/build/release/bioc/immLynx.svg)](https://bioconductor.org/checkResults/release/bioc-LATEST/immLynx)
+[![Bioc Devel Build](http://www.bioconductor.org/shields/build/devel/bioc/immLynx.svg)](http://www.bioconductor.org/checkResults/devel/bioc-LATEST/immLynx)
+[![R-CMD-check](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/BorchLab/immLynx/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/BorchLab/immLynx/branch/devel/graph/badge.svg)](https://app.codecov.io/gh/BorchLab/immLynx?branch=devel)
+[![Bioc Downloads](http://www.bioconductor.org/shields/downloads/release/immLynx.svg)](http://bioconductor.org/packages/stats/bioc/immLynx/)
 <!-- badges: end -->
 
 
