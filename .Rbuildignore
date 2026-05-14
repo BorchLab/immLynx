@@ -9,3 +9,5 @@
 ^\.lintr$
 ^codecov\.yml$
 ^cran-comments\.md$
+^doc$
+^Meta$

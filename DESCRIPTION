@@ -1,6 +1,6 @@
 Package: immLynx
 Title: Linking Advanced TCR Python Pipelines and Hugging Face Models in R
-Version: 0.99.4
+Version: 1.1.1
 Authors@R: c(
     person(given = "Nick", family = "Borcherding", role = c("aut", "cre"),
            email = "ncborch@gmail.com",
@@ -28,16 +28,20 @@ Imports:
     SingleCellExperiment,
     stats,
     SummarizedExperiment,
-    utils
+    utils,
+    zellkonverter
 Suggests:
     BiocStyle,
+    data.table,
     ggplot2,
     knitr,
     markdown,
+    Matrix,
     rmarkdown,
     scater,
     scran,
     scRepertoire,
+    Seurat,
     spelling,
     testthat (>= 3.0.0),
     withr

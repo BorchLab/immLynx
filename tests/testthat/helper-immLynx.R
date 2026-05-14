@@ -111,3 +111,62 @@ skip_if_no_metaclonotypist <- function() {
     testthat::skip("metaclonotypist shared library not loadable")
   }
 }
+
+# Skip test if the scanpy export basilisk env is not available.
+# This env is separate from immLynxEnv (anndata + scanpy + muon + scirpy
+# stack), so it has its own first-use install cost.
+skip_if_no_scanpy_env <- function() {
+  skip_on_bioc_build()
+  ok <- tryCatch({
+    proc <- basilisk::basiliskStart(immLynx:::scanpyExportEnv)
+    on.exit(basilisk::basiliskStop(proc))
+    TRUE
+  }, error = function(e) FALSE)
+  if (!ok) testthat::skip("scanpyExportEnv not available")
+}
+
+# Mock SCE with hand-crafted scRepertoire CT* fields. Used by the
+# exportToScanpy / .buildAIRR test suite. scRepertoire uses "_" as the
+# chain-slot separator (TRA before, TRB after) with explicit "NA" tokens
+# for missing chains; mocks must match that contract.
+mock_tcr_sce <- function() {
+  ct_gene <- c(
+    "TRAV1.TRAJ1.TRAC_TRBV1.TRBD1.TRBJ1.TRBC1",  # paired
+    "NA_TRBV2.TRBD2.TRBJ2.TRBC2",                # beta only
+    NA,                                           # no TCR
+    "TRAV3.TRAJ3.TRAC_NA"                         # alpha only
+  )
+  ct_aa <- c("CASA_CASB", "NA_CASB2", NA, "CASA3_NA")
+  ct_nt <- c("TGTGCA_TGTGCB", "NA_TGTGCB2", NA, "TGTGCA3_NA")
+
+  SingleCellExperiment::SingleCellExperiment(
+    assays = list(counts = matrix(0L, 2, 4,
+                                  dimnames = list(c("g1", "g2"),
+                                                  paste0("c", 1:4)))),
+    colData = S4Vectors::DataFrame(
+      CTgene = ct_gene, CTaa = ct_aa, CTnt = ct_nt,
+      row.names = paste0("c", 1:4)
+    )
+  )
+}
+
+# Mock BCR SCE — heavy + light chain entries. Used by .buildAIRR BCR tests.
+mock_bcr_sce <- function() {
+  ct_gene <- c(
+    "IGHV1-1.IGHJ1.IGHM_IGKV1-1.IGKJ1.IGKC",   # paired heavy + kappa
+    "IGHV2-1.IGHJ2.IGHG1_NA",                  # heavy only
+    "NA_IGLV1-1.IGLJ1.IGLC"                    # lambda only
+  )
+  ct_aa <- c("CARH1_CARK1", "CARH2_NA", "NA_CARL3")
+  ct_nt <- c("TGTGCH1_TGTGCK1", "TGTGCH2_NA", "NA_TGTGCL3")
+
+  SingleCellExperiment::SingleCellExperiment(
+    assays = list(counts = matrix(0L, 2, 3,
+                                  dimnames = list(c("g1", "g2"),
+                                                  paste0("b", 1:3)))),
+    colData = S4Vectors::DataFrame(
+      CTgene = ct_gene, CTaa = ct_aa, CTnt = ct_nt,
+      row.names = paste0("b", 1:3)
+    )
+  )
+}

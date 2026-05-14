@@ -43,3 +43,24 @@ immLynxEnv <- basilisk::BasiliskEnvironment(
         "git+https://github.com/svalkiers/clusTCR.git@1.0.3"
     )
 )
+
+# Separate environment for the scanpy/scirpy export workflow.
+# Kept apart from immLynxEnv to avoid version conflicts with tcrdist3,
+# olga, sonnia, and clusTCR (which pin older numpy/pandas/scipy).
+scanpyExportEnv <- basilisk::BasiliskEnvironment(
+    envname = "scanpyExportEnv",
+    pkgname = "immLynx",
+    packages = c(
+        "python=3.10",
+        "numpy",
+        "pandas",
+        "scipy",
+        "h5py",
+        "anndata>=0.8"
+    ),
+    pip = c(
+        "scanpy",
+        "muon",
+        "scirpy"
+    )
+)

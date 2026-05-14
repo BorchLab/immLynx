@@ -358,6 +358,80 @@ scater::plotReducedDim(
 )
 ```
 
+# Handing Off to Python: scanpy and scirpy
+
+R is not the only place to analyze single-cell + immune-receptor data.
+The `exportToScanpy()` function writes the integrated object (gene
+expression plus optional scRepertoire metadata) to scanpy- and
+scirpy-compatible files so collaborators or downstream pipelines can
+pick up exactly where the R workflow left off, without re-running
+upstream steps.
+
+Two output shapes are supported:
+
+* `format = "h5ad"` writes an `adata.h5ad` with gene expression,
+  metadata, and embeddings. When immune receptor data is present, an
+  `airr_rearrangement.tsv.gz` AIRR sidecar is written next to it.
+* `format = "h5mu"` additionally assembles a MuData object that
+  combines the gene-expression `AnnData` and a scirpy-indexed AIRR
+  `AnnData` into `mudata.h5mu`. This path runs scirpy's
+  `index_chains()` and `chain_qc()` inside an isolated basilisk
+  environment, so the resulting file is immediately analysis-ready in
+  Python.
+
+```{r export-h5ad, eval=FALSE}
+# Gene expression + AIRR sidecar
+out <- exportToScanpy(
+  immLynx_example,
+  output_dir = tempfile("scanpy_h5ad_"),
+  format     = "h5ad"
+)
+
+out$h5ad   # path to adata.h5ad
+out$airr   # path to airr_rearrangement.tsv.gz (NULL if no TCR data)
+```
+
+```{r export-h5mu, eval=FALSE}
+# Combined GEX + AIRR -> mudata.h5mu (scirpy-ready)
+out <- exportToScanpy(
+  immLynx_example,
+  output_dir = tempfile("scanpy_h5mu_"),
+  format     = "h5mu",
+  chains     = "TRB"
+)
+```
+
+A few useful arguments:
+
+* `obs_columns =` keeps only a subset of `colData` columns in the
+  written `obs`. The default keeps every non-list column and (for
+  `format = "h5mu"`) drops the scRepertoire `CT*` columns since the
+  AIRR side carries that information.
+* `reductions =` restricts which `reducedDims()` slots are written into
+  `obsm`. Default is all of them.
+* `chains =` controls which immune receptor loci are extracted. BCR
+  loci (`IGH`, `IGK`, `IGL`) are mapped to the `Heavy`/`Light` chain
+  names that `immApex::getIR()` expects and disambiguated by V-gene
+  prefix on the way out.
+* `overwrite = TRUE` replaces existing files instead of erroring.
+
+On the Python side, the files load directly:
+
+```python
+import scanpy as sc       # for adata.h5ad
+import muon as mu         # for mudata.h5mu
+import scirpy as ir
+
+adata = sc.read_h5ad("adata.h5ad")
+mdata = mu.read("mudata.h5mu")
+ir.tl.define_clonotypes(mdata)
+```
+
+The first call to `exportToScanpy(format = "h5mu")` in a fresh R
+session triggers a one-time basilisk install of the scanpy/scirpy/muon
+stack, which can take several minutes. Subsequent calls reuse the
+cached environment.
+
 # Session Info
 
 ```{r session, eval=TRUE}
