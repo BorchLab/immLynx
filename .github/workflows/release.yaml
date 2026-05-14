@@ -57,6 +57,7 @@ jobs:
     needs: detect-version-bump
     if: needs.detect-version-bump.outputs.released == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
@@ -72,7 +73,21 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
-      - uses: r-lib/actions/check-r-package@v2
+      # Fast structural check: validate DESCRIPTION/NAMESPACE/Rd without
+      # running examples (basilisk Python install), tests, or vignettes.
+      # The full R-CMD-check.yaml workflow already covers those on this
+      # same push; this job just guards against shipping a tarball that
+      # is structurally broken.
+      - name: Lightweight R CMD check
+        run: |
+          rcmdcheck::rcmdcheck(
+            args        = c("--no-manual", "--no-examples",
+                            "--no-tests",  "--no-vignettes",
+                            "--no-build-vignettes"),
+            build_args  = c("--no-manual", "--no-build-vignettes"),
+            error_on    = "error"
+          )
+        shell: Rscript {0}
 
   release:
     needs: [detect-version-bump, R-CMD-check]

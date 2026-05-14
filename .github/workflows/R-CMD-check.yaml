@@ -2,7 +2,7 @@
 # Need help debugging build failures? Start at https://github.com/r-lib/actions#where-to-find-help
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, devel]
   pull_request:
 
 name: R-CMD-check.yaml
@@ -28,9 +28,10 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
-      # Disable \donttest example execution: basilisk Python env + model
-      # downloads are too expensive for CI. Tests cover all functionality.
-      _R_CHECK_DONTTEST_EXAMPLES_: false
+      # Belt: env var is honored by R itself. Suspenders: --no-examples in
+      # check args below. Examples wrap basilisk Python env + model
+      # downloads, too expensive for CI. Tests cover all functionality.
+      _R_CHECK_DONTTEST_EXAMPLES_: "false"
 
     steps:
       - uses: actions/checkout@v4
@@ -68,4 +69,5 @@ jobs:
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
+          args: 'c("--no-manual","--no-examples")'
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
