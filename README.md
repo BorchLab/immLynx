@@ -19,6 +19,7 @@ with SingleCellExperiment and scRepertoire workflows, wrapping popular Python-ba
 *   **clusTCR**: Cluster large sets of CDR3 sequences with `runClustTCR`
 *   **metaclonotypist**: Identify TCR metaclones with `runMetaclonotypist`
 *   **ESM-2**: Generate protein language model embeddings with `runEmbeddings`
+*   **scanpy / scirpy export**: Hand off SingleCellExperiment + scRepertoire data to Python via H5AD / H5MU with `exportToScanpy`
 
 For more details on each function, please refer to the R documentation (e.g., `?runTCRdist`).
 
@@ -183,6 +184,25 @@ write.csv(background, "background.csv", row.names = FALSE)
 sce <- runSoNNia(sce,
                         background_file = "background.csv")
 ```
+
+### Export to scanpy / scirpy
+
+Hand off the integrated single-cell + immune-receptor object to a
+Python workflow without re-running upstream steps:
+
+```r
+# Gene expression only -> adata.h5ad (+ AIRR sidecar if TCR present)
+exportToScanpy(sce, output_dir = "results/scanpy")
+
+# Combined GEX + AIRR -> mudata.h5mu, ready for scirpy
+exportToScanpy(sce,
+               output_dir = "results/scirpy",
+               format     = "h5mu")
+```
+
+H5AD writes use `zellkonverter`; the H5MU path assembles a MuData via
+scirpy + muon inside an isolated basilisk environment. Supports both
+TCR (TRA/TRB/TRG/TRD) and BCR (IGH/IGK/IGL) loci.
 
 ## Data Format
 

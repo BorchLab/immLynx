@@ -1,3 +1,14 @@
+# immLynx 1.1.1
+
+* Added `exportToScanpy()` to write a `SingleCellExperiment` or `Seurat`
+  object (with optional scRepertoire immune-receptor metadata) to
+  scanpy/scirpy-compatible H5AD or H5MU files, plus an AIRR
+  rearrangement TSV sidecar. H5AD writing uses `zellkonverter`; H5MU
+  assembly uses scirpy/muon inside a dedicated `scanpyExportEnv`
+  basilisk environment. BCR loci (`IGH`, `IGK`, `IGL`) are mapped to
+  `immApex::getIR()`'s `Heavy`/`Light` chains and disambiguated by
+  V-gene prefix.
+
 # immLynx 0.99.4
 
 * Added `\value` section to `TCR_summary-class` documentation to resolve
