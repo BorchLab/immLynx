@@ -408,7 +408,18 @@ exportToScanpy <- function(input,
       stop("Seurat input requires the Seurat package. ",
            "Install with: install.packages('Seurat')", call. = FALSE)
     }
-    return(Seurat::as.SingleCellExperiment(input))
+    # Seurat emits one warning per empty layer ("Layer 'data' is empty") when
+    # converting an object that only carries counts. That is the normal state
+    # for a freshly created object and is not actionable here, so muffle just
+    # those and let every other warning through.
+    return(withCallingHandlers(
+      Seurat::as.SingleCellExperiment(input),
+      warning = function(w) {
+        if (grepl("^Layer '.*' is empty", conditionMessage(w))) {
+          invokeRestart("muffleWarning")
+        }
+      }
+    ))
   }
   stop("input must be a SingleCellExperiment or Seurat object",
        call. = FALSE)
