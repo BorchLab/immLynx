@@ -33,6 +33,24 @@
   `runScXpand()` rewrites the host. The rewrite becomes a no-op once
   upstream fixes its URLs.
 
+* Added `runSymdelNeighbors()` for near-neighbor CDR3 search by symmetric
+  deletion lookup, backed by `pyrepseq.nn.symdel` in the existing
+  `immLynxEnv`. Returns either a neighbor edge list or a per-cell neighbor
+  count. This closes the XT-neighbor request (#6) without a GPU dependency:
+  XT-neighbor is CUDA-only and its own documentation redirects users to the
+  CPU implementation of the same algorithm.
+
+* Added `runDeepTCR()` for unsupervised VAE featurization of CDR3 sequences
+  via DeepTCR (#8), writing features to a dimensional reduction. Runs in a new
+  `deepTCREnv` basilisk environment. The dependency conflict that originally
+  blocked this was resolved upstream in DeepTCR 2.1.29.
+
+* Fixed `scanpyExportEnv` declaring `anndata>=0.8`. basilisk passes the `pip`
+  vector through an unquoted shell, so `>=0.8` was parsed as a redirect: the
+  version floor was silently dropped and a stray file named `=0.8` was written
+  to the working directory. Now pinned to `anndata==0.11.4`, the version pip
+  already resolved to.
+
 # immLynx 1.1.2
 
 * Added `exportToScanpy()` to write a `SingleCellExperiment` or `Seurat`
