@@ -176,6 +176,43 @@ sce_paired <- scater::runUMAP(sce_paired,
 scater::plotReducedDim(sce_paired, dimred = "UMAP")
 ```
 
+## Dataset-Specific Features with DeepTCR
+
+ESM-2 and DeepTCR answer different questions. ESM-2 is pretrained on
+UniProt, so its embeddings encode general protein biochemistry and
+transfer to any repertoire without fitting anything. DeepTCR's
+variational autoencoder is trained on the repertoire you give it, so its
+latent space describes the structure of that dataset specifically. That
+makes DeepTCR features sharper for within-dataset structure and
+unsuitable for comparing across datasets trained separately.
+
+Because both write to a dimensional reduction, they can live in the same
+object and be compared directly.
+
+```{r deeptcr-compare, eval=FALSE}
+sce <- runEmbeddings(sce, chains = "TRB",
+                     reduction_name = "tcr_esm")
+
+sce <- runDeepTCR(sce, chains = "TRB",
+                  latent_dim = 64,
+                  reduction_name = "tcr_deeptcr",
+                  verbose = FALSE)
+
+# Project each into UMAP and compare how they organize the repertoire
+sce <- scater::runUMAP(sce, dimred = "tcr_esm", name = "umap_esm")
+sce <- scater::runUMAP(sce, dimred = "tcr_deeptcr", name = "umap_deeptcr")
+
+scater::plotReducedDim(sce, dimred = "umap_esm",
+                       colour_by = "clustcr_TRB")
+scater::plotReducedDim(sce, dimred = "umap_deeptcr",
+                       colour_by = "clustcr_TRB")
+```
+
+A caveat on training size: the VAE needs enough unique sequences to
+learn anything meaningful. On a few hundred sequences the latent space
+is dominated by noise, and the reconstruction accuracy reported during
+training is the quickest way to see it.
+
 # Integration with scRepertoire Clonotypes
 
 immLynx is designed to complement `r Biocpkg("scRepertoire")`, which
@@ -342,6 +379,13 @@ help manage memory and runtime:
   distances, which scales quadratically. For very large datasets,
   computing distances on a representative subset is a practical
   alternative.
+- **Near-neighbor search instead of a distance matrix**: when the
+  question is "which sequences are similar" rather than "how far apart
+  is every pair", `runSymdelNeighbors()` avoids the quadratic step
+  entirely. It indexes sequences by their single-character deletions, so
+  cost scales with sequence count rather than its square, and it returns
+  a sparse edge list rather than a dense matrix. This is the practical
+  option past a few tens of thousands of unique sequences.
 
 ```{r large-data, eval=FALSE}
 sce_large <- runEmbeddings(
@@ -358,6 +402,15 @@ sce_large <- runClustTCR(
 sample_cells <- sample(colnames(large_sce), 5000)
 subset_obj <- large_sce[, sample_cells]
 dist_results <- runTCRdist(subset_obj)
+
+# Sparse neighbor search over the full dataset, no subsampling needed
+edges <- runSymdelNeighbors(
+  large_sce,
+  chains = "TRB",
+  max_edits = 1,
+  n_cpu = 4,
+  return_object = FALSE
+)
 ```
 
 # HLA Association Analysis
