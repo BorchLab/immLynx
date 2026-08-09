@@ -256,3 +256,23 @@ mock_bcr_sce <- function() {
     )
   )
 }
+
+# Skip if the DeepTCR basilisk env is unavailable. DeepTCR pins TensorFlow
+# 2.12, which publishes no linux-aarch64 wheel, so that platform is skipped
+# outright rather than attempting a doomed multi-hundred-MB build.
+skip_if_no_deeptcr <- function() {
+  skip_on_bioc_build()
+
+  si <- Sys.info()
+  if (identical(unname(si[["sysname"]]), "Linux") &&
+      grepl("aarch64|arm64", unname(si[["machine"]]))) {
+    testthat::skip("DeepTCR unavailable: no TensorFlow 2.12 linux-aarch64 wheel")
+  }
+
+  ok <- tryCatch({
+    proc <- basilisk::basiliskStart(immLynx:::deepTCREnv)
+    on.exit(basilisk::basiliskStop(proc))
+    TRUE
+  }, error = function(e) FALSE)
+  if (!ok) testthat::skip("deepTCREnv not available")
+}
