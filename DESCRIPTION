@@ -10,8 +10,10 @@ Description: A comprehensive toolkit that bridges popular Python-based immune
     R environment. Provides unified interfaces for TCR distance calculations
     (tcrdist3), sequence generation probability (OLGA), selection inference
     (soNNia), clustering (clusTCR), protein embeddings (ESM-2), metaclone
-    discovery (metaclonotypist), and clonal expansion prediction from gene
-    expression (scXpand). Fully compatible with the scRepertoire and immApex ecosystem for single-cell
+    discovery (metaclonotypist), clonal expansion prediction from gene
+    expression (scXpand), near-neighbor search by symmetric deletion lookup
+    (pyrepseq), and deep generative featurization (DeepTCR). Fully compatible
+    with the scRepertoire and immApex ecosystem for single-cell
     immune repertoire analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
