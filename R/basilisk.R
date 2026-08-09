@@ -58,7 +58,12 @@ scanpyExportEnv <- basilisk::BasiliskEnvironment(
         "h5py"
     ),
     pip = c(
-        "anndata>=0.8",
+        # Pinned exactly rather than ">=0.8": basilisk hands the pip vector to
+        # system2(), which runs it through an unquoted shell, so ">=0.8" is
+        # parsed as a redirect to a file named "=0.8".  That both dropped the
+        # version floor and littered the working directory.  0.11.4 is the
+        # version pip already resolved to under python=3.10.
+        "anndata==0.11.4",
         "scanpy",
         "muon",
         "scirpy"
@@ -93,5 +98,57 @@ scXpandEnv <- basilisk::BasiliskEnvironment(
     ),
     pip = c(
         "scxpand==0.4.6"
+    )
+)
+
+# Separate environment for DeepTCR. DeepTCR pins its whole scientific stack
+# (numpy 1.23.5, pandas 1.5.3, scipy 1.10.1, TensorFlow 2.12) with "==", so it
+# cannot share immLynxEnv.
+#
+# Three constraints drove this layout, each verified by building the
+# environment and training a VAE:
+#
+#   1. python=3.10, not 3.11.  DeepTCR pins biopython==1.76, which ships no
+#      wheel past cp38 and none for macOS arm64, so it compiles from source.
+#      Its C extension assigns to Py_TYPE(), which CPython 3.11 made a hard
+#      error.  It compiles cleanly on 3.10.
+#
+#   2. The stack comes from conda rather than pip so that TensorFlow arrives
+#      without Apple's metal plugin.  On macOS, DeepTCR's requirements pull
+#      tensorflow-metal==0.8.0, which is built against TF 2.11 and aborts the
+#      process at import under TF 2.12 with "platform is already registered
+#      with name: METAL".  conda-forge's tensorflow has no such plugin.
+#
+#   3. biopython stays on pip.  conda-forge's oldest osx-arm64 build is 1.78,
+#      which removed Bio.Alphabet, and DeepTCR still imports it.
+#
+# "--no-deps" therefore applies to the whole pip step: every dependency is
+# already satisfied by conda, and it also keeps DeepTCR's jupyterlab and
+# notebook requirements out of the environment.
+deepTCREnv <- basilisk::BasiliskEnvironment(
+    envname = "deepTCREnv",
+    pkgname = "immLynx",
+    packages = c(
+        "python=3.10",
+        "tensorflow=2.12",
+        "numpy=1.23.5",
+        "pandas=1.5.3",
+        "scipy=1.10.1",
+        "h5py=3.8.0",
+        "scikit-learn=1.2.2",
+        "matplotlib-base=3.7.2",
+        "seaborn=0.12.2",
+        "umap-learn",
+        "networkx",
+        "tqdm",
+        "psutil"
+    ),
+    pip = c(
+        "--no-deps",
+        "DeepTCR==2.1.29",
+        "biopython==1.76",
+        "logomaker==0.8",
+        "distinctipy==1.2.1",
+        "python-louvain==0.16"
     )
 )
