@@ -64,3 +64,34 @@ scanpyExportEnv <- basilisk::BasiliskEnvironment(
         "scirpy"
     )
 )
+
+# Separate environment for scXpand (clonal expansion prediction from gene
+# expression).  Cannot share scanpyExportEnv (python 3.10) or immLynxEnv
+# (python 3.9, torch 2.1.2, numpy 1.23): scxpand requires python >= 3.11
+# and torch >= 2.5.
+#
+# pytorch-cpu is pulled from conda-forge rather than letting pip resolve
+# `torch`, because the default PyPI torch wheel on linux-x86_64 bundles
+# CUDA and runs to several gigabytes.  basilisk's `pip` entries are bare
+# specifiers, so there is no way to inject
+# --index-url https://download.pytorch.org/whl/cpu.  Installing the CPU
+# build through conda first satisfies scxpand's torch>=2.5 requirement.
+#
+# Only scxpand itself is listed under `pip`; it resolves the rest of the
+# stack (scanpy, anndata, scirpy, lightgbm, optuna, pooch, shap, ...).
+# Enumerating those here would only create version-pin drift.
+scXpandEnv <- basilisk::BasiliskEnvironment(
+    envname = "scXpandEnv",
+    pkgname = "immLynx",
+    packages = c(
+        "python=3.11",
+        "pytorch-cpu>=2.5",
+        "numpy",
+        "pandas",
+        "scipy",
+        "h5py"
+    ),
+    pip = c(
+        "scxpand==0.4.6"
+    )
+)

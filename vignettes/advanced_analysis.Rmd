@@ -199,6 +199,84 @@ cat("Number of clustcr clusters:", nrow(comparison), "\n")
 cat("Number of unique clonotypes:", ncol(comparison), "\n")
 ```
 
+# Predicting Clonal Expansion from Gene Expression
+
+Every other tool in immLynx starts from receptor sequences. `runScXpand()`
+goes the other way: it uses [scXpand](https://github.com/yizhak-lab-ccg/scXpand)
+to predict, from gene expression alone, whether a T cell belongs to an
+expanded clone. That makes it usable on the many scRNA-seq datasets with no
+paired TCR arm, and on datasets that do have TCR data it gives you a way to
+ask how much of clonal expansion is written into the transcriptome.
+
+scXpand's pretrained models impose three hard requirements on the input:
+
+- **Raw UMI counts.** Normalized or log-transformed values are rejected.
+- **Ensembl gene IDs.** Most Seurat and scRepertoire objects carry symbols.
+- **T cells only.** Filter before calling. There is no reliable
+  programmatic check, and predictions on other cell types are meaningless.
+
+Genes the model expects but cannot find are silently zero-filled, so a poor
+identifier match degrades the prediction quietly instead of erroring. Read
+the gene mapping summary that `runScXpand()` prints.
+
+The first call builds a dedicated basilisk environment (Python 3.11, CPU
+PyTorch, scxpand) that occupies several gigabytes, and downloads the chosen
+model from figshare. Both are cached.
+
+```{r scxpand-models, eval=FALSE}
+listScXpandModels()
+```
+
+If the object is indexed by gene symbols, `map_symbols = "auto"` routes them
+through `org.Hs.eg.db`. One symbol often maps to several Ensembl IDs
+(`HLA-DRA` maps to eight, across alternate haplotypes). `multi_map = "first"`
+takes the lexicographically first, which is reproducible;
+`multi_map = "expand"` emits every candidate, which maximizes overlap with
+the model's panel at the cost of a larger staged matrix.
+
+```{r scxpand-run, eval=FALSE}
+sce_exp <- runScXpand(
+  immLynx_example,
+  model_name  = "pan_cancer_autoencoder",
+  assay       = "counts",
+  sample_col  = "Patient",
+  map_symbols = "auto"
+)
+
+summary(sce_exp$scXpand_expansion_prob)
+table(sce_exp$scXpand_expansion_pred, useNA = "ifany")
+```
+
+## Benchmarking against the observed repertoire
+
+When the object carries scRepertoire clone calls, `runScXpand()` also writes
+scXpand's ground-truth fields. It calls a cell expanded when its clone size
+exceeds 1.5 times the median clone size for its sample, tabulating clone
+sizes fresh from `CTstrict` within `sample_col`. Note that
+`clonalFrequency` is deliberately not used: `combineExpression()` computes
+it under whatever `group.by` was in effect, so it is not necessarily a
+per-sample count.
+
+"Median clone size" is ambiguous, and the two readings give different
+labels. `median_basis = "clone"` (the default) takes the median over unique
+clones, which in typical 10x data is 1 because most clones are singletons,
+so the rule reduces to *clone size at least 2*. `median_basis = "cell"`
+takes the median over cells, which is dominated by large clones and is much
+stricter.
+
+```{r scxpand-benchmark, eval=FALSE}
+run <- S4Vectors::metadata(sce_exp)$scXpand
+
+# AUROC of the gene-expression-only prediction against the observed clones.
+run$auroc_immLynx
+
+# Per-sample median clone sizes behind the label cutoff.
+run$labels$median_by_sample
+
+# How many features actually reached the model.
+run$gene_mapping
+```
+
 # Analyzing Selection Pressure
 
 Generation probability (Pgen) from OLGA provides a window into

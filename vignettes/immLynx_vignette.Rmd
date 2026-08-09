@@ -100,6 +100,12 @@ and PyTorch with the ESM-2 model). This initial setup may take several
 minutes but only needs to occur once per installation. Subsequent calls
 reuse the existing environment with minimal overhead.
 
+Two functions use their own environments rather than that one.
+`exportToScanpy()` needs the scanpy/scirpy stack, and `runScXpand()` needs
+Python 3.11 with a current PyTorch, which conflicts with the pinned
+versions above. Each builds on first use. The scXpand environment is the
+largest, at several gigabytes.
+
 # Quick Start
 
 ## Loading the Package and Example Data

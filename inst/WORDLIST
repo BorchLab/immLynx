@@ -1,4 +1,5 @@
 AIRR
+AUROC
 AutoModel
 BCR
 BioC
@@ -8,8 +9,10 @@ CMD
 Clonotypes
 Codecov
 DBSCAN
+DataLoader
 ESM
 Embeddings
+Ensembl
 GEX
 GLIPH
 HLA
@@ -19,6 +22,7 @@ IGK
 IGL
 IMGT
 Isacchini
+LightGBM
 MCL
 Metaclone
 Metaclones
@@ -27,6 +31,8 @@ MuData
 OLGA's
 ORCID
 Pgen
+Pretrained
+PyTorch
 SCE
 SCEPTR
 Scalability
@@ -44,12 +50,15 @@ TSV
 Tokenize
 Tokenizer
 UMAP
+UMI
 VDJ
 Valkiers
 aa
 al
+autoencoder
 barcode
 barcodes
+benchmarked
 benchmarking
 bfloat
 cdr
@@ -68,12 +77,14 @@ cuda
 dbscan
 deduplicates
 disambiguated
+downloader
 embeddings
 erroring
 esm
 et
 extractTCRdata
 facebook
+figshare
 generateOLGA
 heterodimeric
 https
@@ -84,6 +95,8 @@ immApex
 immGLIPH
 immunoGlobulin
 leiden
+lexicographically
+lightgbm
 louvain
 mcl
 metaclone
@@ -100,7 +113,9 @@ nt
 numpy
 olga
 pgen
+pooch
 pre
+pretrained
 proteinEmbeddings
 pubmed
 pw
@@ -112,12 +127,15 @@ runMetaclonotypist
 scRNA
 scRepertoire
 scRepertoire's
+scXpand
+scXpand's
 scanpy
 scater
 sceptr
 scirpy
 scirpy's
 scran
+scxpand
 soNNia
 sonia
 sonnia
@@ -127,4 +145,7 @@ tf
 thymic
 tokenized
 tokenizer
+torch
+transcriptome
+unmapped
 unselected

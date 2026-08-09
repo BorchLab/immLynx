@@ -34,6 +34,13 @@
 #'   \item \code{\link{runSoNNia}}: Infer selection with soNNia
 #' }
 #'
+#' **Expansion Prediction:**
+#' \itemize{
+#'   \item \code{\link{runScXpand}}: Predict T-cell clonal expansion from gene
+#'     expression alone with scXpand, no paired TCR sequencing required
+#'   \item \code{\link{listScXpandModels}}: List the scXpand pretrained models
+#' }
+#'
 #' **Utility Functions:**
 #' \itemize{
 #'   \item \code{\link{extractTCRdata}}: Extract TCR data from SingleCellExperiment objects
@@ -65,6 +72,7 @@
 #'   \item metaclonotypist - Metaclone discovery
 #'   \item transformers - Hugging Face models
 #'   \item torch - PyTorch for GPU support
+#'   \item scxpand - Clonal expansion prediction from gene expression
 #' }
 #'
 #' @seealso

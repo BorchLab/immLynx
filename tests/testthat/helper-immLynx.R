@@ -125,6 +125,92 @@ skip_if_no_scanpy_env <- function() {
   if (!ok) testthat::skip("scanpyExportEnv not available")
 }
 
+# Skip test if the scXpand basilisk env is not available. This env carries
+# python 3.11 + PyTorch and runs to several gigabytes, so its first-use
+# install cost is much larger than the other two.
+skip_if_no_scxpand_env <- function() {
+  skip_on_bioc_build()
+  ok <- tryCatch({
+    proc <- basilisk::basiliskStart(immLynx:::scXpandEnv)
+    on.exit(basilisk::basiliskStop(proc))
+    TRUE
+  }, error = function(e) FALSE)
+  if (!ok) testthat::skip("scXpandEnv not available")
+}
+
+# Inference additionally downloads a pretrained model from figshare on
+# first use. Gate that behind an explicit opt-in so it never fires
+# unattended in CI.
+skip_if_no_scxpand_model <- function() {
+  skip_if_no_scxpand_env()
+  if (!nzchar(Sys.getenv("IMMLYNX_TEST_SCXPAND"))) {
+    testthat::skip("set IMMLYNX_TEST_SCXPAND=1 to run scXpand model tests")
+  }
+}
+
+# Mock SCE indexed by Ensembl IDs with raw integer counts — the shape
+# runScXpand expects. Clone calls follow the scRepertoire "_" contract.
+mock_ensembl_sce <- function(n_genes = 50, n_cells = 20, seed = 1) {
+  set.seed(seed)
+  counts <- Matrix::Matrix(
+    matrix(stats::rpois(n_genes * n_cells, lambda = 3), n_genes, n_cells),
+    sparse = TRUE)
+  rownames(counts) <- sprintf("ENSG%011d", seq_len(n_genes))
+  colnames(counts) <- paste0("cell", seq_len(n_cells))
+
+  # Skewed clone sizes: one dominant clone, a couple of medium ones, the
+  # rest singletons. A flat distribution would make every cell fall on the
+  # same side of the 1.5x median cutoff and leave nothing to score.
+  n_big <- max(2L, n_cells %/% 4L)
+  n_mid <- max(1L, n_cells %/% 10L)
+  clone_idx <- c(rep(1L, n_big), rep(2L, n_mid), rep(3L, n_mid),
+                 seq.int(4L, length.out = max(0L, n_cells - n_big -
+                                                2L * n_mid)))
+  clone_idx <- clone_idx[seq_len(n_cells)]
+  clone <- paste0("CAS", clone_idx, "F_CAS", clone_idx, "F")
+
+  SingleCellExperiment::SingleCellExperiment(
+    assays = list(counts = counts),
+    colData = S4Vectors::DataFrame(
+      sample = rep(c("S1", "S2"), length.out = n_cells),
+      CTstrict = clone,
+      row.names = colnames(counts)
+    )
+  )
+}
+
+# Mock SCE whose clone layout makes the two median_basis readings diverge,
+# so the tests can pin the arithmetic by hand.
+#
+#   sample A: c1 x 4, c2 x 1, c3 x 1
+#     median over unique clones = median(4, 1, 1) = 1 -> cutoff 1.5
+#       -> only c1 expanded
+#     median over cells = median(4, 4, 4, 4, 1, 1) = 4 -> cutoff 6
+#       -> nothing expanded
+#   sample B: d1 x 2, d2 x 2, plus one cell with no clone call
+mock_clonal_sce <- function() {
+  clone <- c(rep("c1", 4), "c2", "c3", rep("d1", 2), rep("d2", 2), NA)
+  sample <- c(rep("A", 6), rep("B", 5))
+  n <- length(clone)
+
+  # Dimnames set up front, and values varied: Matrix() collapses a square
+  # constant matrix to a symmetric dsCMatrix, which ties rownames to
+  # colnames and would drop the gene IDs.
+  counts <- Matrix::Matrix(
+    matrix(seq_len(4L * n), nrow = 4L,
+           dimnames = list(sprintf("ENSG%011d", seq_len(4L)),
+                           paste0("cell", seq_len(n)))),
+    sparse = TRUE)
+
+  SingleCellExperiment::SingleCellExperiment(
+    assays = list(counts = counts),
+    colData = S4Vectors::DataFrame(
+      CTstrict = clone, sample = sample,
+      row.names = colnames(counts)
+    )
+  )
+}
+
 # Mock SCE with hand-crafted scRepertoire CT* fields. Used by the
 # exportToScanpy / .buildAIRR test suite. scRepertoire uses "_" as the
 # chain-slot separator (TRA before, TRB after) with explicit "NA" tokens
