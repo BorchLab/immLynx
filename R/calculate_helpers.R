@@ -334,3 +334,144 @@ calculate.sonia <- function(data_folder,
 
   return(results)
 }
+
+#' Find Near-Neighbor Sequences using pyrepseq symdel
+#'
+#' @description Internal function that calls pyrepseq's symmetric deletion
+#'   lookup via basilisk. Returns raw (i, j, distance) triplets using 0-based
+#'   indices into `sequences`; both directions of each pair are present.
+#' @param sequences Character vector of unique CDR3 amino acid sequences
+#' @param max_edits Integer maximum edit distance defining a neighbor
+#' @param max_returns Integer maximum neighbors per sequence, or NULL
+#' @param n_cpu Integer number of processes
+#' @param ... Additional arguments passed to pyrepseq.nn.symdel
+#' @return An n x 3 integer matrix of (i, j, distance), or NULL if no pairs
+#' @keywords internal
+calculate.symdel <- function(sequences,
+                             max_edits = 1,
+                             max_returns = NULL,
+                             n_cpu = 1,
+                             ...) {
+
+  .run_in_basilisk(function(sequences, max_edits, max_returns, n_cpu, extra) {
+    nn <- reticulate::import("pyrepseq.nn", convert = FALSE)
+    np <- reticulate::import("numpy", convert = FALSE)
+
+    args <- c(
+      list(
+        reticulate::r_to_py(as.character(sequences)),
+        max_edits   = as.integer(max_edits),
+        max_returns = if (is.null(max_returns)) {
+          NULL
+        } else {
+          as.integer(max_returns)
+        },
+        n_cpu       = as.integer(n_cpu),
+        output_type = "triplets"
+      ),
+      extra
+    )
+
+    triplets <- do.call(nn$symdel, args)
+
+    # Marshal in one array rather than element-by-element: a large repertoire
+    # can return millions of triplets and per-tuple conversion is very slow.
+    arr <- np$asarray(triplets, dtype = np$int64)
+    if (reticulate::py_to_r(arr$size) == 0) {
+      return(NULL)
+    }
+    reticulate::py_to_r(arr$reshape(reticulate::tuple(-1L, 3L)))
+
+  }, sequences = sequences, max_edits = max_edits,
+     max_returns = max_returns, n_cpu = n_cpu, extra = list(...))
+}
+
+# Shared basilisk helper for the DeepTCR environment.
+.run_in_deeptcr <- function(FUN, ...) {
+  proc <- basilisk::basiliskStart(deepTCREnv)
+  on.exit(basilisk::basiliskStop(proc))
+  basilisk::basiliskRun(proc, FUN, ...)
+}
+
+#' Train a DeepTCR Variational Autoencoder
+#'
+#' @description Internal function that trains DeepTCR_U via basilisk and
+#'   returns the learned latent features.
+#' @param sequences Character vector of unique CDR3 amino acid sequences
+#' @param v_genes Optional character vector of V genes, aligned to sequences
+#' @param j_genes Optional character vector of J genes, aligned to sequences
+#' @param latent_dim Integer width of the latent space
+#' @param stop_criterion Numeric training convergence threshold
+#' @param seed Optional integer graph seed for reproducible training
+#' @param verbose Logical, whether to show DeepTCR training output
+#' @param ... Additional arguments passed to Train_VAE
+#' @return A list with `features` and `explained_variance_ratio`
+#' @keywords internal
+calculate.deepTCR <- function(sequences,
+                              v_genes = NULL,
+                              j_genes = NULL,
+                              latent_dim = 256,
+                              stop_criterion = 0.01,
+                              seed = NULL,
+                              verbose = TRUE,
+                              ...) {
+
+  .run_in_deeptcr(function(sequences, v_genes, j_genes, latent_dim,
+                           stop_criterion, seed, verbose, extra) {
+
+    np <- reticulate::import("numpy", convert = FALSE)
+    dt <- reticulate::import("DeepTCR.DeepTCR", convert = FALSE)
+
+    # DeepTCR_U writes model checkpoints and result folders relative to the
+    # working directory, keyed on the object Name. Contain that in a temp dir
+    # and restore the caller's working directory afterwards.
+    workdir <- tempfile("deeptcr_")
+    dir.create(workdir, recursive = TRUE)
+    oldwd <- setwd(workdir)
+    on.exit({
+      setwd(oldwd)
+      unlink(workdir, recursive = TRUE, force = TRUE)
+    }, add = TRUE)
+
+    obj <- dt$DeepTCR_U("immLynx_vae")
+
+    load_args <- list(
+      beta_sequences = np$array(reticulate::r_to_py(as.character(sequences)))
+    )
+    if (!is.null(v_genes)) {
+      load_args$v_beta <- np$array(reticulate::r_to_py(as.character(v_genes)))
+    }
+    if (!is.null(j_genes)) {
+      load_args$j_beta <- np$array(reticulate::r_to_py(as.character(j_genes)))
+    }
+    do.call(obj$Load_Data, load_args)
+
+    train_args <- c(
+      list(
+        latent_dim = as.integer(latent_dim),
+        stop_criterion = as.numeric(stop_criterion),
+        suppress_output = !isTRUE(verbose)
+      ),
+      extra
+    )
+    if (!is.null(seed)) {
+      train_args$graph_seed <- as.integer(seed)
+    }
+    do.call(obj$Train_VAE, train_args)
+
+    features <- reticulate::py_to_r(
+      np$asarray(obj$features, dtype = np$float64)
+    )
+
+    evr <- tryCatch(
+      reticulate::py_to_r(np$asarray(obj$explained_variance_ratio_,
+                                     dtype = np$float64)),
+      error = function(e) NULL
+    )
+
+    list(features = features, explained_variance_ratio = evr)
+
+  }, sequences = sequences, v_genes = v_genes, j_genes = j_genes,
+     latent_dim = latent_dim, stop_criterion = stop_criterion,
+     seed = seed, verbose = verbose, extra = list(...))
+}

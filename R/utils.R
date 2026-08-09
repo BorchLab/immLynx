@@ -558,3 +558,71 @@ summarizeTCRrepertoire <- function(input,
 }
 
 
+
+#' Extract CDR3 sequences, barcodes, and optionally V/J genes
+#'
+#' @description Shared chain-extraction logic for the neighbor-search and
+#'   featurization wrappers. Returns one entry per cell that carries a usable
+#'   sequence for the requested chain(s).
+#'
+#' @param input A SingleCellExperiment object.
+#' @param chains "TRB", "TRA", or "both".
+#' @param combine_chains Logical. When chains="both", concatenate TRA and TRB
+#'   with "_" and keep only cells carrying both.
+#' @param with_genes Logical. If TRUE, also return `v` and `j` gene vectors
+#'   aligned to `sequences`.
+#' @return A list with `sequences` and `barcodes`, plus `v` and `j` when
+#'   `with_genes = TRUE`.
+#' @keywords internal
+.extractChainSeqs <- function(input, chains, combine_chains = FALSE,
+                              with_genes = FALSE) {
+
+  if (chains != "both") {
+    dat <- immApex::getIR(input, chains = chains)
+    keep <- !is.na(dat$cdr3_aa)
+    out <- list(sequences = dat$cdr3_aa[keep], barcodes = dat$barcode[keep])
+    if (with_genes) {
+      out$v <- dat$v[keep]
+      out$j <- dat$j[keep]
+    }
+    return(out)
+  }
+
+  tra <- immApex::getIR(input, chains = "TRA")
+  trb <- immApex::getIR(input, chains = "TRB")
+  merged <- merge(tra, trb, by = "barcode", suffixes = c("_TRA", "_TRB"),
+                  all = TRUE)
+
+  if (combine_chains) {
+    # Only cells carrying both chains can form a paired sequence.
+    keep <- !is.na(merged$cdr3_aa_TRA) & !is.na(merged$cdr3_aa_TRB)
+    if (!any(keep)) {
+      stop("No cells found with both TRA and TRB chains.")
+    }
+    out <- list(
+      sequences = paste0(merged$cdr3_aa_TRA[keep], "_",
+                         merged$cdr3_aa_TRB[keep]),
+      barcodes  = merged$barcode[keep]
+    )
+    if (with_genes) {
+      # Gene usage is only meaningful per chain; report the beta genes, which
+      # carry most of the specificity signal.
+      out$v <- merged$v_TRB[keep]
+      out$j <- merged$j_TRB[keep]
+    }
+    return(out)
+  }
+
+  # Not concatenating: take beta where present, otherwise alpha, keeping one
+  # row per cell so results map back cleanly.
+  use_trb <- !is.na(merged$cdr3_aa_TRB)
+  seqs <- ifelse(use_trb, merged$cdr3_aa_TRB, merged$cdr3_aa_TRA)
+  keep <- !is.na(seqs)
+
+  out <- list(sequences = seqs[keep], barcodes = merged$barcode[keep])
+  if (with_genes) {
+    out$v <- ifelse(use_trb, merged$v_TRB, merged$v_TRA)[keep]
+    out$j <- ifelse(use_trb, merged$j_TRB, merged$j_TRA)[keep]
+  }
+  out
+}
