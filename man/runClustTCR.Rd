@@ -15,7 +15,7 @@ runClustTCR(
 )
 }
 \arguments{
-\item{input}{A SingleCellExperiment object containing scRepertoire
+\item{input}{A SingleCellExperiment or Seurat object containing scRepertoire
 TCR data in the metadata.}
 
 \item{chains}{Character string specifying which chains to use: "TRA", "TRB", or "both".

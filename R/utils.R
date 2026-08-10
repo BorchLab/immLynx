@@ -558,3 +558,186 @@ summarizeTCRrepertoire <- function(input,
 }
 
 
+
+#' Extract CDR3 sequences, barcodes, and optionally V/J genes
+#'
+#' @description Shared chain-extraction logic for the neighbor-search and
+#'   featurization wrappers. Returns one entry per cell that carries a usable
+#'   sequence for the requested chain(s).
+#'
+#' @param input A SingleCellExperiment object.
+#' @param chains "TRB", "TRA", or "both".
+#' @param combine_chains Logical. When chains="both", concatenate TRA and TRB
+#'   with "_" and keep only cells carrying both.
+#' @param with_genes Logical. If TRUE, also return `v` and `j` gene vectors
+#'   aligned to `sequences`.
+#' @return A list with `sequences` and `barcodes`, plus `v` and `j` when
+#'   `with_genes = TRUE`.
+#' @keywords internal
+.extractChainSeqs <- function(input, chains, combine_chains = FALSE,
+                              with_genes = FALSE) {
+
+  if (chains != "both") {
+    dat <- immApex::getIR(input, chains = chains)
+    keep <- !is.na(dat$cdr3_aa)
+    out <- list(sequences = dat$cdr3_aa[keep], barcodes = dat$barcode[keep])
+    if (with_genes) {
+      out$v <- dat$v[keep]
+      out$j <- dat$j[keep]
+    }
+    return(out)
+  }
+
+  tra <- immApex::getIR(input, chains = "TRA")
+  trb <- immApex::getIR(input, chains = "TRB")
+  merged <- merge(tra, trb, by = "barcode", suffixes = c("_TRA", "_TRB"),
+                  all = TRUE)
+
+  if (combine_chains) {
+    # Only cells carrying both chains can form a paired sequence.
+    keep <- !is.na(merged$cdr3_aa_TRA) & !is.na(merged$cdr3_aa_TRB)
+    if (!any(keep)) {
+      stop("No cells found with both TRA and TRB chains.")
+    }
+    out <- list(
+      sequences = paste0(merged$cdr3_aa_TRA[keep], "_",
+                         merged$cdr3_aa_TRB[keep]),
+      barcodes  = merged$barcode[keep]
+    )
+    if (with_genes) {
+      # Gene usage is only meaningful per chain; report the beta genes, which
+      # carry most of the specificity signal.
+      out$v <- merged$v_TRB[keep]
+      out$j <- merged$j_TRB[keep]
+    }
+    return(out)
+  }
+
+  # Not concatenating: take beta where present, otherwise alpha, keeping one
+  # row per cell so results map back cleanly.
+  use_trb <- !is.na(merged$cdr3_aa_TRB)
+  seqs <- ifelse(use_trb, merged$cdr3_aa_TRB, merged$cdr3_aa_TRA)
+  keep <- !is.na(seqs)
+
+  out <- list(sequences = seqs[keep], barcodes = merged$barcode[keep])
+  if (with_genes) {
+    out$v <- ifelse(use_trb, merged$v_TRB, merged$v_TRA)[keep]
+    out$j <- ifelse(use_trb, merged$j_TRB, merged$j_TRA)[keep]
+  }
+  out
+}
+
+# ===========================================================================
+# Single-cell object accessors
+#
+# immLynx accepts either a SingleCellExperiment or a Seurat object and returns
+# whichever class it was given. These helpers are the only place that knows
+# the difference. Extraction is already class-agnostic because
+# immApex::getIR() handles both, so only the guards and the write-back paths
+# need to branch.
+# ===========================================================================
+
+#' Is this a supported single-cell container?
+#'
+#' @param x Any object.
+#' @return TRUE for SingleCellExperiment or Seurat, FALSE otherwise.
+#' @keywords internal
+.isSCObject <- function(x) {
+  methods::is(x, "SingleCellExperiment") || methods::is(x, "Seurat")
+}
+
+#' Stop unless the input is a supported single-cell container
+#'
+#' @param x Object to check.
+#' @param arg Name to use in the error message.
+#' @return Invisibly TRUE; called for the error.
+#' @keywords internal
+.assertSCObject <- function(x, arg = "input") {
+  if (!.isSCObject(x)) {
+    stop(arg, " must be a SingleCellExperiment or Seurat object.",
+         call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
+#' Write a per-cell column back to the object
+#'
+#' @description Values are placed by barcode, so `cell_names` may cover only a
+#'   subset of the object. Cells not named are left as NA.
+#'
+#' @param obj A SingleCellExperiment or Seurat object.
+#' @param col_name Column name to write.
+#' @param values Vector of values, aligned to `cell_names`.
+#' @param cell_names Barcodes the values belong to.
+#' @return `obj` with the column added, same class as supplied.
+#' @keywords internal
+.writeCellColumn <- function(obj, col_name, values, cell_names) {
+  col_vec <- rep(NA, ncol(obj))
+  names(col_vec) <- colnames(obj)
+  col_vec[cell_names] <- values
+  names(col_vec) <- NULL
+  if (methods::is(obj, "SingleCellExperiment")) {
+    SummarizedExperiment::colData(obj)[[col_name]] <- col_vec
+  } else {
+    obj[[col_name]] <- col_vec
+  }
+  obj
+}
+
+#' Write a dimensional reduction back to the object
+#'
+#' @param obj A SingleCellExperiment or Seurat object.
+#' @param name Name of the reduction.
+#' @param mat Matrix with one row per cell, rownames matching `colnames(obj)`.
+#' @param key Column key prefix, used by Seurat for axis labels.
+#' @return `obj` with the reduction added, same class as supplied.
+#' @keywords internal
+.writeReduction <- function(obj, name, mat, key) {
+  if (is.null(rownames(mat))) {
+    rownames(mat) <- colnames(obj)
+  }
+
+  if (methods::is(obj, "SingleCellExperiment")) {
+    SingleCellExperiment::reducedDim(obj, name) <- mat
+    return(obj)
+  }
+
+  # Seurat validates the key: it must start with a letter, contain only
+  # alphanumerics, and end in an underscore.
+  key <- gsub("[^A-Za-z0-9]", "", key)
+  if (!nzchar(key)) key <- "DIM"
+  if (!grepl("^[A-Za-z]", key)) key <- paste0("X", key)
+  key <- paste0(key, "_")
+
+  colnames(mat) <- paste0(key, seq_len(ncol(mat)))
+  obj[[name]] <- Seurat::CreateDimReducObject(
+    embeddings = mat,
+    key = key,
+    assay = Seurat::DefaultAssay(obj)
+  )
+  obj
+}
+
+#' Stash a run summary on the object
+#'
+#' @description SingleCellExperiment has metadata(); Seurat keeps the
+#'   equivalent in the misc slot.
+#'
+#' @param obj A SingleCellExperiment or Seurat object.
+#' @param key Name to store under.
+#' @param value Value to store.
+#' @return `obj` with the entry added, same class as supplied.
+#' @keywords internal
+.writeObjMetadata <- function(obj, key, value) {
+  if (methods::is(obj, "SingleCellExperiment")) {
+    md <- S4Vectors::metadata(obj)
+    md[[key]] <- value
+    S4Vectors::metadata(obj) <- md
+  } else {
+    misc <- methods::slot(obj, "misc")
+    if (!is.list(misc)) misc <- list()
+    misc[[key]] <- value
+    methods::slot(obj, "misc") <- misc
+  }
+  obj
+}

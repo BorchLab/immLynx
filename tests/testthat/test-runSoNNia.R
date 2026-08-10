@@ -31,7 +31,7 @@ test_that("runSoNNia rejects non-SCE input", {
 
   expect_error(
     runSoNNia(tcr_data, chains = "TRB", background_file = temp_bg),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 

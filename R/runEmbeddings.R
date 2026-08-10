@@ -3,7 +3,7 @@
 #' @description Extracts TCR CDR3 sequences from a SingleCellExperiment object
 #'   and generates embeddings using a protein language model (e.g., ESM-2).
 #'
-#' @param input A SingleCellExperiment object containing scRepertoire TCR data.
+#' @param input A SingleCellExperiment or Seurat object containing scRepertoire TCR data.
 #' @param chains Which chain(s) to embed: "TRB", "TRA", or "both". Default is "TRB".
 #' @param model_name Hugging Face model name. Default is "facebook/esm2_t12_35M_UR50D".
 #'   Other options: "facebook/esm2_t33_650M_UR50D", "facebook/esm2_t36_3B_UR50D"
@@ -69,11 +69,7 @@ runEmbeddings <- function(input,
   chains <- match.arg(chains)
 
   # Determine input type
-  .is_sce <- methods::is(input, "SingleCellExperiment")
-
-  if (!.is_sce) {
-    stop("Input must be a SingleCellExperiment object")
-  }
+  .assertSCObject(input)
 
   message("Loading Hugging Face model: ", model_name)
   hf_components <- huggingModel(model_name = model_name)
@@ -165,13 +161,13 @@ runEmbeddings <- function(input,
       cell_embeddings[barcodes, ] <- embeddings
 
       # Add as reduced dimension
-      SingleCellExperiment::reducedDim(input, reduction_name) <- cell_embeddings
+      input <- .writeReduction(input, reduction_name, cell_embeddings,
+                               reduction_key)
 
-      # Add chain info to colData
-      chain_meta <- rep(NA_character_, ncol(input))
-      names(chain_meta) <- colnames(input)
-      chain_meta[barcodes] <- chain_info
-      colData(input)[[paste0(reduction_name, "_chain")]] <- chain_meta
+      # Add chain info to cell metadata
+      input <- .writeCellColumn(input,
+                                paste0(reduction_name, "_chain"),
+                                chain_info, barcodes)
 
     message("Embeddings added as '", reduction_name, "' reduction")
     message("Use RunUMAP(obj, reduction='", reduction_name, "') to visualize")

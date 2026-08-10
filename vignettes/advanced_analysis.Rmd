@@ -176,6 +176,43 @@ sce_paired <- scater::runUMAP(sce_paired,
 scater::plotReducedDim(sce_paired, dimred = "UMAP")
 ```
 
+## Dataset-Specific Features with DeepTCR
+
+ESM-2 and DeepTCR answer different questions. ESM-2 is pretrained on
+UniProt, so its embeddings encode general protein biochemistry and
+transfer to any repertoire without fitting anything. DeepTCR's
+variational autoencoder is trained on the repertoire you give it, so its
+latent space describes the structure of that dataset specifically. That
+makes DeepTCR features sharper for within-dataset structure and
+unsuitable for comparing across datasets trained separately.
+
+Because both write to a dimensional reduction, they can live in the same
+object and be compared directly.
+
+```{r deeptcr-compare, eval=FALSE}
+sce <- runEmbeddings(sce, chains = "TRB",
+                     reduction_name = "tcr_esm")
+
+sce <- runDeepTCR(sce, chains = "TRB",
+                  latent_dim = 64,
+                  reduction_name = "tcr_deeptcr",
+                  verbose = FALSE)
+
+# Project each into UMAP and compare how they organize the repertoire
+sce <- scater::runUMAP(sce, dimred = "tcr_esm", name = "umap_esm")
+sce <- scater::runUMAP(sce, dimred = "tcr_deeptcr", name = "umap_deeptcr")
+
+scater::plotReducedDim(sce, dimred = "umap_esm",
+                       colour_by = "clustcr_TRB")
+scater::plotReducedDim(sce, dimred = "umap_deeptcr",
+                       colour_by = "clustcr_TRB")
+```
+
+A caveat on training size: the VAE needs enough unique sequences to
+learn anything meaningful. On a few hundred sequences the latent space
+is dominated by noise, and the reconstruction accuracy reported during
+training is the quickest way to see it.
+
 # Integration with scRepertoire Clonotypes
 
 immLynx is designed to complement `r Biocpkg("scRepertoire")`, which
@@ -197,6 +234,84 @@ comparison <- table(
 
 cat("Number of clustcr clusters:", nrow(comparison), "\n")
 cat("Number of unique clonotypes:", ncol(comparison), "\n")
+```
+
+# Predicting Clonal Expansion from Gene Expression
+
+Every other tool in immLynx starts from receptor sequences. `runScXpand()`
+goes the other way: it uses [scXpand](https://github.com/yizhak-lab-ccg/scXpand)
+to predict, from gene expression alone, whether a T cell belongs to an
+expanded clone. That makes it usable on the many scRNA-seq datasets with no
+paired TCR arm, and on datasets that do have TCR data it gives you a way to
+ask how much of clonal expansion is written into the transcriptome.
+
+scXpand's pretrained models impose three hard requirements on the input:
+
+- **Raw UMI counts.** Normalized or log-transformed values are rejected.
+- **Ensembl gene IDs.** Most Seurat and scRepertoire objects carry symbols.
+- **T cells only.** Filter before calling. There is no reliable
+  programmatic check, and predictions on other cell types are meaningless.
+
+Genes the model expects but cannot find are silently zero-filled, so a poor
+identifier match degrades the prediction quietly instead of erroring. Read
+the gene mapping summary that `runScXpand()` prints.
+
+The first call builds a dedicated basilisk environment (Python 3.11, CPU
+PyTorch, scxpand) that occupies several gigabytes, and downloads the chosen
+model from figshare. Both are cached.
+
+```{r scxpand-models, eval=FALSE}
+listScXpandModels()
+```
+
+If the object is indexed by gene symbols, `map_symbols = "auto"` routes them
+through `org.Hs.eg.db`. One symbol often maps to several Ensembl IDs
+(`HLA-DRA` maps to eight, across alternate haplotypes). `multi_map = "first"`
+takes the lexicographically first, which is reproducible;
+`multi_map = "expand"` emits every candidate, which maximizes overlap with
+the model's panel at the cost of a larger staged matrix.
+
+```{r scxpand-run, eval=FALSE}
+sce_exp <- runScXpand(
+  immLynx_example,
+  model_name  = "pan_cancer_autoencoder",
+  assay       = "counts",
+  sample_col  = "Patient",
+  map_symbols = "auto"
+)
+
+summary(sce_exp$scXpand_expansion_prob)
+table(sce_exp$scXpand_expansion_pred, useNA = "ifany")
+```
+
+## Benchmarking against the observed repertoire
+
+When the object carries scRepertoire clone calls, `runScXpand()` also writes
+scXpand's ground-truth fields. It calls a cell expanded when its clone size
+exceeds 1.5 times the median clone size for its sample, tabulating clone
+sizes fresh from `CTstrict` within `sample_col`. Note that
+`clonalFrequency` is deliberately not used: `combineExpression()` computes
+it under whatever `group.by` was in effect, so it is not necessarily a
+per-sample count.
+
+"Median clone size" is ambiguous, and the two readings give different
+labels. `median_basis = "clone"` (the default) takes the median over unique
+clones, which in typical 10x data is 1 because most clones are singletons,
+so the rule reduces to *clone size at least 2*. `median_basis = "cell"`
+takes the median over cells, which is dominated by large clones and is much
+stricter.
+
+```{r scxpand-benchmark, eval=FALSE}
+run <- S4Vectors::metadata(sce_exp)$scXpand
+
+# AUROC of the gene-expression-only prediction against the observed clones.
+run$auroc_immLynx
+
+# Per-sample median clone sizes behind the label cutoff.
+run$labels$median_by_sample
+
+# How many features actually reached the model.
+run$gene_mapping
 ```
 
 # Analyzing Selection Pressure
@@ -264,6 +379,13 @@ help manage memory and runtime:
   distances, which scales quadratically. For very large datasets,
   computing distances on a representative subset is a practical
   alternative.
+- **Near-neighbor search instead of a distance matrix**: when the
+  question is "which sequences are similar" rather than "how far apart
+  is every pair", `runSymdelNeighbors()` avoids the quadratic step
+  entirely. It indexes sequences by their single-character deletions, so
+  cost scales with sequence count rather than its square, and it returns
+  a sparse edge list rather than a dense matrix. This is the practical
+  option past a few tens of thousands of unique sequences.
 
 ```{r large-data, eval=FALSE}
 sce_large <- runEmbeddings(
@@ -280,6 +402,15 @@ sce_large <- runClustTCR(
 sample_cells <- sample(colnames(large_sce), 5000)
 subset_obj <- large_sce[, sample_cells]
 dist_results <- runTCRdist(subset_obj)
+
+# Sparse neighbor search over the full dataset, no subsampling needed
+edges <- runSymdelNeighbors(
+  large_sce,
+  chains = "TRB",
+  max_edits = 1,
+  n_cpu = 4,
+  return_object = FALSE
+)
 ```
 
 # HLA Association Analysis

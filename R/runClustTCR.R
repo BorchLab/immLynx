@@ -4,7 +4,7 @@
 #'   SingleCellExperiment object with scRepertoire data and performs clustering
 #'   using the clusTCR algorithm.
 #'
-#' @param input A SingleCellExperiment object containing scRepertoire
+#' @param input A SingleCellExperiment or Seurat object containing scRepertoire
 #'   TCR data in the metadata.
 #' @param chains Character string specifying which chains to use: "TRA", "TRB", or "both".
 #'   Default is "TRB".
@@ -63,36 +63,13 @@ runClustTCR <- function(input,
   chains <- match.arg(chains)
 
   # Determine input type
-  .is_sce <- methods::is(input, "SingleCellExperiment")
+  .assertSCObject(input)
 
-  if (!.is_sce) {
-    stop("Input must be a SingleCellExperiment object")
-  }
+  .get_cells <- function(obj) colnames(obj)
 
-  # Get cell names based on object type
-  .get_cells <- function(obj) {
-    if (methods::is(obj, "SingleCellExperiment")) {
-      colnames(obj)
-    } else {
-      colnames(obj)
-    }
-  }
-
-  # Add metadata based on object type
-  .add_metadata <- function(obj, col_name, values, cell_names) {
-    if (methods::is(obj, "SingleCellExperiment")) {
-      col_vec <- rep(NA, ncol(obj))
-      names(col_vec) <- colnames(obj)
-      col_vec[cell_names] <- values
-      colData(obj)[[col_name]] <- col_vec
-    } else {
-      col_vec <- rep(NA, ncol(obj))
-      names(col_vec) <- colnames(obj)
-      col_vec[cell_names] <- values
-      obj[[col_name]] <- col_vec
-    }
-    obj
-  }
+  # Delegates to the shared writer so SingleCellExperiment and Seurat produce
+  # identical columns, including dropping names from the stored vector.
+  .add_metadata <- .writeCellColumn
 
   # Extract TCR data using immApex
   message("Extracting TCR sequences from object...")

@@ -18,7 +18,7 @@ test_that("runTCRdist rejects non-SCE input", {
 
   expect_error(
     runTCRdist(tcr_data, chains = "beta"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 
@@ -27,7 +27,7 @@ test_that("runTCRdist rejects data.frame input", {
 
   expect_error(
     runTCRdist(df, chains = "beta"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 

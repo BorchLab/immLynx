@@ -4,7 +4,7 @@
 #'   SingleCellExperiment object with scRepertoire data and calculates pairwise
 #'   TCR distances using tcrdist3.
 #'
-#' @param input A SingleCellExperiment object containing scRepertoire TCR data.
+#' @param input A SingleCellExperiment or Seurat object containing scRepertoire TCR data.
 #' @param chains Character vector specifying chains: "alpha", "beta", or c("alpha", "beta").
 #'   Default is "beta".
 #' @param organism Organism: "human" or "mouse". Default is "human".
@@ -50,11 +50,7 @@ runTCRdist <- function(input,
                        add_to_object = FALSE) {
 
   # Determine input type
-  .is_sce <- methods::is(input, "SingleCellExperiment")
-
-  if (!.is_sce) {
-    stop("Input must be a SingleCellExperiment object")
-  }
+  .assertSCObject(input)
 
   message("Extracting TCR sequences from object...")
 
@@ -167,8 +163,13 @@ runTCRdist <- function(input,
   )
 
   if (add_to_object) {
-      S4Vectors::metadata(input)$tcrdist <- output
-      message("TCR distances added to object at metadata(obj)$tcrdist")
+    input <- .writeObjMetadata(input, "tcrdist", output)
+    message("TCR distances added to object at ",
+            if (methods::is(input, "SingleCellExperiment")) {
+              "metadata(obj)$tcrdist"
+            } else {
+              "obj@misc$tcrdist"
+            })
     return(input)
   } else {
     return(output)

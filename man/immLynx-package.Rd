@@ -40,6 +40,13 @@ several popular Python-based tools and makes them accessible within R workflows.
   \item \code{\link{runSoNNia}}: Infer selection with soNNia
 }
 
+**Expansion Prediction:**
+\itemize{
+  \item \code{\link{runScXpand}}: Predict T-cell clonal expansion from gene
+    expression alone with scXpand, no paired TCR sequencing required
+  \item \code{\link{listScXpandModels}}: List the scXpand pretrained models
+}
+
 **Utility Functions:**
 \itemize{
   \item \code{\link{extractTCRdata}}: Extract TCR data from SingleCellExperiment objects
@@ -75,6 +82,7 @@ Python packages are managed automatically by basilisk. The following are include
   \item metaclonotypist - Metaclone discovery
   \item transformers - Hugging Face models
   \item torch - PyTorch for GPU support
+  \item scxpand - Clonal expansion prediction from gene expression
 }
 }
 
@@ -87,6 +95,11 @@ Useful links:
 }
 \author{
 \strong{Maintainer}: Nick Borcherding \email{ncborch@gmail.com} (\href{https://orcid.org/0000-0003-1427-6342}{ORCID})
+
+Authors:
+\itemize{
+  \item Nick Borcherding \email{ncborch@gmail.com} (\href{https://orcid.org/0000-0003-1427-6342}{ORCID})
+}
 
 }
 \keyword{internal}

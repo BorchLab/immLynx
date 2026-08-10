@@ -75,6 +75,11 @@ following analytical capabilities:
   structural properties
 - **Metaclone discovery** via metaclonotypist, identifying groups of
   related TCR clonotypes that may share antigen specificity
+- **Near-neighbor search** via symmetric deletion lookup, finding all
+  CDR3 pairs within a given edit distance without computing a full
+  pairwise distance matrix
+- **Deep generative featurization** via DeepTCR, learning a compact
+  latent representation of CDR3 sequences with a variational autoencoder
 
 This vignette demonstrates the core functionality of immLynx, walking
 through data preparation, individual analysis functions, and a combined
@@ -96,9 +101,21 @@ immLynx uses `r Biocpkg("basilisk")` to manage Python dependencies
 automatically. The first time you call a function that invokes Python,
 basilisk will create an isolated conda environment containing all
 required packages (tcrdist3, olga, soNNia, clusTCR, metaclonotypist,
-and PyTorch with the ESM-2 model). This initial setup may take several
-minutes but only needs to occur once per installation. Subsequent calls
-reuse the existing environment with minimal overhead.
+pyrepseq, and PyTorch with the ESM-2 model). This initial setup may take
+several minutes but only needs to occur once per installation.
+Subsequent calls reuse the existing environment with minimal overhead.
+
+A few tools pin dependency versions that cannot coexist with that main
+environment, so they get their own. `exportToScanpy()` uses a
+scanpy/scirpy environment, and `runDeepTCR()` uses a TensorFlow 2.12
+environment. Each is built on first use of the function that needs it,
+so you only pay for the ones you actually call.
+
+Two functions use their own environments rather than that one.
+`exportToScanpy()` needs the scanpy/scirpy stack, and `runScXpand()` needs
+Python 3.11 with a current PyTorch, which conflicts with the pinned
+versions above. Each builds on first use. The scXpand environment is the
+largest, at several gigabytes.
 
 # Quick Start
 
@@ -180,6 +197,50 @@ sce <- runClustTCR(
 table(sce$clustcr_TRB)
 ```
 
+## Near-Neighbor Search with symdel
+
+Symmetric deletion lookup finds every pair of CDR3 sequences within a
+given edit distance without ever building a full pairwise distance
+matrix. It indexes each sequence by its set of single-character
+deletions, so two sequences within one edit share at least one deletion
+variant and collide in the index. Cost scales with the number of
+sequences rather than with their square, which makes it practical on
+repertoires where a full distance matrix would not fit in memory.
+
+`runSymdelNeighbors()` searches over unique sequences and maps results
+back onto cells. By default it adds a `symdel_degree` column to
+`colData` giving the number of neighbors each cell's CDR3 has. High
+degree marks sequences sitting in dense similarity neighborhoods, the
+signature of convergent recombination and antigen-driven expansion.
+
+```{r symdel, eval=python_available}
+sce <- runSymdelNeighbors(
+  immLynx_example,
+  chains = "TRB",
+  max_edits = 1
+)
+
+table(sce$symdel_degree, useNA = "ifany")
+```
+
+Setting `return_object = FALSE` returns the neighbor pairs themselves,
+which is the more useful form when building a similarity graph.
+
+```{r symdel-edges, eval=python_available}
+edges <- runSymdelNeighbors(
+  immLynx_example,
+  chains = "TRB",
+  max_edits = 2,
+  return_object = FALSE
+)
+
+head(edges)
+```
+
+Note that this is the same algorithm benchmarked in the XT-neighbor
+work. immLynx uses the CPU implementation from `pyrepseq`, so no GPU is
+required.
+
 ## TCR Distance Calculations with tcrdist3
 
 tcrdist3 computes pairwise distances between TCR sequences using a
@@ -256,6 +317,39 @@ sce <- scater::runUMAP(sce,
 scater::plotReducedDim(sce, dimred = "UMAP")
 ```
 
+## Deep Generative Featurization with DeepTCR
+
+DeepTCR learns a latent representation of CDR3 sequences with a
+variational autoencoder. Where ESM-2 brings general protein knowledge
+learned from UniProt, the DeepTCR VAE is trained on the repertoire in
+front of it, so its features describe the structure of that specific
+dataset. The two are complementary rather than interchangeable.
+
+`runDeepTCR()` trains on unique sequences and writes the learned
+features to a dimensional reduction. DeepTCR prunes uninformative latent
+dimensions during training, so the result may be narrower than
+`latent_dim` requests.
+
+```{r deeptcr, eval=FALSE}
+sce <- runDeepTCR(
+  immLynx_example,
+  chains = "TRB",
+  latent_dim = 64,
+  verbose = FALSE
+)
+
+dim(SingleCellExperiment::reducedDim(sce, "tcr_deeptcr"))
+```
+
+This chunk is not evaluated when the vignette is built. DeepTCR pins
+TensorFlow 2.12 and its own numpy, pandas, and scipy versions, so it
+runs in a separate `deepTCREnv` environment that is a large first-use
+download. Set `eval = TRUE` to run it locally.
+
+Passing `use_genes = TRUE` includes V and J gene usage alongside the
+CDR3 sequence, which helps when gene usage carries specificity signal
+that the CDR3 alone does not.
+
 ## Metaclone Discovery with Metaclonotypist
 
 Metaclonotypist identifies metaclones---groups of TCR clonotypes that
@@ -323,6 +417,13 @@ immLynx_example <- runClustTCR(
   immLynx_example,
   chains = "TRB",
   method = "mcl"
+)
+
+# Count near neighbors within one edit
+immLynx_example <- runSymdelNeighbors(
+  immLynx_example,
+  chains = "TRB",
+  max_edits = 1
 )
 
 # Calculate generation probability

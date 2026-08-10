@@ -3,7 +3,7 @@
 #' @description Extracts TCR sequences from a SingleCellExperiment object
 #'   and calculates their generation probability using OLGA.
 #'
-#' @param input A SingleCellExperiment object containing scRepertoire TCR data.
+#' @param input A SingleCellExperiment or Seurat object containing scRepertoire TCR data.
 #' @param chains Which chain to analyze: "TRA" or "TRB". Default is "TRB".
 #' @param model OLGA model to use. Options: "humanTRB", "humanTRA", "humanIGH", "mouseTRB".
 #'   If NULL, will be inferred from organism and chains parameters.
@@ -55,27 +55,11 @@ runOLGA <- function(input,
   chains <- match.arg(chains)
 
   # Determine input type
-  .is_sce <- methods::is(input, "SingleCellExperiment")
+  .assertSCObject(input)
 
-  if (!.is_sce) {
-    stop("Input must be a SingleCellExperiment object")
-  }
-
-  # Helper to add metadata
-  .add_metadata <- function(obj, col_name, values, cell_names) {
-    if (methods::is(obj, "SingleCellExperiment")) {
-      col_vec <- rep(NA_real_, ncol(obj))
-      names(col_vec) <- colnames(obj)
-      col_vec[cell_names] <- values
-      colData(obj)[[col_name]] <- col_vec
-    } else {
-      col_vec <- rep(NA_real_, ncol(obj))
-      names(col_vec) <- colnames(obj)
-      col_vec[cell_names] <- values
-      obj[[col_name]] <- col_vec
-    }
-    obj
-  }
+  # Delegates to the shared writer so SingleCellExperiment and Seurat produce
+  # identical columns, including dropping names from the stored vector.
+  .add_metadata <- .writeCellColumn
 
   # Infer model if not specified
   if (is.null(model)) {

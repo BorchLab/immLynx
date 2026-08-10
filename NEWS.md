@@ -1,3 +1,56 @@
+# immLynx 1.3.1
+
+* Added `runScXpand()`, which predicts T-cell clonal expansion from gene
+  expression alone using scXpand's pretrained pan-cancer models. Unlike the
+  other wrapped tools it needs no receptor sequences, so it works on
+  datasets with no paired TCR sequencing. Inference only; training and
+  hyperparameter optimization stay in Python.
+* Added `listScXpandModels()` to enumerate the available pretrained models
+  without building the Python environment.
+* Added a dedicated `scXpandEnv` basilisk environment (Python 3.11, CPU
+  PyTorch, scxpand 0.4.6). It cannot share the existing environments
+  because scxpand needs Python 3.11 and torch 2.5. The first call builds
+  several gigabytes and downloads the selected model from figshare.
+* `runScXpand()` resolves gene identifiers to the Ensembl IDs scXpand's
+  models are indexed by, optionally mapping symbols through `org.Hs.eg.db`.
+  Ambiguous symbols (`HLA-DRA` alone maps to eight Ensembl IDs) and
+  collapsed duplicates are counted and reported rather than resolved
+  silently, because scXpand zero-fills genes it cannot find.
+* When scRepertoire clone calls are present, `runScXpand()` derives
+  `clone_id_size`, `median_clone_size` and `expansion` per sample using
+  scXpand's 1.5x-median rule, so a gene-expression-only prediction can be
+  scored against the observed repertoire. Clone sizes are tabulated fresh
+  rather than read from `clonalFrequency`, which `combineExpression()`
+  computes under whatever grouping was in effect.
+* Pretrained models are cached under `tools::R_user_dir("immLynx", "cache")`.
+  scXpand's own default would write a `.scxpand_cache` directory into the
+  current working directory, so `runScXpand()` downloads the model as an
+  explicit step with an explicit cache location.
+* Worked around an upstream download bug: scXpand's registry points at
+  `figshare.com/ndownloader/articles/...`, which answers HTTP 202 with an
+  empty body, and the failed download is cached so retries keep failing.
+  The same archive on `ndownloader.figshare.com` serves correctly, so
+  `runScXpand()` rewrites the host. The rewrite becomes a no-op once
+  upstream fixes its URLs.
+
+* Added `runSymdelNeighbors()` for near-neighbor CDR3 search by symmetric
+  deletion lookup, backed by `pyrepseq.nn.symdel` in the existing
+  `immLynxEnv`. Returns either a neighbor edge list or a per-cell neighbor
+  count. This closes the XT-neighbor request (#6) without a GPU dependency:
+  XT-neighbor is CUDA-only and its own documentation redirects users to the
+  CPU implementation of the same algorithm.
+
+* Added `runDeepTCR()` for unsupervised VAE featurization of CDR3 sequences
+  via DeepTCR (#8), writing features to a dimensional reduction. Runs in a new
+  `deepTCREnv` basilisk environment. The dependency conflict that originally
+  blocked this was resolved upstream in DeepTCR 2.1.29.
+
+* Fixed `scanpyExportEnv` declaring `anndata>=0.8`. basilisk passes the `pip`
+  vector through an unquoted shell, so `>=0.8` was parsed as a redirect: the
+  version floor was silently dropped and a stray file named `=0.8` was written
+  to the working directory. Now pinned to `anndata==0.11.4`, the version pip
+  already resolved to.
+
 # immLynx 1.1.2
 
 * Added `exportToScanpy()` to write a `SingleCellExperiment` or `Seurat`

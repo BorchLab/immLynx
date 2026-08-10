@@ -17,7 +17,7 @@ test_that("runClustTCR rejects non-SCE input", {
 
   expect_error(
     runClustTCR(tcr_data, chains = "TRB"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 
@@ -26,7 +26,7 @@ test_that("runClustTCR rejects matrix input", {
 
   expect_error(
     runClustTCR(mat, chains = "TRB"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 
@@ -35,7 +35,7 @@ test_that("runClustTCR rejects list input", {
 
   expect_error(
     runClustTCR(lst, chains = "TRB"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 

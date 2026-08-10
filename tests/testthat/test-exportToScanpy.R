@@ -437,9 +437,14 @@ test_that("exportToScanpy accepts a Seurat input via .coerceToSCE", {
   skip_if_not_installed("Matrix")
   skip_on_bioc_build()
 
-  m <- matrix(rpois(40 * 25, lambda = 2), 40, 25,
-              dimnames = list(paste0("g", seq_len(40)),
-                              paste0("c", seq_len(25))))
+  # Build the counts as a sparse matrix up front; CreateSeuratObject warns
+  # when it has to coerce a dense matrix itself.
+  m <- Matrix::Matrix(
+    matrix(rpois(40 * 25, lambda = 2), 40, 25,
+           dimnames = list(paste0("g", seq_len(40)),
+                           paste0("c", seq_len(25)))),
+    sparse = TRUE
+  )
   sobj <- Seurat::CreateSeuratObject(counts = m)
   sobj$sample <- rep(c("A", "B"), length.out = 25)
 
