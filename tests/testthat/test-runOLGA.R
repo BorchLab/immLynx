@@ -17,7 +17,7 @@ test_that("runOLGA rejects non-SCE input", {
 
   expect_error(
     runOLGA(tcr_data, chains = "TRB"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 

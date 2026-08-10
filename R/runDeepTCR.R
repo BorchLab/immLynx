@@ -4,7 +4,7 @@
 #'   SingleCellExperiment object and learns a low-dimensional representation
 #'   using DeepTCR's unsupervised variational autoencoder (DeepTCR_U).
 #'
-#' @param input A SingleCellExperiment object containing scRepertoire TCR data.
+#' @param input A SingleCellExperiment or Seurat object containing scRepertoire TCR data.
 #' @param chains Which chain(s) to featurize: "TRB", "TRA", or "both".
 #'   Default is "TRB".
 #' @param latent_dim Width of the VAE latent space. Default is 256.
@@ -84,9 +84,7 @@ runDeepTCR <- function(input,
 
   chains <- match.arg(chains)
 
-  if (!methods::is(input, "SingleCellExperiment")) {
-    stop("Input must be a SingleCellExperiment object")
-  }
+  .assertSCObject(input)
 
   if (!is.numeric(latent_dim) || length(latent_dim) != 1L ||
       is.na(latent_dim) || latent_dim < 1) {
@@ -147,7 +145,7 @@ runDeepTCR <- function(input,
                                         seq_len(ncol(cell_features)))))
   full[seq_map$barcodes, ] <- cell_features
 
-  SingleCellExperiment::reducedDim(input, reduction_name) <- full
+  input <- .writeReduction(input, reduction_name, full, reduction_key)
 
   message("Features added as '", reduction_name, "' reduction")
   input

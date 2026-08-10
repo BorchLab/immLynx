@@ -15,7 +15,7 @@ runSoNNia(
 )
 }
 \arguments{
-\item{input}{A SingleCellExperiment object containing scRepertoire TCR data.}
+\item{input}{A SingleCellExperiment or Seurat object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain to analyze: "TRB" or "TRA". Default is "TRB".}
 

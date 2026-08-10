@@ -6,7 +6,7 @@
 #'   pyrepseq. This is the same algorithm described in the XT-neighbor
 #'   preprint, running on CPU rather than GPU.
 #'
-#' @param input A SingleCellExperiment object containing scRepertoire TCR data.
+#' @param input A SingleCellExperiment or Seurat object containing scRepertoire TCR data.
 #' @param chains Which chain(s) to search: "TRB", "TRA", or "both".
 #'   Default is "TRB".
 #' @param max_edits Maximum edit distance defining a neighbor. Default is 1.
@@ -71,9 +71,7 @@ runSymdelNeighbors <- function(input,
 
   chains <- match.arg(chains)
 
-  if (!methods::is(input, "SingleCellExperiment")) {
-    stop("Input must be a SingleCellExperiment object")
-  }
+  .assertSCObject(input)
 
   if (!is.numeric(max_edits) || length(max_edits) != 1L ||
       is.na(max_edits) || max_edits < 1) {
@@ -112,12 +110,8 @@ runSymdelNeighbors <- function(input,
   # for the requested chain stay NA.
   cell_deg <- unname(deg[match(seq_map$sequences, unique_seqs)])
 
-  col_vec <- rep(NA_integer_, ncol(input))
-  names(col_vec) <- colnames(input)
-  col_vec[seq_map$barcodes] <- cell_deg
-
-  colData(input)[[paste0(column_prefix, "_degree")]] <- unname(col_vec)
-  input
+  .writeCellColumn(input, paste0(column_prefix, "_degree"),
+                   cell_deg, seq_map$barcodes)
 }
 
 

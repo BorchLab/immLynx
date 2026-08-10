@@ -20,7 +20,7 @@ runDeepTCR(
 )
 }
 \arguments{
-\item{input}{A SingleCellExperiment object containing scRepertoire TCR data.}
+\item{input}{A SingleCellExperiment or Seurat object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain(s) to featurize: "TRB", "TRA", or "both".
 Default is "TRB".}

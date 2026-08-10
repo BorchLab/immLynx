@@ -589,37 +589,8 @@
   out
 }
 
-#' @keywords internal
-# Fill a per-cell column, leaving NA for cells that were not scored.
-.writeCellColumn <- function(obj, col_name, values, cell_names) {
-  col_vec <- rep(NA, ncol(obj))
-  names(col_vec) <- colnames(obj)
-  col_vec[cell_names] <- values
-  names(col_vec) <- NULL
-  if (methods::is(obj, "SingleCellExperiment")) {
-    SummarizedExperiment::colData(obj)[[col_name]] <- col_vec
-  } else {
-    obj[[col_name]] <- col_vec
-  }
-  obj
-}
-
-#' @keywords internal
-# Stash the run summary. SingleCellExperiment has metadata(); Seurat keeps
-# the equivalent in the misc slot.
-.writeObjMetadata <- function(obj, key, value) {
-  if (methods::is(obj, "SingleCellExperiment")) {
-    md <- S4Vectors::metadata(obj)
-    md[[key]] <- value
-    S4Vectors::metadata(obj) <- md
-  } else {
-    misc <- methods::slot(obj, "misc")
-    if (!is.list(misc)) misc <- list()
-    misc[[key]] <- value
-    methods::slot(obj, "misc") <- misc
-  }
-  obj
-}
+# .writeCellColumn() and .writeObjMetadata() now live in R/utils.R, shared
+# with every other wrapper that accepts Seurat or SingleCellExperiment.
 
 # ===========================================================================
 # Exported functions

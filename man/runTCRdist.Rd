@@ -13,7 +13,7 @@ runTCRdist(
 )
 }
 \arguments{
-\item{input}{A SingleCellExperiment object containing scRepertoire TCR data.}
+\item{input}{A SingleCellExperiment or Seurat object containing scRepertoire TCR data.}
 
 \item{chains}{Character vector specifying chains: "alpha", "beta", or c("alpha", "beta").
 Default is "beta".}

@@ -21,7 +21,7 @@ test_that("runEmbeddings rejects non-SCE input", {
 
   expect_error(
     runEmbeddings(tcr_data, chains = "TRB"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 
@@ -30,7 +30,7 @@ test_that("runEmbeddings rejects data.frame input", {
 
   expect_error(
     runEmbeddings(df, chains = "TRB"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 
@@ -39,7 +39,7 @@ test_that("runEmbeddings rejects matrix input", {
 
   expect_error(
     runEmbeddings(mat, chains = "TRB"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 
@@ -48,7 +48,7 @@ test_that("runEmbeddings rejects list input", {
 
   expect_error(
     runEmbeddings(lst, chains = "TRB"),
-    "Input must be a SingleCellExperiment object"
+    "SingleCellExperiment or Seurat"
   )
 })
 

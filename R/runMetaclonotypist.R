@@ -76,8 +76,9 @@ if (is.null(max_dist)) {
     max_dist <- if (method == "tcrdist") 20 else 1.5
   }
 
-  # Extract TCR data
-  is_sc_object <- methods::is(input, "SingleCellExperiment")
+  # Extract TCR data. Anything that is not a single-cell container is
+  # treated as a pre-extracted data.frame.
+  is_sc_object <- .isSCObject(input)
 
   if (is_sc_object) {
     chain_code <- if (chains == "alpha") "TRA" else "TRB"

@@ -15,7 +15,7 @@ runOLGA(
 )
 }
 \arguments{
-\item{input}{A SingleCellExperiment object containing scRepertoire TCR data.}
+\item{input}{A SingleCellExperiment or Seurat object containing scRepertoire TCR data.}
 
 \item{chains}{Which chain to analyze: "TRA" or "TRB". Default is "TRB".}
 
