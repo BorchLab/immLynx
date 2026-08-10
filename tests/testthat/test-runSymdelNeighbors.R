@@ -119,7 +119,7 @@ test_that("runSymdelNeighbors rejects an invalid max_edits", {
 # ===========================================================================
 
 test_that("runSymdelNeighbors returns an edge list", {
-  skip_if_no_python()
+  skip_if_no_symdel()
   data("immLynx_example", package = "immLynx")
 
   edges <- runSymdelNeighbors(immLynx_example, chains = "TRB",
@@ -132,7 +132,7 @@ test_that("runSymdelNeighbors returns an edge list", {
 })
 
 test_that("runSymdelNeighbors adds a degree column to colData", {
-  skip_if_no_python()
+  skip_if_no_symdel()
   data("immLynx_example", package = "immLynx")
 
   sce <- runSymdelNeighbors(immLynx_example, chains = "TRB",
@@ -146,7 +146,7 @@ test_that("runSymdelNeighbors adds a degree column to colData", {
 })
 
 test_that("runSymdelNeighbors honors column_prefix", {
-  skip_if_no_python()
+  skip_if_no_symdel()
   data("immLynx_example", package = "immLynx")
 
   sce <- runSymdelNeighbors(immLynx_example, chains = "TRB",
@@ -156,7 +156,7 @@ test_that("runSymdelNeighbors honors column_prefix", {
 })
 
 test_that("runSymdelNeighbors finds more neighbors at a larger max_edits", {
-  skip_if_no_python()
+  skip_if_no_symdel()
   data("immLynx_example", package = "immLynx")
 
   e1 <- runSymdelNeighbors(immLynx_example, chains = "TRB",

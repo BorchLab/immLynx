@@ -276,3 +276,17 @@ skip_if_no_deeptcr <- function() {
   }, error = function(e) FALSE)
   if (!ok) testthat::skip("deepTCREnv not available")
 }
+
+# Skip if pyrepseq's neighbor-search module cannot be imported.
+#
+# pyrepseq.nn imports pwseqdist at module level, which pulls numba and then
+# llvmlite. llvmlite loads a compiled shared object, and on some CI images that
+# load fails with "OSError: Could not find/load shared object file" even though
+# the package itself installed cleanly. That is an environment problem rather
+# than a defect in the wrapper, so the symdel tests skip instead of failing.
+skip_if_no_symdel <- function() {
+  skip_if_no_python()
+  if (!can_import_module("pyrepseq.nn")) {
+    testthat::skip("pyrepseq.nn not importable (llvmlite/numba shared library)")
+  }
+}

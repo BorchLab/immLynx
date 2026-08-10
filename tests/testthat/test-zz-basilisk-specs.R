@@ -32,16 +32,33 @@ CONDA_JUNK <- "[[:space:]\"'`$;&|()]"
 
 # Collect every BasiliskEnvironment object defined in the package namespace,
 # so environments added later are covered without editing this test.
+#
+# inherits = FALSE matters: a namespace's parent chain reaches the imports
+# environment and eventually the search path, so the default lookup can return
+# objects that do not belong to immLynx at all.
 basilisk_envs <- function() {
   ns <- asNamespace("immLynx")
   found <- list()
   for (nm in ls(ns, all.names = TRUE)) {
-    obj <- tryCatch(get(nm, envir = ns), error = function(e) NULL)
+    obj <- tryCatch(get(nm, envir = ns, inherits = FALSE),
+                    error = function(e) NULL)
     if (methods::is(obj, "BasiliskEnvironment")) {
       found[[nm]] <- obj
     }
   }
   found
+}
+
+# Read a spec vector off an environment without assuming the slot exists.
+# BasiliskEnvironment has gained and renamed slots across basilisk versions,
+# and the package is built and checked against whatever the platform ships.
+env_specs <- function(env, slot_name) {
+  if (!slot_name %in% methods::slotNames(env)) {
+    return(character(0))
+  }
+  out <- tryCatch(methods::slot(env, slot_name),
+                  error = function(e) character(0))
+  if (is.null(out)) character(0) else as.character(out)
 }
 
 test_that("every basilisk environment is discoverable for inspection", {
@@ -58,7 +75,7 @@ test_that("pip specs contain no shell metacharacters", {
   envs <- basilisk_envs()
 
   for (nm in names(envs)) {
-    specs <- envs[[nm]]@pip
+    specs <- env_specs(envs[[nm]], "pip")
     if (!length(specs)) next
 
     bad <- specs[!grepl(SHELL_SAFE, specs)]
@@ -79,7 +96,7 @@ test_that("conda package specs are well formed", {
   envs <- basilisk_envs()
 
   for (nm in names(envs)) {
-    specs <- envs[[nm]]@packages
+    specs <- env_specs(envs[[nm]], "packages")
     if (!length(specs)) next
 
     bad <- specs[grepl(CONDA_JUNK, specs)]

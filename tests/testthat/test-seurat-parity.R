@@ -70,7 +70,7 @@ test_that("the shared guard accepts a Seurat object", {
 # ===========================================================================
 
 test_that("runSymdelNeighbors round-trips both classes", {
-  skip_if_no_python()
+  skip_if_no_symdel()
 
   sce <- runSymdelNeighbors(sce_fixture(), chains = "TRB", max_edits = 1)
   seu <- runSymdelNeighbors(seurat_fixture(), chains = "TRB", max_edits = 1)
