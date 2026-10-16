@@ -8,6 +8,7 @@ AutoModel
 barcode
 barcodes
 BCR
+Belean
 benchmarked
 benchmarking
 bfloat
@@ -41,6 +42,7 @@ deepTCR
 DeepTCR's
 deepTCREnv
 disambiguated
+doi
 downloader
 Embeddings
 embeddings
@@ -55,6 +57,7 @@ featurization
 Featurize
 featurize
 figshare
+fimmu
 generateOLGA
 GEX
 GLIPH
@@ -166,6 +169,7 @@ UMI
 UniProt
 unmapped
 unselected
+uveitis
 VAE
 Valkiers
 Variational

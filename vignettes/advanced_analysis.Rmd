@@ -63,6 +63,12 @@ This vignette covers the following advanced topics:
 - **Scalability strategies**: Practical approaches for analyzing large
   datasets with limited computational resources
 
+If you use immLynx in your research, please cite Belean et al. (2026),
+*Frontiers in Immunology*
+[doi:10.3389/fimmu.2026.1916535](https://doi.org/10.3389/fimmu.2026.1916535),
+along with the original publications for each Python tool you use. See
+`citation("immLynx")` for the full reference.
+
 # Setup
 
 We begin by loading the required packages and the example dataset. The

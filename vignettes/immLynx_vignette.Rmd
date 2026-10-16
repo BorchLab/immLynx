@@ -87,6 +87,19 @@ workflow. For advanced use cases including method comparison and custom
 embedding strategies, see the companion vignette
 `vignette("advanced_analysis", package = "immLynx")`.
 
+## Citation
+
+If you use immLynx in your research, please cite:
+
+- Belean, A. et al. *Single-cell sequencing of non-infectious and viral uveitis
+  defines distinct mechanisms in ocular inflammation.* Frontiers in Immunology
+  17, 1916535 (2026).
+  [doi:10.3389/fimmu.2026.1916535](https://doi.org/10.3389/fimmu.2026.1916535)
+
+immLynx is an interface to existing Python tools, so please also cite the
+original publications for each tool you use. The full immLynx citation,
+including a BibTeX entry, is available with `citation("immLynx")`.
+
 # Installation
 
 ```{r installation, eval = FALSE}
