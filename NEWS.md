@@ -1,3 +1,8 @@
+# immLynx 1.3.2
+
+* Added CITATION and information for article related to immLynx, see 
+  inst/CITATION
+
 # immLynx 1.3.1
 
 * Added `runScXpand()`, which predicts T-cell clonal expansion from gene
