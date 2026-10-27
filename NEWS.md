@@ -1,3 +1,14 @@
+# immLynx 1.1.4
+
+* Pinned the Linux CI runner to ubuntu-24.04. The `ubuntu-latest` label
+  rolled over to 26.04, where the first Python call into `immLynxEnv`
+  segfaults inside `py_call_impl`. The environment pins python 3.9, numpy
+  1.23.4 and torch 2.1.2 because tcrdist3, olga and clusTCR require them,
+  and that stack does not survive the newer toolchain. The identical
+  package set still passes on macOS and Windows. Bioconductor's x86_64
+  Linux builder runs Ubuntu 24.04 LTS, so the pin also puts CI back on the
+  platform the package is released on.
+
 # immLynx 1.1.3
 
 * Added CITATION and information for article related to immLynx, see 

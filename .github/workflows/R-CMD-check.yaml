@@ -21,7 +21,14 @@ jobs:
         config:
           - {os: macos-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
-          - {os: ubuntu-latest,   r: 'release'}
+          # Pinned, not ubuntu-latest. When the latest label rolled over
+          # to 26.04 the test suite began segfaulting on the first call
+          # into immLynxEnv, whose stack is pinned to python 3.9 +
+          # numpy 1.23.4 + torch 2.1.2 by tcrdist3/olga/clusTCR. The same
+          # package versions pass on macOS and Windows. Bioconductor's
+          # Linux builders run 24.04, so this also matches the platform
+          # the package is actually released on.
+          - {os: ubuntu-24.04,   r: 'release'}
 
     timeout-minutes: 90
 
