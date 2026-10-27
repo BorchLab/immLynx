@@ -1,9 +1,9 @@
-# immLynx 1.3.2
+# immLynx 1.1.3
 
 * Added CITATION and information for article related to immLynx, see 
   inst/CITATION
 
-# immLynx 1.3.1
+# immLynx 1.1.2
 
 * Added `runScXpand()`, which predicts T-cell clonal expansion from gene
   expression alone using scXpand's pretrained pan-cancer models. Unlike the
@@ -56,7 +56,7 @@
   to the working directory. Now pinned to `anndata==0.11.4`, the version pip
   already resolved to.
 
-# immLynx 1.1.2
+# immLynx 1.1.1
 
 * Added `exportToScanpy()` to write a `SingleCellExperiment` or `Seurat`
   object (with optional scRepertoire immune-receptor metadata) to
