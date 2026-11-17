@@ -1,3 +1,11 @@
+# immLynx 1.1.5
+
+* Fixed `runScXpand()` mapping tests that failed on the Bioconductor
+  builder. They assumed `HLA-DRA` maps to several Ensembl IDs, which held
+  in org.Hs.eg.db 3.21 but not in later releases. The tests now pull a
+  multi-mapping symbol from the installed annotation database and skip if
+  none exists. Package code is unchanged.
+
 # immLynx 1.1.4
 
 * Pinned the Linux CI runner to ubuntu-24.04. The `ubuntu-latest` label

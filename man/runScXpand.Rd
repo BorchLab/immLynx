@@ -154,7 +154,7 @@ than erroring. That is why the gene mapping summary is worth reading.
 \strong{Symbol mapping.} When identifiers are symbols, they are mapped
 through \code{org.Hs.eg.db} (SYMBOL first, then ALIAS). One symbol often
 maps to several Ensembl IDs because of alternate haplotypes:
-\code{HLA-DRA} maps to eight. \code{multi_map = "first"} takes the
+\code{HLA-DRA} maps to eight in org.Hs.eg.db 3.21. \code{multi_map = "first"} takes the
 lexicographically first, which is reproducible but may pick a scaffold
 the model does not know; \code{multi_map = "expand"} emits every
 candidate, which maximizes overlap with the model's panel at the cost of

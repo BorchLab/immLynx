@@ -155,34 +155,74 @@ test_that(".resolveGeneIDs errors when nothing resolves", {
 # Symbol to Ensembl mapping
 # ===========================================================================
 
+# Which symbols map to several Ensembl IDs depends on the org.Hs.eg.db
+# release. HLA-DRA mapped to eight IDs in 3.21 and to one in later builds,
+# so the tests ask the installed database for an ambiguous symbol instead
+# of hard-coding one. Known multi-mappers are tried first for readability,
+# then the whole ENTREZ -> ENSEMBL table is scanned.
+.ambiguousSymbol <- function() {
+  db <- org.Hs.eg.db::org.Hs.eg.db
+  n_ens <- function(sym) {
+    res <- suppressWarnings(suppressMessages(
+      AnnotationDbi::select(db, keys = sym, keytype = "SYMBOL",
+                            columns = "ENSEMBL")))
+    tapply(res$ENSEMBL, res$SYMBOL, function(x) length(unique(na.omit(x))))
+  }
+  candidates <- c("HLA-DRA", "HLA-A", "HLA-DQA1", "KIR2DL1", "HLA-C",
+                  "CYP21A2", "MICA", "SMN1", "C4A")
+  candidates <- intersect(candidates, AnnotationDbi::keys(db, "SYMBOL"))
+  if (length(candidates)) {
+    n <- n_ens(candidates)
+    hit <- names(n)[n > 1L]
+    if (length(hit)) return(candidates[candidates %in% hit][1L])
+  }
+  ens <- AnnotationDbi::toTable(org.Hs.eg.db::org.Hs.egENSEMBL)
+  per_gene <- table(ens$gene_id)
+  multi <- sort(names(per_gene)[per_gene > 1L])
+  if (!length(multi)) return(NA_character_)
+  sym <- AnnotationDbi::toTable(org.Hs.eg.db::org.Hs.egSYMBOL)
+  sym <- sort(unique(sym$symbol[sym$gene_id %in% multi]))
+  # A symbol shared with another Entrez ID could still resolve oddly, so
+  # confirm through the same SYMBOL lookup the package uses.
+  for (s in head(sym, 50L)) if (n_ens(s)[[1L]] > 1L) return(s)
+  NA_character_
+}
+
+.skip_without_ambiguous <- function() {
+  skip_if_not_installed("org.Hs.eg.db")
+  skip_if_not_installed("AnnotationDbi")
+  amb <- .ambiguousSymbol()
+  if (is.na(amb)) skip("No multi-mapping symbol in installed org.Hs.eg.db")
+  amb
+}
+
 test_that(".mapSymbolsToEnsembl maps symbols and counts what it dropped", {
   skip_if_not_installed("org.Hs.eg.db")
   skip_if_not_installed("AnnotationDbi")
 
+  amb <- .skip_without_ambiguous()
   m <- immLynx:::.mapSymbolsToEnsembl(
-    c("CD3E", "HLA-DRA", "NOTAGENEATALL"), multi_map = "first")
+    c("CD3E", amb, "NOTAGENEATALL"), multi_map = "first")
 
   expect_equal(m$map$ENSEMBL[m$map$SYMBOL == "CD3E"], "ENSG00000198851")
   expect_equal(m$n_query, 3L)
   expect_equal(m$n_unmapped, 1L)
-  # HLA-DRA sits on several alt haplotypes.
   expect_gte(m$n_ambiguous, 1L)
 })
 
 test_that(".mapSymbolsToEnsembl multi_map modes behave differently", {
-  skip_if_not_installed("org.Hs.eg.db")
-  skip_if_not_installed("AnnotationDbi")
+  amb <- .skip_without_ambiguous()
 
-  first  <- immLynx:::.mapSymbolsToEnsembl("HLA-DRA", multi_map = "first")
-  expand <- immLynx:::.mapSymbolsToEnsembl("HLA-DRA", multi_map = "expand")
-  dropped <- immLynx:::.mapSymbolsToEnsembl("HLA-DRA", multi_map = "drop")
+  first  <- immLynx:::.mapSymbolsToEnsembl(amb, multi_map = "first")
+  expand <- immLynx:::.mapSymbolsToEnsembl(amb, multi_map = "expand")
+  dropped <- immLynx:::.mapSymbolsToEnsembl(amb, multi_map = "drop")
 
   expect_equal(nrow(first$map), 1L)
   expect_gt(nrow(expand$map), 1L)
   expect_equal(nrow(dropped$map), 0L)
 
   # Lexicographic ordering makes "first" reproducible run to run.
-  again <- immLynx:::.mapSymbolsToEnsembl("HLA-DRA", multi_map = "first")
+  again <- immLynx:::.mapSymbolsToEnsembl(amb, multi_map = "first")
   expect_identical(first$map, again$map)
   expect_equal(first$map$ENSEMBL, min(expand$map$ENSEMBL))
 })
@@ -200,7 +240,9 @@ test_that(".resolveGeneIDs maps symbols end to end", {
   expect_equal(r$report$n_unmapped, 1L)
 
   # "expand" duplicates rows rather than dropping candidates.
-  sce2 <- .gene_sce(c("CD3E", "HLA-DRA"))
+  amb <- .ambiguousSymbol()
+  if (is.na(amb)) skip("No multi-mapping symbol in installed org.Hs.eg.db")
+  sce2 <- .gene_sce(c("CD3E", amb))
   re <- immLynx:::.resolveGeneIDs(sce2, map_symbols = "auto",
                                   multi_map = "expand", verbose = FALSE)
   expect_gt(length(re$ids), 2L)

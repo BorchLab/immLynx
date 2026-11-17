@@ -63,7 +63,7 @@
 # Map gene symbols to Ensembl gene IDs via org.Hs.eg.db, trying SYMBOL
 # first and falling back to ALIAS for unmatched keys.
 #
-# One symbol routinely maps to several ENSG IDs (HLA-DRA -> 8, HSPA1A -> 5,
+# One symbol routinely maps to several ENSG IDs (HLA-DRA -> 8 in org.Hs.eg.db 3.21, HSPA1A -> 5,
 # alt haplotypes and patch scaffolds). scXpand silently zero-fills any gene
 # it cannot find in its panel, so an unlucky pick deletes that gene rather
 # than erroring. Every ambiguous case is therefore counted and reported.
@@ -676,7 +676,7 @@ listScXpandModels <- function(refresh = FALSE) {
 #' \strong{Symbol mapping.} When identifiers are symbols, they are mapped
 #' through \code{org.Hs.eg.db} (SYMBOL first, then ALIAS). One symbol often
 #' maps to several Ensembl IDs because of alternate haplotypes:
-#' \code{HLA-DRA} maps to eight. \code{multi_map = "first"} takes the
+#' \code{HLA-DRA} maps to eight in org.Hs.eg.db 3.21. \code{multi_map = "first"} takes the
 #' lexicographically first, which is reproducible but may pick a scaffold
 #' the model does not know; \code{multi_map = "expand"} emits every
 #' candidate, which maximizes overlap with the model's panel at the cost of
